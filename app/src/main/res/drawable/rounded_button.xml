@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Bóng -->
+    <item>
+        <inset android:left="2dp" android:right="2dp" android:top="2dp" android:bottom="2dp">
+            <shape>
+                <solid android:color="#80000000"/> <!-- Màu bóng có độ trong suốt -->
+                <corners android:radius="30dp"/>
+            </shape>
+        </inset>
+    </item>
+    <!-- Nền của Button -->
+    <item>
+        <shape>
+            <solid android:color="@color/white"/> <!-- Màu nền của button -->
+            <corners android:radius="18dp"/> <!-- Đảm bảo viền bo tròn cho button -->
+        </shape>
+    </item>
+</layer-list>

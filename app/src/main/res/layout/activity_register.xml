@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.foodapp.RegisterActivity">
+
+    <!-- User name -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/edtUserNameLayout"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="24dp"
+        android:hint="Tên người dùng"
+        android:textColorHint="@color/lightgray"
+        app:counterEnabled="true"
+        app:counterMaxLength="20"
+        app:errorEnabled="true"
+        app:helperTextTextColor="@color/red"
+        app:layout_constraintBottom_toTopOf="@+id/edtEmailLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edtUserName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPersonName"
+            android:maxLength="20" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Email -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/edtEmailLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="24dp"
+        android:hint="Email"
+        android:textColorHint="@color/lightgray"
+        app:errorEnabled="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/edtUserNameLayout">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edtEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textEmailAddress" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+
+    <!-- Mật khẩu -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/edtPasswordLayout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="24dp"
+        android:hint="Mật khẩu"
+        android:textColorHint="@color/lightgray"
+        app:errorEnabled="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edtEmailLayout">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edtPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword" />
+    </com.google.android.material.textfield.TextInputLayout>
+    <!-- Nhập lại mật khẩu -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/edtConfirmPasswordLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="24dp"
+        android:hint="Nhập lại mật khẩu"
+        android:textColorHint="@color/lightgray"
+        app:counterEnabled="true"
+        app:counterMaxLength="20"
+        app:errorEnabled="true"
+        app:helperTextTextColor="@color/red"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edtPasswordLayout">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edtConfirmPassword"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:inputType="textPassword" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Nút Đăng ký -->
+    <Button
+        android:id="@+id/btnRegister"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="100dp"
+        android:layout_marginEnd="24dp"
+        android:text="Đăng ký"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/edtPasswordLayout" />
+
+    <ImageButton
+        android:id="@+id/imgbtnFb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:layout_constraintEnd_toStartOf="@+id/imgbtnGb"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnRegister"
+        android:layout_marginTop="15dp"
+        android:layout_marginStart="70dp"
+        app:srcCompat="@drawable/fb" />
+
+    <ImageButton
+        android:id="@+id/imgbtnGb"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/imgbtnFb"
+        app:layout_constraintTop_toBottomOf="@+id/btnRegister"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="70dp"
+        app:srcCompat="@drawable/gg" />
+
+    <TextView
+        android:id="@+id/txtDangKy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Bạn có tài khoản chưa ? Đăng nhập"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imgbtnFb"
+        android:layout_marginTop="50dp"/>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
