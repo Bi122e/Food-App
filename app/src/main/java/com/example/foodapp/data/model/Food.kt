@@ -10,7 +10,7 @@ data class Food(
     val description: String = "",
     val price: Double = 0.0,
     val imageUrl: String = "",
-    val category: String = "",
+    val categoryId: String = "",
     val isAvailable: Boolean = true,
     val restaurantId: String = "",
     @ServerTimestamp

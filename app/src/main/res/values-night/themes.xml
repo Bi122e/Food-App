@@ -1,19 +1,35 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <!-- Base application theme. -->
     <style name="Base.Theme.Food_app" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your dark theme here. -->
         <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
     </style>
+
     <style name="HintStyle" parent="TextAppearance.Material3.BodySmall">
         <item name="android:textColor">#FF0000</item>
         <item name="android:textSize">16sp</item>
         <item name="android:textStyle">normal</item>
-    </style>
-    
 
+    </style>
+
+    <!--    bottom NavItem Indicator custom-->
+    <style name="BottomNavItemIndicatorCustom" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <!-- Màu nền của indicator -->
+        <item name="android:color">#FFE4E1</item>
+        <!-- Kích thước -->
+        <item name="android:width">64dp</item>
+        <item name="android:height">32dp</item>
+        <!-- Bo góc -->
+        <item name="cornerRadius">16dp</item>
+    </style>
+
+    <style name="BottomNavigationTheme" parent="Widget.MaterialComponents.BottomNavigationView">
+        <item name="itemBackground">@android:color/transparent</item>
+        <item name="itemRippleColor">@android:color/transparent</item>
+    </style>
 
 
     <style name="Theme.Food_app" parent="Base.Theme.Food_app">
-        <!-- Các thuộc tính tùy chỉnh khác nếu cần -->
+
     </style>
 </resources>

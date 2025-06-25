@@ -73,5 +73,21 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    //fragment
+    implementation("androidx.navigation:navigation-fragment-ktx:2.5.3")
+    implementation("androidx.navigation:navigation-ui-ktx:2.5.3")
+
+    //glice
+    implementation("com.github.bumptech.glide:glide:4.15.1")  // Phiên bản mới nhất tính đến 2025
+    implementation("androidx.viewpager2:viewpager2:1.0.0")
+
+    //cicle
+    implementation("me.relex:circleindicator:2.1.6")
+
+    //NavigationBarView
+    implementation("com.google.android.material:material:1.11.0")
+
+
 }
 

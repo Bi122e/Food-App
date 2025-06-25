@@ -1,47 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+    android:id="@+id/mainHome"
     android:layout_width="match_parent"
-    android:orientation="vertical"
     android:layout_height="match_parent"
+    android:background="#F9F3F0"
+    android:fitsSystemWindows="true"
     tools:context=".ui.home.HomeActivity">
 
-    <TextView
-        android:id="@+id/txt1"
+    <ImageView
+        android:id="@+id/location"
+
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="30sp"
-        android:text="TextView" />
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="15dp"
+        android:src="@drawable/ic_location"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
-        android:id="@+id/txt2"
+        android:id="@+id/text_location"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:ellipsize="end"
+        android:maxLines="3"
+        android:minLines="3"
+        android:text="E1/42c"
+        app:layout_constraintEnd_toStartOf="@id/expand_location"
+        app:layout_constraintStart_toEndOf="@id/location"
+        app:layout_constraintTop_toTopOf="@+id/location" />
+
+    <ImageView
+        android:id="@+id/expand_location"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="TextView"
-        android:textSize="30sp"
+        android:layout_marginStart="1dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="222dp"
+        android:src="@drawable/ic_expand_more"
+        app:layout_constraintEnd_toStartOf="@id/notification"
+        app:layout_constraintStart_toEndOf="@id/text_location"
+        app:layout_constraintTop_toTopOf="@id/location" />
 
-        tools:layout_editor_absoluteX="113dp"
-        tools:layout_editor_absoluteY="187dp" />
-
-    <TextView
-        android:id="@+id/txt3"
+    <ImageView
+        android:id="@+id/notification"
         android:layout_width="wrap_content"
+
         android:layout_height="wrap_content"
-        android:text="TextView"
-        android:textSize="30sp"
+        android:src="@drawable/ic_notification"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/location" />
 
-        tools:layout_editor_absoluteX="114dp"
-        tools:layout_editor_absoluteY="261dp" />
-
-    <TextView
-        android:id="@+id/txt4"
-        android:layout_width="wrap_content"
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/searchView"
+        android:layout_width="350dp"
         android:layout_height="wrap_content"
-        android:text="TextView"
-        android:textSize="30sp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_rounded_search_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/location"
+        app:queryHint="Tìm kiếm" />
 
-        tools:layout_editor_absoluteX="116dp"
-        tools:layout_editor_absoluteY="326dp" />
-</LinearLayout>
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/bannerViewPager"
+        android:layout_width="350dp"
+        android:layout_height="150dp"
+        android:layout_marginTop="16dp"
+        android:clipToPadding="false"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/searchView" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomBar"
+        android:layout_width="0dp"
+        android:layout_height="65dp"
+        android:layout_marginStart="11dp"
+        android:layout_marginEnd="11dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/bg_bottom_nav"
+
+        app:itemActiveIndicatorStyle="@null"
+        app:itemBackground="@drawable/bg_nav_item_active"
+        app:itemIconSize="18dp"
+        app:itemIconTint="@color/nav_item_bg_color"
+
+        app:itemTextColor="@color/nav_item_text_color"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+
+        app:menu="@menu/bottom_nav_menu" />
+
+    <!--    <com.google.android.material.bottomnavigation.BottomNavigationView-->
+    <!--        android:id="@+id/bottomNavigation"-->
+    <!--        android:layout_width="match_parent"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_gravity="bottom"-->
+    <!--        android:background="@color/white"-->
+    <!--        app:menu="@menu/bottom_nav_menu"-->
+    <!--        app:layout_constraintTop_toBottomOf="@+id/searchView"-->
+    <!--        app:layout_constraintStart_toStartOf="parent"-->
+    <!--        app:layout_constraintEnd_toEndOf="parent"-->
+    <!--        app:itemIconTint="@color/nav_item_bg_color"-->
+    <!--        app:itemTextColor="@color/nav_item_text_color"-->
+    <!--        app:labelVisibilityMode="labeled" />-->
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
