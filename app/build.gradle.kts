@@ -88,6 +88,10 @@ dependencies {
     //NavigationBarView
     implementation("com.google.android.material:material:1.11.0")
 
+    //worm-dots-indicator
+    implementation("com.tbuonomo:dotsindicator:5.1.0")
+
+
 
 }
 
