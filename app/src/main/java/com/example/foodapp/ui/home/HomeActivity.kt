@@ -3,13 +3,18 @@ package com.example.foodapp.ui.home
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.example.foodapp.R
+import com.example.foodapp.data.model.Category
+import com.example.foodapp.data.model.FoodCategory
 import com.example.foodapp.databinding.ActivityHomeBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -41,6 +46,24 @@ class HomeActivity : AppCompatActivity() {
         setupIndicatorListener()
         setupAutoScroll()
         setupNavBottomBar()
+        setupCategory()
+
+    }
+
+    private fun setupCategory() {
+        val iconList = listOf<FoodCategory>(
+            FoodCategory("Pizza", "pizza", R.drawable.img_pizza, false,),
+            FoodCategory("Pizza", "pizza", R.drawable.img_pizza, false,),
+            FoodCategory("Pizza", "pizza", R.drawable.img_pizza, false,),
+            FoodCategory("Pizza", "pizza", R.drawable.img_pizza, false,),
+            FoodCategory("Pizza", "pizza", R.drawable.img_pizza, false,),
+        )
+        val iconCategory = findViewById<RecyclerView>(R.id.rvFoodCategory)
+        iconCategory.layoutManager = LinearLayoutManager(
+            this, LinearLayoutManager.HORIZONTAL, false
+        )
+        val adapter = FoodCategoryAdapter(iconList)
+        iconCategory.adapter = adapter
     }
 
     private fun setupSlider() {

@@ -12,6 +12,8 @@
 
     </style>
 
+
+
     <!--    bottom NavItem Indicator custom-->
     <style name="BottomNavItemIndicatorCustom" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
         <!-- Màu nền của indicator -->

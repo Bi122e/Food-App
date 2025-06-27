@@ -1,27 +1,75 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:gravity="center"
-    android:padding="8dp">
-
-    <ImageView
-        android:id="@+id/imgCategory"
+    android:orientation="vertical"
+    android:layout_marginEnd="14dp">
+    <FrameLayout
+        android:id="@+id/frameLayout"
         android:layout_width="80dp"
         android:layout_height="80dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/ic_fb" />
+        android:layout_gravity="center"
+        android:background="@drawable/bg_category"
+        android:clipToOutline="true" >
+
+        <ImageView
+            android:layout_gravity="center"
+            android:id="@+id/imgCategory"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_fb" />
+    </FrameLayout>
+
+
+
 
     <TextView
-        android:id="@+id/tvCategory"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:layout_marginTop="8dp"
-        android:text="Burger"
-        android:textColor="@android:color/black"
+        android:id="@+id/txtCategory"
+        android:textStyle="bold"
+        android:textColor="@color/item_text_color"
         android:textSize="16sp"
-        android:maxLines="1"
-        android:ellipsize="end" />
+        />
+
+
 </LinearLayout>
+
+<!--    <?xml version="1.0" encoding="utf-8"?>-->
+<!--<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--android:layout_width="wrap_content"-->
+<!--android:layout_height="wrap_content"-->
+<!--android:orientation="vertical"-->
+<!--android:gravity="center"-->
+<!--android:padding="8dp">-->
+
+<!--<ImageView-->
+<!--    android:id="@+id/imgCategory"-->
+<!--    android:layout_width="80dp"-->
+<!--    android:layout_height="80dp"-->
+<!--    android:scaleType="centerCrop"-->
+<!--    android:src="@drawable/ic_fb" />-->
+
+<!--<TextView-->
+<!--    android:id="@+id/tvCategory"-->
+<!--    android:layout_width="wrap_content"-->
+<!--    android:layout_height="wrap_content"-->
+<!--    android:gravity="center"-->
+<!--    android:layout_marginTop="8dp"-->
+<!--    android:text="Burger"-->
+<!--    android:textColor="@android:color/black"-->
+<!--    android:textSize="16sp"-->
+<!--    android:maxLines="1"-->
+<!--    android:ellipsize="end" />-->
+<!--</LinearLayout>-->
+
+
+
+
+
+
+

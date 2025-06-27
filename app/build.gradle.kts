@@ -91,6 +91,8 @@ dependencies {
     //worm-dots-indicator
     implementation("com.tbuonomo:dotsindicator:5.1.0")
 
+    //ShapeableImageView
+    implementation("com.google.android.material:material:1.11.0")
 
 
 }

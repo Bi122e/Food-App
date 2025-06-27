@@ -68,9 +68,9 @@ class FoodImg(private val foodImgLst: List<FoodCategory>) : RecyclerView.Adapter
         fun bind(foodCategory: FoodCategory) {
             // ✅ Dùng Glide thay vì setImageResource để giảm lag
             Glide.with(itemView.context)
-                .load(foodCategory.iconRes)
-                .apply(glideOptions)
-                .into(foodImg)
+//                .load(foodCategory.iconRes)
+//                .apply(glideOptions)
+//                .into(foodImg)
 
             tvFood.text = foodCategory.name
         }

@@ -1,8 +1,10 @@
 package com.example.foodapp.data.model
 
-data class FoodCategory(
-    val id: String,
+data class FoodCategory (
     val name: String,
-    val iconRes: Int,
-    var isSelected: Boolean = false,
+    val id: String,
+    val imgRes: Int,
+    var isSelected: Boolean,
 )
+
+
