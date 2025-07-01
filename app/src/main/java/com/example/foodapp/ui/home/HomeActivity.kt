@@ -15,6 +15,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.example.foodapp.R
 import com.example.foodapp.data.model.Category
 import com.example.foodapp.data.model.FoodCategory
+import com.example.foodapp.data.model.FoodImaHome
 import com.example.foodapp.databinding.ActivityHomeBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -47,7 +48,23 @@ class HomeActivity : AppCompatActivity() {
         setupAutoScroll()
         setupNavBottomBar()
         setupCategory()
+        setUpimgFood()
+    }
 
+    private fun setUpimgFood() {
+        val rvFood = findViewById<RecyclerView>(R.id.rvFood)
+        val imgFood = listOf<FoodImaHome>(
+            FoodImaHome("Pizza", "pizza", R.drawable.img_pizza, "1999$", "UK"),
+            FoodImaHome("Pizza", "pizza", R.drawable.img_pizza, "1999$", "UK"),
+            FoodImaHome("Pizza", "pizza", R.drawable.img_pizza, "1999$", "UK"),
+            FoodImaHome("Pizza", "pizza", R.drawable.img_pizza, "1999$", "UK"),
+        )
+
+        val adapter = com.example.foodapp.ui.home.FoodCategory(imgFood)
+        rvFood.layoutManager = LinearLayoutManager(
+            this, LinearLayoutManager.HORIZONTAL, false
+        )
+        rvFood.adapter = adapter
     }
 
     private fun setupCategory() {

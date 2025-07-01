@@ -2,143 +2,188 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/mainHome"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F9F3F0"
     android:fitsSystemWindows="true"
     tools:context=".ui.home.HomeActivity">
 
-    <ImageView
-        android:id="@+id/location"
-
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="15dp"
-        android:src="@drawable/ic_location"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/text_location"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:ellipsize="end"
-        android:maxLines="3"
-        android:minLines="3"
-        android:text="E1/42c"
-        app:layout_constraintEnd_toStartOf="@id/expand_location"
-        app:layout_constraintStart_toEndOf="@id/location"
-        app:layout_constraintTop_toTopOf="@+id/location" />
-
-    <ImageView
-        android:id="@+id/expand_location"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="1dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="222dp"
-        android:src="@drawable/ic_expand_more"
-        app:layout_constraintEnd_toStartOf="@id/notification"
-        app:layout_constraintStart_toEndOf="@id/text_location"
-        app:layout_constraintTop_toTopOf="@id/location" />
-
-    <ImageView
-        android:id="@+id/notification"
-        android:layout_width="wrap_content"
-
-        android:layout_height="wrap_content"
-        android:src="@drawable/ic_notification"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/location" />
-
-    <androidx.appcompat.widget.SearchView
-        android:id="@+id/searchView"
-        android:layout_width="350dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/bg_rounded_search_button"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/location"
-        app:queryHint="Tìm kiếm" />
-
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/viewPager2"
-        android:layout_width="0dp"
-        android:layout_height="200dp"
-        android:layout_marginStart="30dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="30dp"
-        android:clipChildren="true"
-        android:paddingStart="20dp"
-        android:paddingEnd="20dp"
-
-
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/searchView" />
-
-    <LinearLayout
-        android:id="@+id/dotContainer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="8dp"
-        android:gravity="center"
-        android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/viewPager2" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvFoodCategory"
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/mainHome"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:paddingTop="8dp"
-        android:paddingStart="16dp"
-        android:paddingEnd="8dp"
-        android:paddingBottom="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_height="0dp"
+        android:background="#F9F3F0"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/bottomBar"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/dotContainer" />
+        app:layout_constraintEnd_toEndOf="parent">
 
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#F9F3F0"
+            android:paddingBottom="16dp">
+
+            <ImageView
+                android:id="@+id/location"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="15dp"
+                android:src="@drawable/ic_location"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/text_location"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:ellipsize="end"
+                android:maxLines="3"
+                android:minLines="3"
+                android:text="E1/42c"
+                app:layout_constraintEnd_toStartOf="@id/expand_location"
+                app:layout_constraintStart_toEndOf="@id/location"
+                app:layout_constraintTop_toTopOf="@+id/location" />
+
+            <ImageView
+                android:id="@+id/expand_location"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="1dp"
+                android:layout_marginTop="8dp"
+                android:src="@drawable/ic_expand_more"
+                app:layout_constraintStart_toEndOf="@id/text_location"
+                app:layout_constraintTop_toTopOf="@id/location" />
+
+            <ImageView
+                android:id="@+id/notification"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:src="@drawable/ic_notification"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/location" />
+
+            <androidx.appcompat.widget.SearchView
+                android:id="@+id/searchView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/bg_rounded_search_button"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/location"
+                app:queryHint="Tìm kiếm" />
+
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/viewPager2"
+                android:layout_width="0dp"
+                android:layout_height="200dp"
+                android:layout_marginStart="30dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginEnd="30dp"
+                android:clipChildren="true"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/searchView" />
+
+            <LinearLayout
+                android:id="@+id/dotContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/viewPager2" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvFoodCategory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:paddingStart="16dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/dotContainer" />
+
+            <LinearLayout
+                android:id="@+id/headerSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:orientation="horizontal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/rvFoodCategory">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:text="Món nổi bật"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/txtTatCa"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:text="Tất cả"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvFood"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/headerSection" />
+
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomBar"
-        android:layout_width="380dp"
+        android:layout_width="match_parent"
         android:layout_height="65dp"
+        android:layout_marginStart="15dp"
+        android:layout_marginEnd="15dp"
         android:layout_marginBottom="10dp"
         android:background="@drawable/bg_bottom_nav"
-
         app:itemActiveIndicatorStyle="@null"
         app:itemBackground="@drawable/bg_nav_item_active"
         app:itemIconSize="18dp"
         app:itemIconTint="@color/nav_item_bg_color"
-
         app:itemTextColor="@color/nav_item_text_color"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-
         app:menu="@menu/bottom_nav_menu" />
-
-    <!--    <com.google.android.material.bottomnavigation.BottomNavigationView-->
-    <!--        android:id="@+id/bottomNavigation"-->
-    <!--        android:layout_width="match_parent"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:layout_gravity="bottom"-->
-    <!--        android:background="@color/white"-->
-    <!--        app:menu="@menu/bottom_nav_menu"-->
-    <!--        app:layout_constraintTop_toBottomOf="@+id/searchView"-->
-    <!--        app:layout_constraintStart_toStartOf="parent"-->
-    <!--        app:layout_constraintEnd_toEndOf="parent"-->
-    <!--        app:itemIconTint="@color/nav_item_bg_color"-->
-    <!--        app:itemTextColor="@color/nav_item_text_color"-->
-    <!--        app:labelVisibilityMode="labeled" />-->
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

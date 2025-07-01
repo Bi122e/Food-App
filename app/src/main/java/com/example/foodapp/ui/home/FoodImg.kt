@@ -54,7 +54,7 @@ class FoodImg(private val foodImgLst: List<FoodCategory>) : RecyclerView.Adapter
 
     inner class viewHolder(view: View): RecyclerView.ViewHolder(view) {
         val foodImg = view.findViewById<ImageView>(R.id.imgFood)
-        val tvFood = view.findViewById<TextView>(R.id.tvFoodName)
+//        val tvFood = view.findViewById<TextView>(R.id.tvFoodName)
 
         // ✅ Tạo RequestOptions 1 lần để tái sử dụng - giảm lag
         private val glideOptions = RequestOptions()
@@ -72,7 +72,7 @@ class FoodImg(private val foodImgLst: List<FoodCategory>) : RecyclerView.Adapter
 //                .apply(glideOptions)
 //                .into(foodImg)
 
-            tvFood.text = foodCategory.name
+//            tvFood.text = foodCategory.name
         }
     }
 

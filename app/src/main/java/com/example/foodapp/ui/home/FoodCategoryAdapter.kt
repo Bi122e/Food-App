@@ -1,8 +1,6 @@
 package com.example.foodapp.ui.home
+
 import android.view.LayoutInflater
-import android.view.RoundedCorner
-import com.example.foodapp.R
-import com.example.foodapp.data.model.FoodCategory
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -10,13 +8,14 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.annotation.GlideOption
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
+import com.example.foodapp.R
+import com.example.foodapp.data.model.FoodCategory
 
-class FoodCategoryAdapter (private val categoryList: List <FoodCategory>): RecyclerView.Adapter<FoodCategoryAdapter.viewHolder>() {
-    inner class viewHolder (view: View): RecyclerView.ViewHolder(view) {
+class FoodCategoryAdapter(private val categoryList: List<FoodCategory>) :
+    RecyclerView.Adapter<FoodCategoryAdapter.viewHolder>() {
+    inner class viewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val imgIcon = view.findViewById<ImageView>(R.id.imgCategory)
         val txtIcon = view.findViewById<TextView>(R.id.txtCategory)
         val frameLayout = view.findViewById<FrameLayout>(R.id.frameLayout)
@@ -26,7 +25,7 @@ class FoodCategoryAdapter (private val categoryList: List <FoodCategory>): Recyc
                 .placeholder(R.drawable.ic_loading)
                 .error(R.drawable.ic_loading)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .override(70,70)
+                .override(70, 70)
                 .centerCrop()
                 .dontAnimate()
             Glide.with(itemView.context)
@@ -36,7 +35,6 @@ class FoodCategoryAdapter (private val categoryList: List <FoodCategory>): Recyc
 
             txtIcon.text = category.name
         }
-
 
 
     }
@@ -51,7 +49,7 @@ class FoodCategoryAdapter (private val categoryList: List <FoodCategory>): Recyc
     ): viewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_food_category, parent, false)
-            return viewHolder(view)
+        return viewHolder(view)
     }
 
     override fun onBindViewHolder(holder: viewHolder, position: Int) {
@@ -82,8 +80,6 @@ class FoodCategoryAdapter (private val categoryList: List <FoodCategory>): Recyc
         holder.itemView.clearAnimation()
     }
 }
-
-
 
 
 //package com.example.foodapp.ui.home
