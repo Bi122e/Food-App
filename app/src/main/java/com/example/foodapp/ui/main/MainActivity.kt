@@ -1,4 +1,4 @@
-package com.example.foodapp
+package com.example.foodapp.ui.main
 
 import android.content.Intent
 import android.graphics.Color
@@ -15,6 +15,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.foodapp.ui.register.LoginActivity
+import com.example.foodapp.R
+import com.example.foodapp.ui.register.RegisterActivity
 import com.example.foodapp.databinding.ActivityMainBinding
 import com.example.foodapp.utils.CategorySeeder
 import com.example.foodapp.utils.RestaurantsSeeder

@@ -25,7 +25,7 @@ class FoodCategoryAdapter(private val categoryList: List<FoodCategory>) :
                 .placeholder(R.drawable.ic_loading)
                 .error(R.drawable.ic_loading)
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .override(70, 70)
+                .override(100, 100)
                 .centerCrop()
                 .dontAnimate()
             Glide.with(itemView.context)

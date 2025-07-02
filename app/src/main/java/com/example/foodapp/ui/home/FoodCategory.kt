@@ -34,6 +34,8 @@ class FoodCategory (private val imgList: List<FoodImaHome>): RecyclerView.Adapte
             price.text = food.price
             restaurant.text = food.restaurant
         }
+
+
     }
 
     override fun getItemCount(): Int {
@@ -55,11 +57,22 @@ class FoodCategory (private val imgList: List<FoodImaHome>): RecyclerView.Adapte
         holder.bind(imgList[position])
     }
 
+//    override fun onViewRecycled(holder: viewHolder) {
+//        super.onViewRecycled(holder)
+//        Glide.with(holder.itemView.context).clear(
+//            holder.itemView.findViewById<ImageView>(R.id.imgFood)
+//        )
+//    }
+//
+//    override fun onViewDetachedFromWindow(holder: viewHolder) {
+//        super.onViewDetachedFromWindow(holder)
+//        holder.itemView.clearAnimation()
+//    }
     override fun onViewRecycled(holder: viewHolder) {
         super.onViewRecycled(holder)
-        Glide.with(holder.itemView.context).clear(
-            holder.itemView.findViewById<ImageView>(R.id.imgFood)
-        )
+    Glide.with(holder.itemView.context).clear(
+        holder.itemView.findViewById<ImageView>(R.id.imgFood)
+    )
     }
 
     override fun onViewDetachedFromWindow(holder: viewHolder) {

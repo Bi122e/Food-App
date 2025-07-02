@@ -3,6 +3,7 @@ package com.example.foodapp.ui.home
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -20,7 +21,6 @@ import com.example.foodapp.databinding.ActivityHomeBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Runnable
-
 class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
     private lateinit var viewPager2: ViewPager2
@@ -47,41 +47,71 @@ class HomeActivity : AppCompatActivity() {
         setupIndicatorListener()
         setupAutoScroll()
         setupNavBottomBar()
-        setupCategory()
-        setUpimgFood()
+//        setupCategory()
+//        setUpimgFood()
+        loadFoodDataFromSever()
     }
 
-    private fun setUpimgFood() {
-        val rvFood = findViewById<RecyclerView>(R.id.rvFood)
-        val imgFood = listOf<FoodImaHome>(
-            FoodImaHome("Pizza", "pizza", R.drawable.img_pizza, "1999$", "UK"),
-            FoodImaHome("Pizza", "pizza", R.drawable.img_pizza, "1999$", "UK"),
-            FoodImaHome("Pizza", "pizza", R.drawable.img_pizza, "1999$", "UK"),
-            FoodImaHome("Pizza", "pizza", R.drawable.img_pizza, "1999$", "UK"),
-        )
+    private fun loadFoodDataFromSever() {
+        val db = FirebaseFirestore.getInstance()
+        db.collection("categories")
+            .get()
+            .addOnSuccessListener { result ->
+                val categoryList = result.mapNotNull { it.toObject(Category::class.java) }
 
-        val adapter = com.example.foodapp.ui.home.FoodCategory(imgFood)
-        rvFood.layoutManager = LinearLayoutManager(
-            this, LinearLayoutManager.HORIZONTAL, false
-        )
-        rvFood.adapter = adapter
+                val foodCategorylist = categoryList.map {
+                    FoodCategory(
+                        name = it.name ?: "Không tên",
+                        id = it.id ?: "",
+                        imgRes = it.iconUrl ?: "",
+                        isSelected = false
+                    )
+                }
+
+                binding.rvFoodCategory.layoutManager = LinearLayoutManager(
+                    this, LinearLayoutManager.HORIZONTAL, false
+                )
+                val adapter = FoodCategoryAdapter(foodCategorylist)
+                binding.rvFoodCategory.adapter = adapter
+            }
+            .addOnFailureListener { exception ->
+                Toast.makeText(this, "Lỗi khi load dữ liệu", Toast.LENGTH_SHORT).show()
+                Log.d("Loading error", exception.message.toString())
+
+            }
     }
 
-    private fun setupCategory() {
-        val iconList = listOf<FoodCategory>(
-            FoodCategory("Pizza", "pizza", R.drawable.img_pizza, false,),
-            FoodCategory("Pizza", "pizza", R.drawable.img_pizza, false,),
-            FoodCategory("Pizza", "pizza", R.drawable.img_pizza, false,),
-            FoodCategory("Pizza", "pizza", R.drawable.img_pizza, false,),
-            FoodCategory("Pizza", "pizza", R.drawable.img_pizza, false,),
-        )
-        val iconCategory = findViewById<RecyclerView>(R.id.rvFoodCategory)
-        iconCategory.layoutManager = LinearLayoutManager(
-            this, LinearLayoutManager.HORIZONTAL, false
-        )
-        val adapter = FoodCategoryAdapter(iconList)
-        iconCategory.adapter = adapter
-    }
+//    private fun setUpimgFood() {
+//        val rvFood = findViewById<RecyclerView>(R.id.rvFood)
+//        val imgFood = listOf<FoodImaHome>(
+//            FoodImaHome("Pizza", "pizza", R.drawable.img_pizza, "1999$", "UK"),
+//            FoodImaHome("Pizza", "pizza", R.drawable.img_pizza, "1999$", "UK"),
+//            FoodImaHome("Pizza", "pizza", R.drawable.img_pizza, "1999$", "UK"),
+//            FoodImaHome("Pizza", "pizza", R.drawable.img_pizza, "1999$", "UK"),
+//        )
+//
+//        val adapter = com.example.foodapp.ui.home.FoodCategory(imgFood)
+//        rvFood.layoutManager = LinearLayoutManager(
+//            this, LinearLayoutManager.HORIZONTAL, false
+//        )
+//        rvFood.adapter = adapter
+//    }
+
+//    private fun setupCategory() {
+//        val iconList = listOf<FoodCategory>(
+//            FoodCategory("Pizza", "pizza", R.drawable.img_pizza, false,),
+//            FoodCategory("Pizza", "pizza", R.drawable.img_pizza, false,),
+//            FoodCategory("Pizza", "pizza", R.drawable.img_pizza, false,),
+//            FoodCategory("Pizza", "pizza", R.drawable.img_pizza, false,),
+//            FoodCategory("Pizza", "pizza", R.drawable.img_pizza, false,),
+//        )
+//        val iconCategory = findViewById<RecyclerView>(R.id.rvFoodCategory)
+//        iconCategory.layoutManager = LinearLayoutManager(
+//            this, LinearLayoutManager.HORIZONTAL, false
+//        )
+//        val adapter = FoodCategoryAdapter(iconList)
+//        iconCategory.adapter = adapter
+//    }
 
     private fun setupSlider() {
         viewPager2 = binding.viewPager2

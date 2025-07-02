@@ -1,4 +1,4 @@
-package com.example.foodapp
+package com.example.foodapp.ui.register
 
 import android.content.Intent
 import android.graphics.Color
@@ -15,15 +15,27 @@ import android.util.Patterns
 import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.foodapp.R
+import com.example.foodapp.ui.splash.LoadingActivity
 import com.example.foodapp.databinding.ActivityLoginBinding
+import com.example.foodapp.ui.home.HomeActivity
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
     private lateinit var firebaseAuth: FirebaseAuth
+    private lateinit var googleSignInClient: GoogleSignInClient
+    private lateinit var googleSignInLauncher: ActivityResultLauncher<Intent>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -39,6 +51,56 @@ class LoginActivity : AppCompatActivity() {
         binding.btnLogin.setOnClickListener {
             Login()
         }
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(getString(R.string.default_web_client_id))
+            .requestEmail()
+            .build()
+
+        googleSignInClient = GoogleSignIn.getClient(this, gso)
+        googleSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            Log.d("FirebaseUser", "SignInLauncher resultCode: ${result.resultCode}")
+            if (result.resultCode == RESULT_OK) {
+                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                try {
+                    val account = task.getResult(ApiException::class.java)!!
+                    Toast.makeText(this, "Google Sign-In success: ${account.email}", Toast.LENGTH_SHORT).show()
+                    firebaseAuthWithGoogle(account.idToken!!)
+                } catch (e: ApiException) {
+                    Log.w("LoginActivity", "Google sign in failed: " + e.statusCode, e)
+                    Toast.makeText(this, "Đăng nhập thất bại: " + e.statusCode, Toast.LENGTH_SHORT).show()
+                }
+            } else  {
+                Log.e("FirebaseUser", "Google Sign-In canceled or failed. resultCode=${result.resultCode}, data=${result.data}")
+                Toast.makeText(this, "Sign in canceled or failed", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+
+        binding.imgbtnGb.setOnClickListener {
+            signInWithGoogle()
+        }
+    }
+    private fun firebaseAuthWithGoogle(idToken: String) {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        Log.d("FirebaseUser", "Logging in...")
+        firebaseAuth.signInWithCredential(credential)
+            .addOnCompleteListener(this) { task->
+                if (task.isSuccessful) {
+                    val user = firebaseAuth.currentUser
+                    Log.d("FirebaseUser", "UID: ${user?.uid}, Email: ${user?.email}")
+                    Toast.makeText(this, "Đăng nhập thành công: ${user?.displayName}", Toast.LENGTH_SHORT).show()
+                    val intent =
+                        Intent(this@LoginActivity, LoadingActivity::class.java)
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(this, "Đăng nhập thất bại", Toast.LENGTH_SHORT).show()
+                }
+            }
+    }
+
+    private fun signInWithGoogle() {
+        val signInTent = googleSignInClient.signInIntent
+        googleSignInLauncher.launch(signInTent)
     }
 
     private fun Login() {
@@ -64,8 +126,6 @@ class LoginActivity : AppCompatActivity() {
             firebaseAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener {
                     if (it.isSuccessful) {
-                        val intent = Intent(this@LoginActivity, SplashActivity::class.java)
-                        startActivity(intent)
                         Toast.makeText(this@LoginActivity, "Đăng nhập thành công", Toast.LENGTH_SHORT).show()
                     } else {
                         Log.d("Auth", it.exception?.message.toString())

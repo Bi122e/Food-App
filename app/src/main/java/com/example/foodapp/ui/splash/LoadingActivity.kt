@@ -1,34 +1,36 @@
-package com.example.foodapp
+package com.example.foodapp.ui.splash
 
 import android.content.Intent
 import android.os.Bundle
-import android.os.Looper
 import android.os.Handler
-
+import android.os.Looper
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.foodapp.databinding.ActivitySplashBinding
+import com.example.foodapp.R
+import com.example.foodapp.databinding.ActivityLoadingBinding
+import com.example.foodapp.ui.home.HomeActivity
 
-
-class SplashActivity : AppCompatActivity() {
-    private lateinit var binding: ActivitySplashBinding
+class LoadingActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityLoadingBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        binding = ActivitySplashBinding.inflate(layoutInflater)
+        binding = ActivityLoadingBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.loading_layout)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
         Handler(Looper.getMainLooper()).postDelayed({
-            val intent = Intent(this, LoginActivity::class.java)
+            Toast.makeText(this, "loading", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, HomeActivity::class.java)
             startActivity(intent)
-            finish() // kết thúc SplashActivity để không quay lại được
-        }, 5000)
+            finish()
+        }, 3000)
     }
 }

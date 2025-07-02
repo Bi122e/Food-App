@@ -18,13 +18,13 @@
         <!-- android:name=".ui.home.test" -->
         <!-- android:exported="false" /> -->
         <activity
-            android:name=".SplashActivity"
+            android:name=".ui.splash.LoadingActivity"
             android:exported="false" />
         <activity
-            android:name=".RegisterActivity"
+            android:name=".ui.register.RegisterActivity"
             android:exported="false" />
         <activity
-            android:name=".LoginActivity"
+            android:name=".ui.register.LoginActivity"
             android:exported="false" /> <!-- home làm main -->
         <!-- <activity -->
         <!-- android:name=".MainActivity" -->
@@ -38,10 +38,10 @@
         <!-- </intent-filter> -->
         <!-- </activity> -->
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.home.HomeActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.home.HomeActivity"
+            android:name=".ui.main.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

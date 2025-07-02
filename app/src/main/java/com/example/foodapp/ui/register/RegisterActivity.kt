@@ -1,6 +1,5 @@
-package com.example.foodapp
+package com.example.foodapp.ui.register
 
-import android.app.Activity
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
@@ -21,9 +20,10 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.foodapp.R
 import com.example.foodapp.data.model.User
 import com.example.foodapp.databinding.ActivityRegisterBinding
-import com.example.foodapp.ui.home.HomeActivity
+import com.example.foodapp.ui.splash.LoadingActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -65,7 +65,7 @@ class RegisterActivity : AppCompatActivity() {
         googleSignInClient = GoogleSignIn.getClient(this, gso)
         googleSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             Log.d("FirebaseUser", "SignInLauncher resultCode: ${result.resultCode}")
-            if (result.resultCode == Activity.RESULT_OK) {
+            if (result.resultCode == RESULT_OK) {
                 val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
                 try {
                     val account = task.getResult(ApiException::class.java)!!
@@ -97,6 +97,9 @@ class RegisterActivity : AppCompatActivity() {
                     val user = firebaseAuth.currentUser
                     Log.d("FirebaseUser", "UID: ${user?.uid}, Email: ${user?.email}")
                     Toast.makeText(this, "Đăng nhập thành công: ${user?.displayName}", Toast.LENGTH_SHORT).show()
+                    val intent =
+                        Intent(this@RegisterActivity, LoadingActivity::class.java)
+                    startActivity(intent)
                 } else {
                     Toast.makeText(this, "Đăng nhập thất bại", Toast.LENGTH_SHORT).show()
                 }
@@ -170,8 +173,7 @@ class RegisterActivity : AppCompatActivity() {
                                     .set(userData)
                                     .addOnCompleteListener {
                                         Toast.makeText(this@RegisterActivity, "Đăng ký thành công và lưu user", Toast.LENGTH_SHORT).show()
-                                        val intent = Intent(this@RegisterActivity, HomeActivity::class.java)
-                                        startActivity(intent)
+
                                     }
                                     .addOnFailureListener { e->
                                         Toast.makeText(this@RegisterActivity, "Đăng ký thất bại ${e.message}",
