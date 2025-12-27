@@ -1,7 +1,7 @@
 package com.example.foodapp.data.repository
 
 import android.util.Log
-import com.example.foodapp.data.model.Restaurant
+import com.example.foodapp.data.model.restaurant.Restaurant
 import com.google.firebase.firestore.FirebaseFirestore
 
 object RestaurantRepository {

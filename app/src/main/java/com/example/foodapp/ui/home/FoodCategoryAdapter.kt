@@ -11,15 +11,15 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.example.foodapp.R
-import com.example.foodapp.data.model.FoodCategory
+import com.example.foodapp.data.model.category.FoodCategoryUI
 
-class FoodCategoryAdapter(private val categoryList: List<FoodCategory>) :
+class FoodCategoryAdapter(private val categoryList: List<FoodCategoryUI>) :
     RecyclerView.Adapter<FoodCategoryAdapter.viewHolder>() {
     inner class viewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val imgIcon = view.findViewById<ImageView>(R.id.imgCategory)
         val txtIcon = view.findViewById<TextView>(R.id.txtCategory)
         val frameLayout = view.findViewById<FrameLayout>(R.id.frameLayout)
-        fun bind(category: FoodCategory) {
+        fun bind(category: FoodCategoryUI) {
             val glideOption = RequestOptions()
 //                .transform(RoundedCorners(20))
                 .placeholder(R.drawable.ic_loading)
@@ -85,7 +85,7 @@ class FoodCategoryAdapter(private val categoryList: List<FoodCategory>) :
 //package com.example.foodapp.ui.home
 //import android.view.LayoutInflater
 //import com.example.foodapp.R
-//import com.example.foodapp.data.model.FoodCategory
+//import com.example.foodapp.data.model.category.FoodCategory
 //import android.view.View
 //import android.view.ViewGroup
 //import android.widget.ImageView

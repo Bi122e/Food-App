@@ -21,7 +21,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.foodapp.R
-import com.example.foodapp.data.model.User
+import com.example.foodapp.data.model.user.User
 import com.example.foodapp.databinding.ActivityRegisterBinding
 import com.example.foodapp.ui.splash.LoadingActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn

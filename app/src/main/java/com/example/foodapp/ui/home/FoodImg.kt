@@ -7,7 +7,7 @@
 //import android.widget.ImageView
 //import android.widget.TextView
 //import androidx.recyclerview.widget.RecyclerView
-//import com.example.foodapp.data.model.FoodCategory
+//import com.example.foodapp.data.model.category.FoodCategory
 //
 //class FoodImg(private val foodImgLst: List<FoodCategory>) : RecyclerView.Adapter<FoodImg.viewHolder>() {
 //    inner class viewHolder(view: View): RecyclerView.ViewHolder(view) {
@@ -42,15 +42,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.example.foodapp.R
-import com.example.foodapp.data.model.FoodCategory
+import com.example.foodapp.data.model.category.FoodCategoryUI
 
-class FoodImg(private val foodImgLst: List<FoodCategory>) : RecyclerView.Adapter<FoodImg.viewHolder>() {
+class FoodImg(private val foodImgLst: List<FoodCategoryUI>) : RecyclerView.Adapter<FoodImg.viewHolder>() {
 
     inner class viewHolder(view: View): RecyclerView.ViewHolder(view) {
         val foodImg = view.findViewById<ImageView>(R.id.imgFood)
@@ -65,7 +64,7 @@ class FoodImg(private val foodImgLst: List<FoodCategory>) : RecyclerView.Adapter
             .centerCrop()
             .dontAnimate() // Tắt animation để tăng performance
 
-        fun bind(foodCategory: FoodCategory) {
+        fun bind(foodCategory: FoodCategoryUI) {
             // ✅ Dùng Glide thay vì setImageResource để giảm lag
             Glide.with(itemView.context)
 //                .load(foodCategory.iconRes)

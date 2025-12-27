@@ -1,6 +1,6 @@
 package com.example.foodapp.data.repository
 
-import com.example.foodapp.data.model.User
+import com.example.foodapp.data.model.user.User
 import com.google.firebase.firestore.FirebaseFirestore
 
 class UsersRepository {

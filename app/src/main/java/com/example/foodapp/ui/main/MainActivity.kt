@@ -20,7 +20,7 @@ import com.example.foodapp.R
 import com.example.foodapp.ui.register.RegisterActivity
 import com.example.foodapp.databinding.ActivityMainBinding
 import com.example.foodapp.utils.CategorySeeder
-import com.example.foodapp.utils.RestaurantsSeeder
+//import com.example.foodapp.utils.RestaurantsSeeder
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
@@ -37,7 +37,7 @@ class MainActivity : AppCompatActivity() {
 
 
         CategorySeeder.seedCategories() //thêm các category
-        RestaurantsSeeder.seedRestaurant()// thêm các nhà hàng mẫu
+//        RestaurantsSeeder.seedRestaurant()// thêm các nhà hàng mẫu
         val text = "Ban co tai khoan chua ? dang nhap"
         val spannableString = SpannableString(text)
         val clickableSpan = object : ClickableSpan() {

@@ -13,7 +13,7 @@
 //import androidx.viewpager2.widget.MarginPageTransformer
 //import androidx.viewpager2.widget.ViewPager2
 //import com.example.foodapp.R
-//import com.example.foodapp.data.model.FoodCategory
+//import com.example.foodapp.data.model.category.FoodCategory
 //import kotlin.math.abs
 //
 //class Test3 : AppCompatActivity() {

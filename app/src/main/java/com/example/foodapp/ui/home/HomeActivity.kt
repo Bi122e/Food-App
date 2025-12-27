@@ -4,23 +4,19 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.example.foodapp.R
-import com.example.foodapp.data.model.Category
-import com.example.foodapp.data.model.FoodCategory
-import com.example.foodapp.data.model.FoodImaHome
+import com.example.foodapp.data.model.category.Category
+import com.example.foodapp.data.model.category.FoodCategoryUI
 import com.example.foodapp.databinding.ActivityHomeBinding
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import kotlinx.coroutines.Runnable
+
 class HomeActivity : AppCompatActivity() {
     private lateinit var binding: ActivityHomeBinding
     private lateinit var viewPager2: ViewPager2
@@ -60,7 +56,7 @@ class HomeActivity : AppCompatActivity() {
                 val categoryList = result.mapNotNull { it.toObject(Category::class.java) }
 
                 val foodCategorylist = categoryList.map {
-                    FoodCategory(
+                    FoodCategoryUI(
                         name = it.name ?: "Không tên",
                         id = it.id ?: "",
                         imgRes = it.iconUrl ?: "",

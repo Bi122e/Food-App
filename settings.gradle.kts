@@ -23,4 +23,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "food_app"
 include(":app")
- 
+include(":test")

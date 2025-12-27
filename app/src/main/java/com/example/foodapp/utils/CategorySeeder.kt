@@ -1,7 +1,7 @@
 package com.example.foodapp.utils
 
 import android.util.Log
-import com.example.foodapp.data.model.Category
+import com.example.foodapp.data.model.category.Category
 import com.google.firebase.firestore.FirebaseFirestore
 
 object CategorySeeder {

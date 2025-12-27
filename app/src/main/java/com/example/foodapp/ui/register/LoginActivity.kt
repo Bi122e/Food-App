@@ -94,6 +94,8 @@ class LoginActivity : AppCompatActivity() {
                     startActivity(intent)
                 } else {
                     Toast.makeText(this, "Đăng nhập thất bại", Toast.LENGTH_SHORT).show()
+                    Log.e("FirebaseUser", "Google Sign-In canceled or failed. resultCode=, data=")
+
                 }
             }
     }
