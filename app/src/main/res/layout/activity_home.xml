@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="#F9F3F0"
     android:fitsSystemWindows="true"
-    tools:context=".ui.home.HomeActivity">
+    tools:context=".ui.activity.HomeActivity">
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/mainHome"

@@ -7,16 +7,16 @@
 
     <activity
         android:id="@+id/homeActivity"
-        android:name="com.example.foodapp.ui.home.HomeActivity"
+        android:name="com.example.foodapp.ui.activity.HomeActivity"
         android:label="activity_home"
         tools:layout="@layout/activity_home" />
     <activity
         android:id="@+id/registerActivity"
-        android:name="com.example.foodapp.ui.register.RegisterActivity"
+        android:name="com.example.foodapp.ui.activity.RegisterActivity"
         android:label="activity_login"
         tools:layout="@layout/activity_login" />
     <activity
         android:id="@+id/loginActivity"
-        android:name="com.example.foodapp.ui.register.LoginActivity"
+        android:name="com.example.foodapp.ui.activity.LoginActivity"
         android:label="LoginActivity" />
 </navigation>
