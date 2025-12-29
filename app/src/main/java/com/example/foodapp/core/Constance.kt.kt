@@ -1,6 +1,6 @@
 package com.example.foodapp.core
 
-object `Constance.kt` {
+object Constance {
 
     const val COLLECTION_USER = "users"
     const val COLLECTION_RESTAURANTS = "restaurants"
