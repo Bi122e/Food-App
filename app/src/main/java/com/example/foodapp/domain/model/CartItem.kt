@@ -6,7 +6,7 @@ package com.example.foodapp.domain.model
 *   variations = listOf(variation(name ="Size", option = listOf((name = "nho", price = 120))
 *  */
 data class CartItem(
-    val id: String = "",
+    val foodId: String = "",
     val name: String = "",
     val price: Int = 0,
     val quantity: Int = 0,
@@ -17,7 +17,7 @@ data class CartItem(
 
 ) {
     fun isValid(): Boolean {
-        return id.isNotEmpty() &&
+        return foodId.isNotEmpty() &&
                 name.isNotEmpty() &&
                 price >= 0 &&
                 quantity >= 1
@@ -33,7 +33,7 @@ data class CartItem(
         val variationKey = variation.joinToString("|") { variation ->
             variation.options.joinToString(","){"${it.name}: ${it.price}"}
         }
-        return "${id}-${variationKey}"
+        return "${foodId}-${variationKey}"
     }
     fun updateQuantity(newQuantity: Int): CartItem {
         require(newQuantity > 0){"Quantity must be greater than 0"}

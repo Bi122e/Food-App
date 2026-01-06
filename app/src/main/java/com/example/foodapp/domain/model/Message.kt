@@ -30,7 +30,7 @@ data class Message(
                     MessageType.SYSTEM -> text.isNotEmpty()
                 }
     }
-    fun getReviewText(): String {
+    fun getConversationPreview():String {
         return when(type) {
             MessageType.TEXT -> text
             MessageType.IMAGE -> "Hinh anh"

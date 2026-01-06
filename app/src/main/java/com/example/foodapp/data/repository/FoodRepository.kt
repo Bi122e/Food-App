@@ -1,8 +1,7 @@
-package com.example.foodapp.domain.repository
+package com.example.foodapp.data.repository
 
 import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.domain.model.Food
-import com.google.protobuf.Api
 import kotlinx.coroutines.flow.Flow
 
 interface FoodRepository {

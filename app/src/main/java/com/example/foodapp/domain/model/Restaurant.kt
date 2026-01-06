@@ -37,7 +37,7 @@ data class Restaurant(
     }
 
     fun calculateDistance(userLat: Double, userLng: Double): Double {
-        if (!hasLocation()) return 0.0
+        if (!hasLocation()) error("Restaurant has no location")
 
         val earthRadius = 6371.0
         val dLat = Math.toRadians(userLat - latitude)

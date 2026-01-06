@@ -1,7 +1,7 @@
 package com.example.foodapp.domain.model
 
 data class Cart(
-    val id: String = "",
+    val userId: String = "",
     val cartItems: List<CartItem> = emptyList(),
     val totalPrice: Double = 0.0,
     val price: Double = 0.0,
