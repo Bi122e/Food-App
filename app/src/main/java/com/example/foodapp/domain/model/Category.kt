@@ -9,6 +9,7 @@ data class Category(
     val iconUrl: String = "",
     val slug: String = "",
     val order: Int = 0, //display order
+    val type: CategoryType = CategoryType.NORMAL,
     @ServerTimestamp
     val createdAt: Date? = null,
     val updatedAt: Date? = null
@@ -47,12 +48,16 @@ data class Category(
 
         fun getDefaultCategories(): List<Category> {
             return listOf(
-                Category("1", "Tất cả", "", "all", 0),
-                Category("2", "Món chính", "", "mon-chinh", 1),
-                Category("3", "Đồ uống", "", "do-uong", 2),
-                Category("4", "Tráng miệng", "", "trang-mieng", 3),
-                Category("5", "Món phụ", "", "mon-phu", 4),
+                Category("Tất cả", "all", "", "all", 0),
+                Category("Món chính", "main", "", "mon-chinh", 1),
+                Category("Đồ Uống", "drink", "", "do-uong", 2),
+                Category("Tráng miệng", "desert", "", "trang-mieng", 3),
+                Category("Món Phụ", "side_disk", "", "mon-phu", 4),
             )
         }
     }
+}
+enum class CategoryType {
+    ALL,
+    NORMAL,
 }

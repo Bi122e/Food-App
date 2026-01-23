@@ -4,6 +4,7 @@ data class OrderItem(
     val foodId: String = "",
     val foodName: String = "",
     val variations: List<Variation> = emptyList(),
+    val selectedOptions: Map<String, List<String>> = emptyMap(),
     val imgUrl: String = "",
     val notes: String = "",
     val price: Int = 0,
@@ -22,6 +23,9 @@ data class OrderItem(
 //            //[[topping, [topping1, 15]], [size, [m, 15], [l, 14]] ]
 //        }
 //    }
+
+
+
     fun getTotalPrice(): Int = price * quantity
 
     fun hasNotes(): Boolean = notes.isNotEmpty()

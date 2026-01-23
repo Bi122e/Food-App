@@ -21,12 +21,22 @@ class OrderRepositoryImpl: OrderRepository {
     private val firestore = FirebaseFirestore.getInstance()
     private val orderCollection = firestore.collection(Constance.COLLECTION_ORDERS)
 
+    override suspend fun getOrderById(orderId: String): ApiResponse<Order> {
+        return try {
+            val orderRef = orderCollection.document(orderId).get().await()
+            val order = orderRef.toObject(Order::class.java)
+                ?: return ApiResponse.Error("Order not found")
+            ApiResponse.Success(order)
+        } catch (e: Exception) {
+            ApiResponse.Error(e.message ?: "")
+        }
+    }
     override suspend fun createOrder(order: Order): ApiResponse<String> {
         return try {
             val snapshot = orderCollection.document()
             val orderId = snapshot.id
             val orderWithId = order.copy(
-                oderId = orderId,
+                orderId = orderId,
                 createdAt = Date(),
                 updatedAt = Date())
             snapshot.set(orderWithId).await()
@@ -172,7 +182,7 @@ class OrderRepositoryImpl: OrderRepository {
         return try {
             val updatedOrder = order.copy(updatedAt = Date())
             orderCollection
-                .document(order.oderId)
+                .document(order.orderId)
                 .set(updatedOrder)
                 .await()
             ApiResponse.Success(Unit)

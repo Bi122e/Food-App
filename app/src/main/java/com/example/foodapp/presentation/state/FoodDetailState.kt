@@ -80,9 +80,7 @@ data class FoodDetailState(
         return selectedVariations[variationId]?.size ?: 0
     }
 
-    // ============================================
-    // QUANTITY MANAGEMENT
-    // ============================================
+
 
     fun incrementQuantity(): FoodDetailState {
         return if (quantity < 99) copy(quantity = quantity + 1) else this
@@ -96,13 +94,8 @@ data class FoodDetailState(
         return if (newQuantity in 1..99) copy(quantity = newQuantity) else this
     }
 
-    // ============================================
-    // VALIDATIONS
-    // ============================================
 
-    /**
-     * Check if can add to cart
-     */
+    // * Check if can add to cart
     fun canAddToCart(): Boolean {
         if (food == null || isAddingToCart) return false
 
@@ -131,9 +124,7 @@ data class FoodDetailState(
         return missingVariation?.let { "Vui lòng chọn ${it.name}" }
     }
 
-    // ============================================
     // ACTIONS
-    // ============================================
 
     fun updateNotes(newNotes: String): FoodDetailState {
         return copy(notes = newNotes.take(200)) // Max 200 chars
@@ -152,9 +143,7 @@ data class FoodDetailState(
         )
     }
 
-    // ============================================
-    // UI HELPERS
-    // ============================================
+
 
     fun isReady(): Boolean {
         return food != null && restaurant != null && !isLoading

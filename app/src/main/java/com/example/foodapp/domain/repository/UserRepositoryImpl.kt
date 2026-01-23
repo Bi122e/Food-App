@@ -4,18 +4,36 @@ import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.core.Constance
 import com.example.foodapp.data.repository.UserRepository
 import com.example.foodapp.domain.model.User
+import com.google.firebase.auth.EmailAuthProvider
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
-import java.util.Date
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
-class UsersRepositoryImpl: UserRepository {
+class UserRepositoryImpl: UserRepository {
     private val firestore = FirebaseFirestore.getInstance()
+    private val firebaseAuth = FirebaseAuth.getInstance()
     private val userRef = firestore.collection(Constance.COLLECTION_USER)
 
-    override fun getCurrentUser(userId: String): Flow<ApiResponse<User>> = callbackFlow {
+    override suspend fun getUserById(userId: String): ApiResponse<User> {
+        return try {
+            val userDoc = userRef.document(userId).get().await()
+            val user = userDoc.toObject(User::class.java)
+                ?: return ApiResponse.Error("User not found")
+            ApiResponse.Success(user)
+//            val user = userDoc.toObject(User::class.java)
+//                ?: return ApiResponse.Error("User not found")
+//                ApiResponse.Success(user)
+        } catch (e: Exception) {
+            ApiResponse.Error(e.message ?: "Failed to get user by id")
+        }
+    }
+
+    override suspend fun getCurrentUser(userId: String): Flow<ApiResponse<User>> = callbackFlow {
         val listener = userRef
             .document(userId)
             .addSnapshotListener { snapshot, error ->
@@ -99,5 +117,36 @@ class UsersRepositoryImpl: UserRepository {
         } catch (e: Exception) {
             ApiResponse.Error(e.message ?: "Failed to delete account")
         }
+    }
+
+    override suspend fun changePassword(
+        oldPassword: String,
+        newPassword: String
+    ): ApiResponse<Unit> = suspendCoroutine{ continuation ->
+
+        val user = firebaseAuth.currentUser
+            ?: return@suspendCoroutine continuation.resume(
+                ApiResponse.Error("User chua dang nhap")
+            )
+
+        val email = user.email
+            ?: return@suspendCoroutine continuation.resume(
+                ApiResponse.Error("Khong tim thay email")
+            )
+        val credential = EmailAuthProvider
+            .getCredential(email, oldPassword)
+
+        user.reauthenticate(credential)
+            .addOnSuccessListener {
+                continuation.resume(ApiResponse.Success(Unit))
+            }
+            .addOnFailureListener {
+                continuation.resume(ApiResponse.Error(it.message ?: "Doi mat khau that bai"))
+            }
+    }
+
+
+    override suspend fun logout() {
+        firebaseAuth.signOut()
     }
 }

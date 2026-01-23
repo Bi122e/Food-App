@@ -14,6 +14,19 @@ class RestaurantRepositoryImpl : RestaurantRepository {
     private val firestore = FirebaseFirestore.getInstance()
     private val restaurantRef = firestore.collection(Constance.COLLECTION_RESTAURANTS)
 
+    override suspend fun getAllRestaurants(): ApiResponse<List<Restaurant>> {
+        return try {
+            val snapshot = restaurantRef
+                .get()
+                .await()
+            val restaurants = snapshot.documents.mapNotNull {
+                it.toObject(Restaurant::class.java)
+            }
+             ApiResponse.Success(restaurants)
+        } catch (e: Exception) {
+            ApiResponse.Error(e.message ?: "Failed to get all restaurants")
+        }
+    }
 
     override fun getRestaurants(): Flow<ApiResponse<List<Restaurant>>> = callbackFlow {
         val listener = restaurantRef.addSnapshotListener { snapshot, error ->

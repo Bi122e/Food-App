@@ -6,6 +6,7 @@ data class Cart(
     val totalPrice: Double = 0.0,
     val price: Double = 0.0,
     val deliveryFee: Int = 0,
+    val restaurantName: String = "",
     val restaurantId: String = "",
 ) {
     fun calculateSubTotalPrice(): Int {
@@ -27,6 +28,19 @@ data class Cart(
                 restaurantId.isNotEmpty() &&
                 deliveryFee >= 0 &&
                 cartItems.all {it.isValid()}
+    }
+    fun Map<String, Set<String>>.toVariations(): List<Variation> {
+        return map { (variationName, optionName) ->
+            Variation(
+                name = variationName,
+                options = optionName.map { optionName ->
+                    VariationOption(
+                        name = optionName,
+                        price = 0
+                    )
+                }
+            )
+        }
     }
 
     //business rules

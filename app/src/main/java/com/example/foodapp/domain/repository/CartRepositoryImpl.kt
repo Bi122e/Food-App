@@ -10,10 +10,12 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
-class CartRepositoryImpl: CartRepository {
+class CartRepositoryImpl @Inject constructor(
+    private val firestore: FirebaseFirestore
+) : CartRepository {
 
-    private val firestore = FirebaseFirestore.getInstance()
     private val cartRef = firestore.collection(Constance.COLLECTION_CARTS)
 
 

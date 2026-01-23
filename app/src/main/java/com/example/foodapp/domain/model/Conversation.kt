@@ -4,8 +4,8 @@ import com.google.firebase.firestore.ServerTimestamp
 import java.util.Date
 
 data class Conversation(
-    val userId: String = "",
-    val restaurantId: String = "",
+//    val userId: String = "",
+//    val restaurantId: String = "",
     val conversationId: String = "",
     val participants: List<String> = emptyList(),
     @ServerTimestamp
@@ -35,9 +35,9 @@ data class Conversation(
 ) {
 
     fun isValid(): Boolean {
-        return userId.isNotEmpty() &&
-                restaurantId.isNotEmpty() &&
-                conversationId.isNotEmpty() &&
+//        return userId.isNotEmpty() &&
+//                restaurantId.isNotEmpty() &&
+            return     conversationId.isNotEmpty() &&
                 participants.size == 2
     }
 
@@ -81,8 +81,8 @@ data class Conversation(
             restaurantId: String,
         ): Conversation {
             return Conversation(
-                userId = customerId,
-                restaurantId = restaurantId,
+//                userId = customerId,
+//                restaurantId = restaurantId,
                 participants = listOf(customerId, restaurantId),
                 createdAt = Date()
             )

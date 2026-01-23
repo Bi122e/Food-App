@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 interface RestaurantRepository {
 
     fun getRestaurants(): Flow<ApiResponse<List<Restaurant>>>
+    suspend fun getAllRestaurants(): ApiResponse<List<Restaurant>>
 
     fun getRestaurantsByCategory(category: String): Flow<ApiResponse<List<Restaurant>>>
 

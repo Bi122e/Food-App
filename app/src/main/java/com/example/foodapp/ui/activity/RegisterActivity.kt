@@ -3,6 +3,7 @@ package com.example.foodapp.ui.activity
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
+
 import android.os.Bundle
 import android.text.SpannableString
 import android.text.Spanned
@@ -10,188 +11,171 @@ import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.text.style.StyleSpan
-import android.util.Log
 import android.util.Patterns
 import android.view.View
+
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.foodapp.R
-import com.example.foodapp.data.model.user.User
+import com.example.foodapp.core.UiState
 import com.example.foodapp.databinding.ActivityRegisterBinding
-import com.example.foodapp.ui.activity.LoadingActivity
+import com.example.foodapp.presentation.viewmodel.AuthViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.firestore.FirebaseFirestore
 
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
+
+@AndroidEntryPoint
 class RegisterActivity : AppCompatActivity() {
+
     private lateinit var binding: ActivityRegisterBinding
-    private lateinit var firebaseAuth: FirebaseAuth
+    private val viewModel: AuthViewModel by viewModels()
+
     private lateinit var googleSignInClient: GoogleSignInClient
-    private lateinit var googleSignInLauncher: ActivityResultLauncher<Intent>
-    private lateinit var firebaseFirestore: FirebaseFirestore
-    private val RC_SIGN_IN = 100
+    private lateinit var googleLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-
         binding = ActivityRegisterBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
 
-        firebaseAuth = FirebaseAuth.getInstance()
-        firebaseFirestore = FirebaseFirestore.getInstance()
+        setupGoogle()
+        observeAuthState()
+
+//        binding.btnRegister.setOnClickListener { registerByEmail() }
         setUpRegisterButton()
         backToLogin()
 
+        binding.imgbtnGb.setOnClickListener { googleLauncher.launch(googleSignInClient.signInIntent) }
+
+//        binding.txtDangNhap.setOnClickListener {
+//            startActivity(Intent(this, LoginActivity::class.java))
+//        }
+    }
+
+//    private fun registerByEmail() {
+//        val name = binding.edtUserName.text.toString()
+//        val email = binding.edtEmail.text.toString()
+//        val password = binding.edtPassword.text.toString()
+//
+//        if (name.isBlank() || email.isBlank() || password.length < 6) {
+//            toast("Dữ liệu không hợp lệ")
+//            return
+//        }
+//        viewModel.register(name, email, password)
+//    }
+
+    private fun setupGoogle() {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
             .build()
 
         googleSignInClient = GoogleSignIn.getClient(this, gso)
-        googleSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            Log.d("FirebaseUser", "SignInLauncher resultCode: ${result.resultCode}")
-            if (result.resultCode == RESULT_OK) {
-                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-                try {
-                    val account = task.getResult(ApiException::class.java)!!
-                    Toast.makeText(this, "Google Sign-In success: ${account.email}", Toast.LENGTH_SHORT).show()
-                    firebaseAuthWithGoogle(account.idToken!!)
-                } catch (e: ApiException) {
-                    Log.w("LoginActivity", "Google sign in failed: " + e.statusCode, e)
-                    Toast.makeText(this, "Đăng nhập thất bại: " + e.statusCode, Toast.LENGTH_SHORT).show()
-                }
-            } else  {
-                Log.e("FirebaseUser", "Google Sign-In canceled or failed. resultCode=${result.resultCode}, data=${result.data}")
-                Toast.makeText(this, "Sign in canceled or failed", Toast.LENGTH_SHORT).show()
-            }
-        }
 
-
-        binding.imgbtnGb.setOnClickListener {
-            signInWithGoogle()
-        }
-
-    }
-
-    private fun firebaseAuthWithGoogle(idToken: String) {
-        val credential = GoogleAuthProvider.getCredential(idToken, null)
-        Log.d("FirebaseUser", "Logging in...")
-        firebaseAuth.signInWithCredential(credential)
-            .addOnCompleteListener(this) { task->
-                if (task.isSuccessful) {
-                    val user = firebaseAuth.currentUser
-                    Log.d("FirebaseUser", "UID: ${user?.uid}, Email: ${user?.email}")
-                    Toast.makeText(this, "Đăng nhập thành công: ${user?.displayName}", Toast.LENGTH_SHORT).show()
-                    val intent =
-                        Intent(this@RegisterActivity, LoadingActivity::class.java)
-                    startActivity(intent)
-                } else {
-                    Toast.makeText(this, "Đăng nhập thất bại", Toast.LENGTH_SHORT).show()
+        googleLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == RESULT_OK) {
+                    val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                    try {
+                        val account = task.getResult(ApiException::class.java)
+                        viewModel.loginWithGoogle(account.idToken!!)
+                    } catch (e: ApiException) {
+                        toast("Google Sign-In failed")
+                    }
                 }
             }
     }
 
-    private fun signInWithGoogle() {
-        val signInTent = googleSignInClient.signInIntent
-        googleSignInLauncher.launch(signInTent)
+    private fun observeAuthState() {
+        lifecycleScope.launch {
+            viewModel.uiState.collect { state ->
+                when (state) {
+                    UiState.Idle -> Unit
+
+                    UiState.Loading -> {
+                        // show loading
+                    }
+
+                    is UiState.Success -> {
+                        Toast.makeText(this@RegisterActivity, "Đăng ký thành công", Toast.LENGTH_SHORT).show()
+                        startActivity(Intent(this@RegisterActivity, LoadingActivity::class.java))
+                        finish()
+                    }
+
+                    is UiState.Error -> {
+                        Toast.makeText(this@RegisterActivity, state.message, Toast.LENGTH_SHORT).show()
+                    }
+
+                    is UiState.Empty -> Unit
+                }
+            }
+        }
+
     }
-
-
-
     private fun setUpRegisterButton() {
         binding.btnRegister.setOnClickListener {
-            val name = binding.edtUserName.text.toString()
+
+            val name = binding.edtUserName.text.toString().trim()
             val email = binding.edtEmail.text.toString().trim()
             val password = binding.edtPassword.text.toString()
             val confirmPassword = binding.edtConfirmPassword.text.toString()
 
-            var checkState = true
-            binding.edtUserNameLayout.error = null
-            binding.edtEmailLayout.error = null
-            binding.edtPasswordLayout.error = null
-            binding.edtConfirmPasswordLayout.error = null
-            if (name.isEmpty()) {
-                binding.edtUserNameLayout.error = "Khong duoc de trong"
-                checkState = false
-            }
-            if (email.isEmpty()) {
-                binding.edtEmailLayout.error = "khong duoc de trong"
-                checkState = false
+            if (!validateRegister(name, email, password, confirmPassword)) return@setOnClickListener
 
-            } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                binding.edtEmailLayout.error = "sai dinh dang email"
-                checkState = false
-            }
-            if (password.isEmpty()) {
-                binding.edtPasswordLayout.error = "khong duoc de trong"
-                checkState = false
-            } else if (password.length < 6) {
-                binding.edtPasswordLayout.error = "Khong duoc nho hon 6 ky tu"
-                checkState = false
-            } else if (password != confirmPassword) {
-                binding.edtPasswordLayout.error = "Mat khau khong khop"
-                checkState = false
-            }
-            if (confirmPassword.isEmpty()) {
-                binding.edtConfirmPasswordLayout.error = "khong duoc de trong"
-                checkState = false
-            } else if (confirmPassword.length < 6) {
-                binding.edtConfirmPasswordLayout.error = "Khong duoc nho hon 6 ky tu"
-                checkState = false
-            } else if (password != confirmPassword) {
-                binding.edtConfirmPassword.error = "Mat khau khong khop"
-                checkState = false
-            }
+            // ✅ GỌI VIEWMODEL – KHÔNG FIREBASE
+            viewModel.register(name, email, password)
+        }
+    }
+    private fun validateRegister(
+        name: String,
+        email: String,
+        password: String,
+        confirmPassword: String
+    ): Boolean {
 
-            if (checkState) {
-                firebaseAuth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener {
-                        if (it.isSuccessful) {
-                            val user = firebaseAuth.currentUser
-                            if (user != null) {
-                                val userData = User(
-                                    user.uid,
-                                    name,
-                                    email,
-                                )
-                                firebaseFirestore.collection("users").document(user.uid)
-                                    .set(userData)
-                                    .addOnCompleteListener {
-                                        Toast.makeText(this@RegisterActivity, "Đăng ký thành công và lưu user", Toast.LENGTH_SHORT).show()
+        binding.edtUserNameLayout.error = null
+        binding.edtEmailLayout.error = null
+        binding.edtPasswordLayout.error = null
+        binding.edtConfirmPasswordLayout.error = null
 
-                                    }
-                                    .addOnFailureListener { e->
-                                        Toast.makeText(this@RegisterActivity, "Đăng ký thất bại ${e.message}",
-                                            Toast.LENGTH_SHORT).show()
-                                    }
+        var valid = true
 
-                            }
-                            Toast.makeText(this, "thanh cong", Toast.LENGTH_SHORT).show()
-                        } else {
-                            Log.d("firebaseAuth", it.exception?.message.toString() )
-                            Log.d("LOI", it.exception?.message.toString() )
-                            Toast.makeText(this, "fail roi", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-            }
+        if (name.isBlank()) {
+            binding.edtUserNameLayout.error = "Không được để trống"
+            valid = false
         }
 
+        if (email.isBlank()) {
+            binding.edtEmailLayout.error = "Không được để trống"
+            valid = false
+        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            binding.edtEmailLayout.error = "Sai định dạng email"
+            valid = false
+        }
+
+        if (password.length < 6) {
+            binding.edtPasswordLayout.error = "Mật khẩu tối thiểu 6 ký tự"
+            valid = false
+        }
+
+        if (password != confirmPassword) {
+            binding.edtConfirmPasswordLayout.error = "Mật khẩu không khớp"
+            valid = false
+        }
+
+        return valid
     }
+
+
+
 
     private fun backToLogin() {
         val text = "Ban co tai khoan ? Dang nhap"
@@ -218,6 +202,6 @@ class RegisterActivity : AppCompatActivity() {
         binding.txtDangKy.movementMethod = LinkMovementMethod.getInstance()
         binding.txtDangKy.highlightColor = Color.TRANSPARENT
     }
-
-
+    private fun toast(msg: String) =
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 }

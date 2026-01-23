@@ -11,9 +11,9 @@ data class CartItem(
     val price: Int = 0,
     val quantity: Int = 0,
     val imgUrls: String = "",
-    val restaurantName: String = "",
+    val restaurantId: String = "",
     val notes: String = "",
-    val variation: List<Variation> = emptyList()
+    val variation: Map<String, Set<String>> = emptyMap() //refactor kien truc moi
 
 ) {
     fun isValid(): Boolean {
@@ -29,12 +29,12 @@ data class CartItem(
         return "$price đ"
     }
 
-    fun getUniqueKey(): String {
-        val variationKey = variation.joinToString("|") { variation ->
-            variation.options.joinToString(","){"${it.name}: ${it.price}"}
-        }
-        return "${foodId}-${variationKey}"
-    }
+//    fun getUniqueKey(): String {
+//        val variationKey = variation.joinToString("|") { variation ->
+//            variation.options.joinToString(","){"${it.name}: ${it.price}"}
+//        }
+//        return "${foodId}-${variationKey}"
+//    }
     fun updateQuantity(newQuantity: Int): CartItem {
         require(newQuantity > 0){"Quantity must be greater than 0"}
         return copy(quantity = newQuantity)

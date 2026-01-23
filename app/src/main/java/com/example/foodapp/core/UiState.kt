@@ -1,8 +1,6 @@
 package com.example.foodapp.core
-import com.example.foodapp.core.ApiResponse
-import com.example.foodapp.core.ErrorCode
 
-sealed class UiState<out T>() {
+sealed class UiState<out T> {
 
     data object Idle: UiState<Nothing>()
     data object Loading: UiState<Nothing>()
@@ -36,15 +34,27 @@ enum class UiErrorType {
     PERMISSION,
 }
 
+//fun <T> ApiResponse<T>.toUiState(): UiState<T> {
+//    return when (this) {
+//        is ApiResponse.Success -> UiState.Success(data)
+//        is ApiResponse.Error -> UiState.Error(
+//            message = message,
+//            type = code.toUiErrorType()
+//        )
+//        is ApiResponse.Loading -> UiState.Loading
+//        is ApiResponse.Empty -> UiState.Empty()
+//    }
+//}
+
 fun <T> ApiResponse<T>.toUiState(): UiState<T> {
-    return when (this) {
+    return when(this) {
         is ApiResponse.Success -> UiState.Success(data)
         is ApiResponse.Error -> UiState.Error(
-            message = message,
-            type = code.toUiErrorType()
+            message,
+            code.toUiErrorType()
         )
-        is ApiResponse.Loading -> UiState.Loading
         is ApiResponse.Empty -> UiState.Empty()
+        is ApiResponse.Loading -> UiState.Loading
     }
 }
 

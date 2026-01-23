@@ -5,11 +5,11 @@ data class Variation(
     val name: String = "",
     val id: String = "",
     val description: String = "",
-    val type: VariationType = VariationType.SINGLE,
+    val type: VariationType = VariationType.SINGLE, //chi duoc chon 1 option, multi la chon nhieu option
     val isRequired: Boolean = true,
     val minSelection: Int = 0,
     val maxSelection: Int = 0,
-    val options: List<VariationOption> = emptyList()
+    val  options: List<VariationOption> = emptyList()
 ) {
     fun isValid(): Boolean {
         return id.isNotEmpty() && name.isNotEmpty() && options.isNotEmpty()
@@ -49,6 +49,9 @@ data class Variation(
             .filter { selectedOptions.contains(it.id) }
             .sumOf { it.price }
     }
+    //thit, trung, canh
+    //return options ds hien tai.filter {it.id}
+    //
 
     fun getOptionById(id: String): VariationOption? {
         return options.find { it.id == id }

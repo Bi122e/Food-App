@@ -2,7 +2,7 @@ package com.example.foodapp.presentation.state
 
 import com.example.foodapp.domain.model.Cart
 import com.example.foodapp.domain.model.PaymentMethod
-
+//UI Form State
 data class CheckoutState(
 
     //user

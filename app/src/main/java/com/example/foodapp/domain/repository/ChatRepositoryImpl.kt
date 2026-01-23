@@ -28,9 +28,7 @@ class ChatRepositoryImpl : ChatRepository {
             val setId = conversation.participants.toString()
             val conversationRef = conversationCollection.document(setId)
             val conversion = conversation.copy(
-                conversationId = setId,
-                createdAt = Date(),
-                updatedAt = Date()
+                conversationId = setId, createdAt = Date(), updatedAt = Date()
             )
             conversationRef.set(conversationRef).await()
             ApiResponse.Success(setId)
@@ -41,10 +39,7 @@ class ChatRepositoryImpl : ChatRepository {
 
     override suspend fun getConversationById(conversationId: String): ApiResponse<Conversation> {
         return try {
-            val conversationRef = conversationCollection
-                .document(conversationId)
-                .get()
-                .await()
+            val conversationRef = conversationCollection.document(conversationId).get().await()
             val conversation = conversationRef?.toObject(Conversation::class.java)
             if (conversation != null && conversation.isValid()) {
                 ApiResponse.Success(conversation)
@@ -56,10 +51,9 @@ class ChatRepositoryImpl : ChatRepository {
         }
     }
 
-    override fun getConversationByUserId(userId: String): Flow<ApiResponse<List<Conversation>>> =
+    override fun getConversationsByUserId(userId: String): Flow<ApiResponse<List<Conversation>>> =
         callbackFlow {
-            val listener = conversationCollection
-                .whereArrayContains("participants", userId)
+            val listener = conversationCollection.whereArrayContains("participants", userId)
                 .orderBy("updatedAt", Query.Direction.DESCENDING)
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
@@ -86,9 +80,7 @@ class ChatRepositoryImpl : ChatRepository {
     override suspend fun updateConversation(conversation: Conversation): ApiResponse<Boolean> {
         return try {
             val updatedConversation = conversation.copy(updatedAt = Date())
-            conversationCollection
-                .document(conversation.conversationId)
-                .set(updatedConversation)
+            conversationCollection.document(conversation.conversationId).set(updatedConversation)
                 .await()
             ApiResponse.Success(true)
         } catch (e: Exception) {
@@ -97,8 +89,7 @@ class ChatRepositoryImpl : ChatRepository {
     }
 
     override suspend fun deleteConversation(
-        conversationId: String,
-        currentUserId: String
+        conversationId: String, currentUserId: String
     ): ApiResponse<Boolean> {
         return try {
 
@@ -117,10 +108,7 @@ class ChatRepositoryImpl : ChatRepository {
 
             val conversationRef = conversationCollection.document(conversationId)
 
-            val conversation = conversationRef
-                .get()
-                .await()
-                .toObject(Conversation::class.java)
+            val conversation = conversationRef.get().await().toObject(Conversation::class.java)
                 ?: return ApiResponse.Error("Conversation not found")
 
             if (!conversation.participants.contains(currentUserId)) {
@@ -151,9 +139,8 @@ class ChatRepositoryImpl : ChatRepository {
         }
     }
 
-    override suspend fun getUnreadMessage(
-        conversationId: String,
-        userId: String
+    override suspend fun getUnreadMessageCount(
+        conversationId: String, userId: String
     ): ApiResponse<Int> {
         return try {
             val count = messageCollection
@@ -161,8 +148,7 @@ class ChatRepositoryImpl : ChatRepository {
                 .whereEqualTo("isRead", false)
                 .whereNotEqualTo("senderId", userId)
                 .count()
-                .get(AggregateSource.SERVER)
-                .await()
+                .get(AggregateSource.SERVER).await()
             ApiResponse.Success(count.count.toInt())
         } catch (e: Exception) {
             ApiResponse.Error(e.message ?: "Failed to get unread message")
@@ -175,8 +161,7 @@ class ChatRepositoryImpl : ChatRepository {
                 .document(messageId)
                 .update(
                     mapOf(
-                        "isRead" to true,
-                        "updated" to Date()
+                        "isRead" to true, "updated" to Date()
                     )
                 ).await()
             ApiResponse.Success(true)
@@ -186,8 +171,7 @@ class ChatRepositoryImpl : ChatRepository {
     }
 
     override suspend fun markAllMessageAsRead(
-        conversationId: String,
-        userId: String
+        conversationId: String, userId: String
     ): ApiResponse<Boolean> {
         return try {
             val snapshot = messageCollection
@@ -196,17 +180,18 @@ class ChatRepositoryImpl : ChatRepository {
                 .whereNotEqualTo("senderId", userId)
                 .get()
                 .await()
-
+            if (snapshot.isEmpty) {
+                return ApiResponse.Success(true)
+            }
             val batch = firestore.batch()
             snapshot.documents.forEach { doc ->
                 batch.update(
                     doc.reference, mapOf(
-                        "isRead" to true,
-                        "updatedAt" to Date()
+                        "isRead" to true, "updatedAt" to Date()
                     )
                 )
-                batch.commit().await()
             }
+            batch.commit().await()
             ApiResponse.Success(true)
         } catch (e: Exception) {
             ApiResponse.Error(e.message ?: "Failed to mark all messages as read")
@@ -214,8 +199,7 @@ class ChatRepositoryImpl : ChatRepository {
     }
 
     override suspend fun searchMessage(
-        conversationId: String,
-        query: String
+        conversationId: String, query: String
     ): ApiResponse<List<Message>> {
         return try {
             val snapshot = conversationCollection
@@ -239,15 +223,12 @@ class ChatRepositoryImpl : ChatRepository {
             val messageRef = messageCollection.document()
             val messageId = messageRef.id
             val messageWithId = message.copy(
-                messageId = messageId,
-                createdAt = Date(),
-                updatedAt = Date()
+                messageId = messageId, createdAt = Date(), updatedAt = Date()
             )
             val batch = firestore.batch()
             batch.set(messageRef, messageWithId)
 
-            val conversationRef = conversationCollection
-                .document(message.conversationId)
+            val conversationRef = conversationCollection.document(message.conversationId)
             batch.update(
                 conversationRef, mapOf(
                     "lastMessage" to messageWithId.getConversationPreview(),
@@ -264,10 +245,8 @@ class ChatRepositoryImpl : ChatRepository {
 
     override fun getLastMessage(conversationId: String): Flow<ApiResponse<Message?>> =
         callbackFlow {
-            val listener = messageCollection
-                .whereEqualTo("conversationId", conversationId)
-                .orderBy("createdAt", Query.Direction.DESCENDING)
-                .limit(1)
+            val listener = messageCollection.whereEqualTo("conversationId", conversationId)
+                .orderBy("createdAt", Query.Direction.DESCENDING).limit(1)
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
                         trySend(ApiResponse.Error(error.message ?: "Failed to get latest message"))
@@ -279,10 +258,9 @@ class ChatRepositoryImpl : ChatRepository {
             awaitClose { listener.remove() }
         }
 
-    override fun getMessageByConversation(conversationId: String): Flow<ApiResponse<List<Message>>> =
+    override fun getMessagesByConversationId(conversationId: String): Flow<ApiResponse<List<Message>>> =
         callbackFlow {
-            val listener = messageCollection
-                .whereEqualTo("conversationId", conversationId)
+            val listener = messageCollection.whereEqualTo("conversationId", conversationId)
                 .orderBy("createdAt", Query.Direction.ASCENDING)
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {

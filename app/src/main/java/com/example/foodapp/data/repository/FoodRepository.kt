@@ -8,7 +8,9 @@ interface FoodRepository {
 
     fun getFoods(): Flow<ApiResponse<List<Food>>>
 
-    fun getFoodById(foodId: String): Flow<ApiResponse<Food>>
+    suspend fun getFoodById(foodId: String): ApiResponse<Food>
+
+    suspend fun getFeaturedFood(limit: Int = 10): Flow<ApiResponse<List<Food>>>
 
     fun getPopularFoods(limit: Int = 10): Flow<ApiResponse<List<Food>>>
 
@@ -18,5 +20,5 @@ interface FoodRepository {
 
     fun getFoodsByCategory(categoryId: String): Flow<ApiResponse<List<Food>>>
 
-    fun searchFoods(query: String): Flow<ApiResponse<List<Food>>>
+    suspend fun searchFoods(query: String): ApiResponse<List<Food>>
 }

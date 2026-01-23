@@ -6,6 +6,7 @@ import com.example.foodapp.data.repository.FoodRepository
 import com.example.foodapp.domain.model.Food
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.ktx.toObject
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -17,6 +18,23 @@ class FoodRepositoryImpl(
 
     private val foodRef = firestore.collection(Constance.COLLECTION_FOOD)
 
+    override suspend fun getFeaturedFood(limit: Int): Flow<ApiResponse<List<Food>>> = callbackFlow{
+        val snapshot = foodRef
+            .whereGreaterThan("totalRating", 4.2)
+            .orderBy("totalRating", Query.Direction.DESCENDING)
+            .limit(limit.toLong())
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(ApiResponse.Error(error.message ?: "Can't found featured food"))
+                    return@addSnapshotListener
+                }
+                val featuredFood = snapshot?.documents?.mapNotNull {
+                    it.toObject(Food::class.java)
+                }
+                ApiResponse.Success(featuredFood)
+            }
+        awaitClose { snapshot.remove() }
+    }
     override fun getFoods(): Flow<ApiResponse<List<Food>>> = callbackFlow {
         val listener = foodRef.addSnapshotListener { snapshot, error ->
             if (error != null) {
@@ -57,21 +75,17 @@ class FoodRepositoryImpl(
             awaitClose { listener.remove() }
         }
 
-    override fun getFoodById(foodId: String): Flow<ApiResponse<Food>> = callbackFlow {
-        val listener = foodRef.document(foodId)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    trySend(ApiResponse.Error(error.message ?: "Unknow"))
-                    return@addSnapshotListener
-                }
-                val food = snapshot?.toObject(Food::class.java)
-                if (food != null) {
-                    trySend(ApiResponse.Success(food))
-                } else {
-                    trySend(ApiResponse.Error("Food not found"))
-                }
-            }
-        awaitClose { listener.remove() }
+    override suspend fun getFoodById(foodId: String): ApiResponse<Food>{
+        return try {
+            val foodRef = foodRef.document(foodId)
+                .get()
+                .await()
+            val food = foodRef.toObject(Food::class.java)
+                ?: return ApiResponse.Error("Food not found")
+            ApiResponse.Success(food)
+        } catch (e: Exception) {
+            ApiResponse.Error(e.message ?: "Failed to get Food by id")
+        }
     }
 
     override fun getPopularFoods(limit: Int): Flow<ApiResponse<List<Food>>> = callbackFlow {
@@ -136,25 +150,21 @@ class FoodRepositoryImpl(
         }
     }
 
-    override fun searchFoods(query: String): Flow<ApiResponse<List<Food>>> = callbackFlow {
-        val listener = foodRef
-            .orderBy("name") //k co nay se bi loi
-            .whereGreaterThanOrEqualTo("name", query)
-            .whereLessThan("name", query + '\uf8ff')
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    trySend(ApiResponse.Error(error.message ?: "Unknow"))
-                    return@addSnapshotListener
-                }
-                if (snapshot != null) {
-                    val foods = snapshot.documents.mapNotNull {
-                        it.toObject(Food::class.java)
-                    }
-                    trySend(ApiResponse.Success(foods))
-                } else {
-                    trySend(ApiResponse.Empty)
-                }
+    override suspend fun searchFoods(query: String): ApiResponse<List<Food>> {
+        return try {
+            val snapshot = foodRef
+                .orderBy("name") //k co nay se bi loi
+                .whereGreaterThanOrEqualTo("name", query)
+                .whereLessThan("name", query + '\uf8ff')
+                .get()
+                .await()
+            val foods = snapshot.documents.mapNotNull {
+                it.toObject(Food::class.java)
             }
-        awaitClose { listener.remove() }
+            ApiResponse.Success(foods)
+        } catch (e: Exception) {
+            ApiResponse.Error(e.message ?: "Failed to search food")
+        }
+
     }
 }

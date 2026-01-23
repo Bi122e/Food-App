@@ -11,7 +11,7 @@ data class Food(
     val imgUrl: String = "",
     val isAvailable: Boolean = true,
     val reviews: Int = 0,
-    val totalRating: Int = 0,
+    val totalRating: Double = 0.0,
     val foodTime: Int = 0,
     val ingredient: String = "",
     val calories: Int = 0,

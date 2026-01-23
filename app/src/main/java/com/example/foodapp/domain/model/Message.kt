@@ -20,18 +20,20 @@ data class Message(
         IMAGE,
         SYSTEM,
     }
+
     fun isValid(): Boolean {
-        return messageId.isNotEmpty() &&
-                conversationId.isNotEmpty() &&
+//        return messageId.isNotEmpty() &&
+        return conversationId.isNotEmpty() &&
                 senderId.isNotEmpty() &&
-                when(type) {
+                when (type) {
                     MessageType.TEXT -> text.isNotEmpty()
                     MessageType.IMAGE -> imgUrl.isNotEmpty()
                     MessageType.SYSTEM -> text.isNotEmpty()
                 }
     }
-    fun getConversationPreview():String {
-        return when(type) {
+
+    fun getConversationPreview(): String {
+        return when (type) {
             MessageType.TEXT -> text
             MessageType.IMAGE -> "Hinh anh"
             MessageType.SYSTEM -> text
@@ -60,7 +62,7 @@ data class Message(
             text: String,
         ): Message {
             return Message(
-                conversationId =conversationId,
+                conversationId = conversationId,
                 senderId = senderId,
                 text = text,
                 type = MessageType.TEXT,
@@ -73,7 +75,7 @@ data class Message(
             text: String,
         ): Message {
             return Message(
-                conversationId =conversationId,
+                conversationId = conversationId,
                 text = text,
                 senderId = "system",
                 type = MessageType.SYSTEM,

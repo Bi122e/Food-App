@@ -9,6 +9,7 @@ interface OrderRepository {
 
     suspend fun createOrder(order: Order): ApiResponse<String>
 
+    suspend fun getOrderById(orderId: String): ApiResponse<Order>
     fun getOrderByUserId(userId: String): Flow<ApiResponse<List<Order>>>
     fun getOrderByRestaurantId(restaurantId: String): Flow<ApiResponse<List<Order>>>
     fun getAllOrder(): Flow<ApiResponse<List<Order>>>

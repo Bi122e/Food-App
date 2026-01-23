@@ -12,7 +12,7 @@ interface ChatRepository {
 
     suspend fun getConversationById(conversationId: String): ApiResponse<Conversation>
 
-    fun getConversationByUserId(userId: String): Flow<ApiResponse<List<Conversation>>>
+    fun getConversationsByUserId(userId: String): Flow<ApiResponse<List<Conversation>>>
 
     suspend fun updateConversation(conversation: Conversation): ApiResponse<Boolean>
 
@@ -22,7 +22,7 @@ interface ChatRepository {
     //message
     suspend fun sendMessage(message: Message): ApiResponse<String>
 
-    fun getMessageByConversation(conversationId: String): Flow<ApiResponse<List<Message>>>
+    fun getMessagesByConversationId(conversationId: String): Flow<ApiResponse<List<Message>>>
 
     suspend fun markMessageAsRead(messageId: String): ApiResponse<Boolean>
 
@@ -31,7 +31,7 @@ interface ChatRepository {
     suspend fun deleteMessage(messageId: String): ApiResponse<Boolean>
 
     //query
-    suspend fun getUnreadMessage(conversationId: String, userId: String): ApiResponse<Int>
+    suspend fun getUnreadMessageCount(conversationId: String, userId: String): ApiResponse<Int>
 
     suspend fun searchMessage(conversationId: String, query: String): ApiResponse<List<Message>>
 

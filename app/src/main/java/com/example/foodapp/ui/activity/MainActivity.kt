@@ -11,13 +11,15 @@ import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.text.style.StyleSpan
 import android.view.View
+import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.foodapp.R
 import com.example.foodapp.databinding.ActivityMainBinding
-import com.example.foodapp.core.utils.CategorySeeder
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
@@ -32,35 +34,46 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-
-        CategorySeeder.seedCategories() //thêm các category
-//        RestaurantsSeeder.seedRestaurant()// thêm các nhà hàng mẫu
-        val text = "Ban co tai khoan chua ? dang nhap"
-        val spannableString = SpannableString(text)
-        val clickableSpan = object : ClickableSpan() {
-            override fun onClick(widget: View) {
-                val intent = Intent(this@MainActivity, LoginActivity::class.java)
-                startActivity(intent)
-            }
-
-            override fun updateDrawState(ds: TextPaint) {
-                super.updateDrawState(ds)
-                ds.isUnderlineText = false
-                ds.color = Color.BLACK
-            }
+        setContent {
+            Greeting("compose")
         }
-        val start = text.indexOf("dang nhap")
-        val end = start + "dang nhap".length
-        spannableString.setSpan(clickableSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-        spannableString.setSpan(StyleSpan(Typeface.BOLD), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
 
-        binding.txtDangNhap.text = spannableString
-        binding.txtDangNhap.movementMethod = LinkMovementMethod.getInstance()
-        binding.txtDangNhap.highlightColor = Color.TRANSPARENT
-
-        binding.button2.setOnClickListener {
-            val intent = Intent(this, RegisterActivity::class.java)
-            startActivity(intent)
-        }
     }
+
+    @Composable
+    fun Greeting(name: String) {
+        Text(text = "Hello $name")
+    }
+
+//        CategorySeeder.seedCategories() //thêm các category
+////        RestaurantsSeeder.seedRestaurant()// thêm các nhà hàng mẫu
+//        val text = "Ban co tai khoan chua ? dang nhap"
+//        val spannableString = SpannableString(text)
+//        val clickableSpan = object : ClickableSpan() {
+//            override fun onClick(widget: View) {
+//                val intent = Intent(this@MainActivity, LoginActivity::class.java)
+//                startActivity(intent)
+//            }
+//
+//            override fun updateDrawState(ds: TextPaint) {
+//                super.updateDrawState(ds)
+//                ds.isUnderlineText = false
+//                ds.color = Color.BLACK
+//            }
+//        }
+//        val start = text.indexOf("dang nhap")
+//        val end = start + "dang nhap".length
+//        spannableString.setSpan(clickableSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+//        spannableString.setSpan(StyleSpan(Typeface.BOLD), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+//
+//        binding.txtDangNhap.text = spannableString
+//        binding.txtDangNhap.movementMethod = LinkMovementMethod.getInstance()
+//        binding.txtDangNhap.highlightColor = Color.TRANSPARENT
+//
+//        binding.button2.setOnClickListener {
+//            val intent = Intent(this, RegisterActivity::class.java)
+//            startActivity(intent)
+//        }
+//    }
+
 }
