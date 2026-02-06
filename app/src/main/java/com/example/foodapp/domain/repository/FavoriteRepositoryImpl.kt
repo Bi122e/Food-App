@@ -5,8 +5,7 @@ import com.example.foodapp.core.Constance
 import com.example.foodapp.data.repository.FavoriteRepository
 import com.example.foodapp.domain.model.Favorite
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.ktx.toObjects
-import kotlinx.coroutines.channels.awaitClose
+ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await

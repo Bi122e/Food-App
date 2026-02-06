@@ -130,8 +130,7 @@ class RegisterActivity : AppCompatActivity() {
 
             if (!validateRegister(name, email, password, confirmPassword)) return@setOnClickListener
 
-            // ✅ GỌI VIEWMODEL – KHÔNG FIREBASE
-            viewModel.register(name, email, password)
+            viewModel.register(name, email)
         }
     }
     private fun validateRegister(
@@ -182,8 +181,8 @@ class RegisterActivity : AppCompatActivity() {
         val spannableString = SpannableString(text)
         val clickableSpan = object : ClickableSpan() {
             override fun onClick(widget: View) {
-                val intent = Intent(this@RegisterActivity, LoginActivity::class.java)
-                startActivity(intent)
+//                val intent = Intent(this@RegisterActivity, LoginActivity::class.java)
+//                startActivity(intent)
             }
 
             override fun updateDrawState(ds: TextPaint) {

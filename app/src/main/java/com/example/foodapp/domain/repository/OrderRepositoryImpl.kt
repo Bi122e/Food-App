@@ -15,10 +15,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.util.Date
+import javax.inject.Inject
 
-class OrderRepositoryImpl: OrderRepository {
+class OrderRepositoryImpl @Inject constructor(
+    private val firestore: FirebaseFirestore
+): OrderRepository {
 
-    private val firestore = FirebaseFirestore.getInstance()
     private val orderCollection = firestore.collection(Constance.COLLECTION_ORDERS)
 
     override suspend fun getOrderById(orderId: String): ApiResponse<Order> {

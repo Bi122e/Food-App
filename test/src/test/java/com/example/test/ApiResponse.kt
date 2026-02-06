@@ -1,4 +1,4 @@
-package com.example.foodapp.core
+package com.example.test
 
 sealed class ApiResponse<out T> {
     data class Success<T>(val data: T): ApiResponse<T>()
@@ -44,14 +44,5 @@ inline fun <T, R> ApiResponse<T>.map(transform: (T) -> R): ApiResponse<R> {
 inline fun <T> ApiResponse<T>.onError(action: (String) -> Unit): ApiResponse<T> {
     if (this is ApiResponse.Error) action(message)
     return this
-}
-
-inline fun <T, R> ApiResponse<T>.flatMap(transform: (T) -> ApiResponse<R>): ApiResponse<R> {
-    return when (this) {
-        is ApiResponse.Success -> transform(data)
-        is ApiResponse.Error -> ApiResponse.Error(message, code, throwable)
-        is ApiResponse.Loading -> ApiResponse.Loading
-        is ApiResponse.Empty -> ApiResponse.Empty
-    }
 }
 

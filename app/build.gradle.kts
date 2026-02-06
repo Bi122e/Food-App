@@ -2,6 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.kotlin.compose)
+    id("kotlin-kapt")
 }
 
 android {
@@ -20,7 +23,9 @@ android {
 
     buildFeatures {
         viewBinding = true
+        compose = true
     }
+
 
     buildTypes {
         release {
@@ -48,52 +53,59 @@ android {
 }
 
 dependencies {
-    implementation(platform("com.google.firebase:firebase-bom:32.1.1"))
+
+    // =========================
+    // Firebase (DÙNG BOM – KHÔNG SET VERSION)
+    // ========================
+    implementation(platform("com.google.firebase:firebase-bom:32.7.4"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-messaging-ktx")
 
-    implementation("com.google.android.gms:play-services-auth:20.6.0")
 
+    // Google Sign-In
+    implementation(libs.play.services.auth)
 
-    // các thư viện khác
+    // =========================
+    // Hilt
+    // =========================
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.hilt.android)
+    implementation(libs.androidx.navigation.fragment.ktx)
+    implementation(libs.androidx.navigation.ui.ktx)
+//    implementation(libs.firebase.messaging.ktx)
+    kapt(libs.hilt.compiler)
+
+    // =========================
+    // Jetpack Compose (BOM)
+    // =========================
+    implementation(platform(libs.androidx.compose.bom))
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    implementation("androidx.compose.material:material-icons-extended")
+
+    // Activity Compose
+    implementation("androidx.activity:activity-compose:1.9.3")
+
+    // =========================
+    // AndroidX
+    // =========================
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
 
-    implementation("com.google.code.gson:gson:2.10.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
-    implementation("androidx.core:core-splashscreen:1.0.0")
-
-    //loti animetion
-    implementation("com.airbnb.android:lottie:6.1.0")
-
+    // =========================
+    // Test
+    // =========================
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-
-    //fragment
-    implementation("androidx.navigation:navigation-fragment-ktx:2.5.3")
-    implementation("androidx.navigation:navigation-ui-ktx:2.5.3")
-
-    //glice
-    implementation("com.github.bumptech.glide:glide:4.15.1")  // Phiên bản mới nhất tính đến 2025
-    implementation("androidx.viewpager2:viewpager2:1.0.0")
-
-    //cicle
-    implementation("me.relex:circleindicator:2.1.6")
-
-    //NavigationBarView
-    implementation("com.google.android.material:material:1.11.0")
-
-    //worm-dots-indicator
-    implementation("com.tbuonomo:dotsindicator:5.1.0")
-
-    //ShapeableImageView
-    implementation("com.google.android.material:material:1.11.0")
-
-
 }
+
+
 

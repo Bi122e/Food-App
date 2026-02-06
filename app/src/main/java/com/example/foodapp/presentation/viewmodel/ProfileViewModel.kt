@@ -13,14 +13,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class Profile @Inject constructor(
+class ProfileViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val orderRepository: OrderRepository,
     private val favoriteRepository: FavoriteRepository,

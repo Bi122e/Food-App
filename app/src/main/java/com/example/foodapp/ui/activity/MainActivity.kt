@@ -1,49 +1,76 @@
 package com.example.foodapp.ui.activity
 
 import android.content.Intent
-import android.graphics.Color
-import android.graphics.Typeface
 import android.os.Bundle
-import android.text.SpannableString
-import android.text.Spanned
-import android.text.TextPaint
-import android.text.method.LinkMovementMethod
-import android.text.style.ClickableSpan
-import android.text.style.StyleSpan
-import android.view.View
+import android.util.Log
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import com.example.foodapp.R
-import com.example.foodapp.databinding.ActivityMainBinding
+import com.example.foodapp.core.utils.GoogleSignInManager
+import com.example.foodapp.presentation.viewmodel.AuthViewModel
+import com.example.foodapp.ui.screen.navigation.AppNavGraph
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
-    lateinit var binding: ActivityMainBinding
+
+    @Inject
+    lateinit var googleSignInManager: GoogleSignInManager
+    private lateinit var googleLauncher: ActivityResultLauncher<Intent>
+    private val authModelView: AuthViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+
+        googleLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            val data = result.data
+            val accountResult = googleSignInManager.getAccountFormIntent(data)
+
+            accountResult
+                .onSuccess { account ->
+                    val idToken = account.idToken
+                    if (idToken != null) {
+                        authModelView.loginWithGoogle(idToken)
+                    }
+                    Log.d("Google Login", "Email = ${account.email}")
+                }
+                .onFailure {
+                    Log.e("Google Login", "Login failed", it)
+                }
         }
 
         setContent {
-            Greeting("compose")
+
+            AppNavGraph(
+                authModelView,
+                googleLauncher,
+                googleSignInManager.googleClient
+            )
+
         }
 
     }
 
-    @Composable
-    fun Greeting(name: String) {
-        Text(text = "Hello $name")
-    }
+//    @Composable
+//    fun CounterScreen(viewModel: CounterViewModel = hiltViewModel()) {
+//        val value by viewModel.count.collectAsStateWithLifecycle()
+//
+//        when (value) {
+//            is UiState.Success -> {
+//                val count = (value as UiState.Success).data
+//                CounterContent(count, viewModel::increment, viewModel::decrement)
+//            }
+//
+//            else -> Unit
+//        }
+//
+//    }
+
 
 //        CategorySeeder.seedCategories() //thêm các category
 ////        RestaurantsSeeder.seedRestaurant()// thêm các nhà hàng mẫu
@@ -76,4 +103,19 @@ class MainActivity : AppCompatActivity() {
 //        }
 //    }
 
+
+
+
+
+//    LoginSocial (Button)
+//    ↓
+//    googleLauncher.launch()
+//    ↓
+//    MainActivity.onActivityResult
+//    ↓
+//    authViewModel.loginWithGoogle()
+//    ↓
+//    uiState = Loading → Success / Error
+//    ↓
+//    Compose tự recompose
 }

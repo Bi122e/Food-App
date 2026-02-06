@@ -8,17 +8,17 @@ import com.example.foodapp.domain.model.Message
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.ktx.toObject
-import com.google.firebase.firestore.ktx.toObjects
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.util.Date
+import javax.inject.Inject
 
-class ChatRepositoryImpl : ChatRepository {
+class ChatRepositoryImpl @Inject constructor(
+    private val firestore : FirebaseFirestore
+): ChatRepository {
 
-    private val firestore = FirebaseFirestore.getInstance()
     private val conversationCollection = firestore.collection(Constance.COLLECTION_CONVERSATIONS)
     private val messageCollection = firestore.collection(Constance.COLLECTION_MESSAGES)
 

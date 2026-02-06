@@ -1,6 +1,6 @@
-package com.example.foodapp.core
+package com.example.test
 
-sealed class  UiState<out T> {
+sealed class UiState<out T> {
 
     data object Idle: UiState<Nothing>()
     data object Loading: UiState<Nothing>()
@@ -9,7 +9,7 @@ sealed class  UiState<out T> {
         val message: String,
         val type: UiErrorType = UiErrorType.GENERAL
     ): UiState<Nothing>()
-    data class Empty(val message: String = "Have no any data"): UiState<Nothing>()
+    data class Empty(val message: String = "Khong co du lieu"): UiState<Nothing>()
 
 
     fun isIdle(): Boolean = this is Idle
@@ -34,44 +34,17 @@ enum class UiErrorType {
     PERMISSION,
 }
 
-//fun <T> ApiResponse<T>.toUiState(): UiState<T> {
-//    return when (this) {
-//        is ApiResponse.Success -> UiState.Success(data)
-//        is ApiResponse.Error -> UiState.Error(
-//            message = message,
-//            type = code.toUiErrorType()
-//        )
-//        is ApiResponse.Loading -> UiState.Loading
-//        is ApiResponse.Empty -> UiState.Empty()
-//    }
-//}
-
 fun <T> ApiResponse<T>.toUiState(): UiState<T> {
-    return when(this) {
-        is ApiResponse.Success -> UiState.Success(data)
-        is ApiResponse.Error -> UiState.Error(
-            message,
-            code.toUiErrorType()
-        )
-        is ApiResponse.Empty -> UiState.Empty()
-        is ApiResponse.Loading -> UiState.Loading
-    }
-}
-
-fun <T, R> ApiResponse<T>.toUiState(transform: (T) ->(R)): UiState<R> {
     return when (this) {
         is ApiResponse.Success -> {
-            UiState.Success(transform(data))
+            UiState.Success(data)
         }
-        is ApiResponse.Error -> {
-            UiState.Error(message)
-        }
-        is ApiResponse.Loading -> {
-            UiState.Loading
-        }
-        is ApiResponse.Empty -> {
-            UiState.Empty()
-        }
+        is ApiResponse.Error -> UiState.Error(
+            message = message,
+            type = code.toUiErrorType()
+        )
+        is ApiResponse.Loading -> UiState.Loading
+        is ApiResponse.Empty -> UiState.Empty()
     }
 }
 

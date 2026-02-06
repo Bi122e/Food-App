@@ -25,9 +25,8 @@ class CheckoutViewModel @Inject constructor(
     private val orderRepository: OrderRepository,
     private val cartRepository: CartRepository,
     private val userRepository: UserRepository,
-    private val job: Job? = null
 ) : ViewModel() {
-
+    private var job: Job? = null
 
     private val _checkoutState = MutableStateFlow(CheckoutState())
     val checkoutState: StateFlow<CheckoutState> = _checkoutState.asStateFlow()

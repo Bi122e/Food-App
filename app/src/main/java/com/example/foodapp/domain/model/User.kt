@@ -12,11 +12,12 @@ data class User(
     val profileUrl: String = "",
     val isGoogleUser: Boolean = false,
     val isActive: Boolean = true,
-    val lastLogin: Date? = null,
     val role: UserRole = UserRole.CUSTOMER,
     val fcmToken: String = "",
     @ServerTimestamp
     val createdAt: Date? = null,
+    @ServerTimestamp
+    val lastLogin: Date? = null,
     val updatedAt: Date? = null
 ) {
     fun isValid(): Boolean {

@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface UserRepository {
 
-    suspend fun createUser(user: User): ApiResponse<Unit>
+    suspend fun createUser(uid: String, email: String): ApiResponse<String>
 
     suspend fun getUserById(userId: String): ApiResponse<User>
     suspend fun getCurrentUser(userId: String): Flow<ApiResponse<User>>
@@ -22,6 +22,8 @@ interface UserRepository {
     suspend fun deactivateAccount(userId: String): ApiResponse<Unit>
 
     suspend fun changePassword(oldPassword: String, newPassword: String): ApiResponse<Unit>
+
+    suspend fun updateLastLoginAndToken(uid: String): ApiResponse<Unit>
 
     suspend fun logout()
 }

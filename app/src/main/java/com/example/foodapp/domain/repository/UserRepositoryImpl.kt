@@ -2,19 +2,26 @@ package com.example.foodapp.domain.repository
 
 import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.core.Constance
+import com.example.foodapp.data.repository.AuthRepository
 import com.example.foodapp.data.repository.UserRepository
 import com.example.foodapp.domain.model.User
 import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class UserRepositoryImpl: UserRepository {
+class UserRepositoryImpl @Inject constructor(
+    private val firebase: FirebaseFirestore,
+    private val authRepository: AuthRepository
+): UserRepository {
     private val firestore = FirebaseFirestore.getInstance()
     private val firebaseAuth = FirebaseAuth.getInstance()
     private val userRef = firestore.collection(Constance.COLLECTION_USER)
@@ -51,10 +58,11 @@ class UserRepositoryImpl: UserRepository {
         awaitClose { listener.remove() }
     }
 
-    override suspend fun createUser(user: User): ApiResponse<Unit> {
+    override suspend fun createUser(uid: String, email: String): ApiResponse<String> {
         return  try {
-            userRef.document(user.uid).set(user).await()
-            ApiResponse.Success(Unit)
+            val user = User(uid = uid, email = email, updatedAt = null, createdAt = null, lastLogin = null)
+             userRef.document(uid).set(user).await()
+            ApiResponse.Success(uid)
         } catch (e: Exception) {
             ApiResponse.Error(e.message ?: "failed to create user")
         }
@@ -148,5 +156,24 @@ class UserRepositoryImpl: UserRepository {
 
     override suspend fun logout() {
         firebaseAuth.signOut()
+    }
+
+    override suspend fun updateLastLoginAndToken(uid: String): ApiResponse<Unit> {
+        return try {
+
+            val token = try {
+                FirebaseMessaging.getInstance().token.await()
+            } catch (e: Exception) {null}
+
+            val updates = mutableMapOf<String, Any>(
+                "lastLogin" to FieldValue.serverTimestamp()
+            )
+            token?.let { updates["fcmToken"] = it }
+
+            firestore.collection("users").document(uid).update(updates).await()
+            ApiResponse.Success(Unit)
+        } catch (e: Exception) {
+            ApiResponse.Error(e.message ?: "Failed to update session")
+        }
     }
 }

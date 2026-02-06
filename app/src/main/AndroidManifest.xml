@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
+        android:name=".FoodApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -15,41 +16,29 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Food_app"
         tools:targetApi="31">
-        <!-- <activity -->
-        <!-- android:name=".ui.home.test" -->
-        <!-- android:exported="false" /> -->
+
         <activity
             android:name=".ui.activity.LoadingActivity"
             android:exported="false" />
+
         <activity
             android:name=".ui.activity.RegisterActivity"
             android:exported="false" />
-        <activity
-            android:name=".ui.activity.LoginActivity"
-            android:exported="false" /> <!-- home làm main -->
-        <!-- <activity -->
-        <!-- android:name=".MainActivity" -->
-        <!-- android:exported="false" /> -->
-        <!-- <activity -->
-        <!-- android:name=".ui.home.HomeActivity" -->
-        <!-- android:exported="true"> -->
-        <!-- <intent-filter> -->
-        <!-- <action android:name="android.intent.action.MAIN" /> -->
-        <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
-        <!-- </intent-filter> -->
-        <!-- </activity> -->
+
+
         <activity
             android:name=".ui.activity.HomeActivity"
             android:exported="false" />
+
         <activity
             android:name=".ui.activity.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>

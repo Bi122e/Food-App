@@ -6,13 +6,15 @@ import com.example.foodapp.data.repository.FoodRepository
 import com.example.foodapp.domain.model.Food
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.ktx.toObject
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
-class FoodRepositoryImpl(
+
+
+class FoodRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore
 ): FoodRepository {
 

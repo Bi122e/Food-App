@@ -13,9 +13,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.util.Date
+import javax.inject.Inject
 
-class CategoryRepositoryImpl : CategoryRepository {
-    private val firestore = FirebaseFirestore.getInstance()
+class CategoryRepositoryImpl @Inject constructor(
+    private val firestore : FirebaseFirestore
+)
+: CategoryRepository {
     private val categoriesCollection = firestore.collection(Constance.COLLECTION_CATEGORIES)
 
     override suspend fun createCategory(category: Category): ApiResponse<String> {

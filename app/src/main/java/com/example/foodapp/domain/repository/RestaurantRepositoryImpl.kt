@@ -9,9 +9,11 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 
-class RestaurantRepositoryImpl : RestaurantRepository {
-    private val firestore = FirebaseFirestore.getInstance()
+class RestaurantRepositoryImpl @Inject constructor(
+    private val firestore: FirebaseFirestore
+): RestaurantRepository {
     private val restaurantRef = firestore.collection(Constance.COLLECTION_RESTAURANTS)
 
     override suspend fun getAllRestaurants(): ApiResponse<List<Restaurant>> {

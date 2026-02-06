@@ -2,7 +2,6 @@ package com.example.foodapp.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.core.UiState
 import com.example.foodapp.core.toUiState
 import com.example.foodapp.data.repository.CategoryRepository
@@ -12,7 +11,6 @@ import com.example.foodapp.domain.model.Category
 import com.example.foodapp.domain.model.CategoryType
 import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.Restaurant
-import com.example.foodapp.domain.model.Variation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

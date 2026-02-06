@@ -5,15 +5,16 @@ import com.example.foodapp.core.ApiResponse
 
 interface AuthRepository {
 
-    suspend fun login(email: String, password: String): ApiResponse<Unit>
+    suspend fun login(email: String, password: String): ApiResponse<String>
 
-    suspend fun register(name: String, email: String, password: String): ApiResponse<Unit>
+    suspend fun register( email: String, password: String): ApiResponse<String>
 
-    suspend fun loginWithGoogle(idToken: String): ApiResponse<Unit>
+    suspend fun loginWithGoogle(idToken: String): ApiResponse<String>
 
     suspend fun changePassword(oldPassword: String, newPassword: String): ApiResponse<Unit>
 
     suspend fun logOut()
+//    suspend fun currentUserId(): String?
 }
 
 

@@ -2,7 +2,6 @@ package com.example.foodapp.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.navOptions
 import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.core.UiState
 import com.example.foodapp.core.toUiState
