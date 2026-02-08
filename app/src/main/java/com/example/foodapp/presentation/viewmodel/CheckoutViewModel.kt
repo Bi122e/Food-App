@@ -1,4 +1,4 @@
-package com.example.foodapp.presentation.viewmodel
+ package com.example.foodapp.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,6 +8,7 @@ import com.example.foodapp.core.toUiState
 import com.example.foodapp.data.repository.CartRepository
 import com.example.foodapp.data.repository.OrderRepository
 import com.example.foodapp.data.repository.UserRepository
+import com.example.foodapp.data.repository.ProfileRepository
 import com.example.foodapp.domain.mapper.toVariations
 import com.example.foodapp.domain.model.*
 import com.example.foodapp.presentation.state.CheckoutState
@@ -25,6 +26,7 @@ class CheckoutViewModel @Inject constructor(
     private val orderRepository: OrderRepository,
     private val cartRepository: CartRepository,
     private val userRepository: UserRepository,
+    private val profileRepository: ProfileRepository
 ) : ViewModel() {
     private var job: Job? = null
 
@@ -60,13 +62,18 @@ class CheckoutViewModel @Inject constructor(
     fun loadUser(userId: String) {
         job?.cancel()
         viewModelScope.launch {
+            // Load User for Email/Auth info
             userRepository.getCurrentUser(userId)
                 .collect { response ->
                     _user.value = response.toUiState()
 
                     if (response is ApiResponse.Success) {
-                        _checkoutState.update { it.copy(address = response.data.address) }
-                        _checkoutState.update { it.copy(phoneNumber = response.data.phone) }
+                        // Load Profile for Address/Phone
+                        val profileRes = profileRepository.getCustomerProfile(userId)
+                        if (profileRes is ApiResponse.Success) {
+                             _checkoutState.update { it.copy(address = profileRes.data.address) }
+                             _checkoutState.update { it.copy(phoneNumber = profileRes.data.phone) }
+                        }
                     }
                 }
         }

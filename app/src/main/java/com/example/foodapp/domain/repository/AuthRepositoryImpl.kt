@@ -38,7 +38,6 @@ class AuthRepositoryImpl @Inject constructor(
 
             val userData = User(
                 uid = user.uid,
-                name = "",
                 email = email,
                 lastLogin = null,
                 createdAt = null,
@@ -89,7 +88,7 @@ class AuthRepositoryImpl @Inject constructor(
             if (!snapshot.exists()) {
                 val userData = com.example.foodapp.domain.model.User(
                     uid = firebaseUser.uid,
-                    name = firebaseUser.displayName ?: "",
+//                    name = firebaseUser.displayName ?: "",
                     email = firebaseUser.email ?: "",
                     lastLogin = null,
                     createdAt = null,
@@ -105,9 +104,7 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-//    override suspend fun currentUserId(): String? {
-//        return try {
-//
-//        }
-//    }
+    override fun currentUserId(): String? {
+       return auth.currentUser?.uid
+    }
 }

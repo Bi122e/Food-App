@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.data.repository.FavoriteRepository
 import com.example.foodapp.data.repository.OrderRepository
+import com.example.foodapp.data.repository.ProfileRepository
 import com.example.foodapp.data.repository.UserRepository
+import com.example.foodapp.domain.model.CustomerProfile
 import com.example.foodapp.presentation.state.EditProfileState
 import com.example.foodapp.presentation.state.ProfileStatistics
 import com.example.foodapp.presentation.state.ProfileUiState
@@ -22,17 +24,16 @@ class ProfileViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val orderRepository: OrderRepository,
     private val favoriteRepository: FavoriteRepository,
-
+    private val profileRepository: ProfileRepository
 ): ViewModel() {
 
-//    AuthViewModel (hoặc AccountViewModel)
-//    ├─ changePassword
-//    └─ logout
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState = _uiState.asStateFlow()
     private var observeFavoritesJob: Job? = null
 
     private var currentUserId: String? = null
+    // Temporary storage for profile
+    private var currentProfile: CustomerProfile? = null
 
     fun init(userId: String) {
         if (currentUserId == userId) return
@@ -71,52 +72,46 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             setLoading(true)
 
-            loadUser(userId)
+            loadUserAndProfile(userId)
             loadStatistics(userId)
 
             setLoading(false)
         }
     }
 
-    private suspend fun loadUser(userId: String) {
-            when (val response = userRepository.getUserById(userId)) {
+    private suspend fun loadUserAndProfile(userId: String) {
+            // First load User to get auth info (e.g. role, though we assume Customer here for now)
+            when (val userResponse = userRepository.getUserById(userId)) {
                 is ApiResponse.Success -> {
-                    //nen dung update thay cho .value moi truong hop, de tranh coroutine ghi de
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            user = response.data,
-                            editProfile = EditProfileState(
-                                response.data.name,
-                                phone = response.data.phone,
-                                address = response.data.address,
-                            ),
-                        )
-                    }
+                     // Load Profile
+                     when (val profileResponse = profileRepository.getCustomerProfile(userId)) {
+                         is ApiResponse.Success -> {
+                             currentProfile = profileResponse.data
+                             _uiState.update {
+                                 it.copy(
+                                     isLoading = false,
+                                     user = userResponse.data,
+                                     editProfile = EditProfileState(
+                                         name = profileResponse.data.name,
+                                         phone = profileResponse.data.phone,
+                                         address = profileResponse.data.address,
+                                     ),
+                                 )
+                             }
+                         }
+                         is ApiResponse.Error -> {
+                             // Profile might not exist yet? Create default or show error?
+                             // Assuming error for now, or handle empty profile
+                             showError(profileResponse.message)
+                         }
+                         else -> Unit
+                     }
                 }
 
-                is ApiResponse.Error -> showError(response.message)
+                is ApiResponse.Error -> showError(userResponse.message)
                 else -> Unit
             }
     }
-
-//    private fun loadFavoriteFoods(userId: String) {
-//        viewModelScope.launch {
-//            favoriteRepository.observeFavorites(userId).take(1).collect { response ->
-//                when (response) {
-//                    is ApiResponse.Success -> {
-//                        _uiState.update {
-//                            it.copy(favoriteFoods = response.data)
-//                        }
-//                    }
-//
-//                    is ApiResponse.Error -> showError(response.message)
-//                    else -> {}
-//
-//                }
-//            }
-//        }
-//    }
 
     private fun loadStatistics(userId: String) {
         viewModelScope.launch {
@@ -138,7 +133,7 @@ class ProfileViewModel @Inject constructor(
                 val error = when {
                     orderRes is ApiResponse.Error -> orderRes.message
                     spentRes is ApiResponse.Error -> spentRes.message
-                    else -> "Unknow"
+                    else -> "Unknown"
                 }
 
                 showError(error)
@@ -153,11 +148,11 @@ class ProfileViewModel @Inject constructor(
             it.copy(
                 isLoading = true,
                 isEditMode = enable,
-                editProfile = if (!enable && it.user != null) {
+                editProfile = if (!enable && currentProfile != null) {
                     EditProfileState(
-                        name = it.user.name,
-                        phone = it.user.phone,
-                        address = it.user.address
+                        name = currentProfile!!.name,
+                        phone = currentProfile!!.phone,
+                        address = currentProfile!!.address
                     )
                 } else {
                     it.editProfile
@@ -190,25 +185,29 @@ class ProfileViewModel @Inject constructor(
         val state = uiState.value
         val user = state.user ?: return
         val edit = state.editProfile
+        val currentP = currentProfile ?: CustomerProfile(uid = user.uid)
 
-        val updatedUser = user.copy(
+        // Validate
+        if (edit.name.isBlank() || edit.address.isBlank()) {
+             showError("Thong tin khong hop le")
+             return
+        }
+        // Simplified validation for now
+
+        val updatedProfile = currentP.copy(
             name = edit.name,
             phone = edit.phone,
             address = edit.address
         )
 
-        if (!updatedUser.isProfileComplete() || !updatedUser.isPhoneValid()) {
-            showError("Thong tin khong hop le")
-            return
-        }
-
         viewModelScope.launch {
-            when (val response = userRepository.updateUser(updatedUser)) {
+            setLoading(true)
+            when (val response = profileRepository.updateCustomerProfile(updatedProfile)) {
                 is ApiResponse.Success -> {
+                    currentProfile = updatedProfile
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            user = updatedUser,
                             isEditMode = false,
                             successMessage = "Cap nhat thanh cong"
                             )
@@ -220,6 +219,7 @@ class ProfileViewModel @Inject constructor(
                 }
                 else -> Unit
             }
+             setLoading(false)
         }
     }
 

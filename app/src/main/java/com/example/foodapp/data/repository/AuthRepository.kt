@@ -14,7 +14,7 @@ interface AuthRepository {
     suspend fun changePassword(oldPassword: String, newPassword: String): ApiResponse<Unit>
 
     suspend fun logOut()
-//    suspend fun currentUserId(): String?
+    fun currentUserId(): String?
 }
 
 

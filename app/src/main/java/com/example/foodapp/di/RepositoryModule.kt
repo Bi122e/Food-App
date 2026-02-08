@@ -17,6 +17,8 @@ import com.example.foodapp.domain.repository.FavoriteRepositoryImpl
 import com.example.foodapp.domain.repository.FoodRepositoryImpl
 import com.example.foodapp.domain.repository.OrderRepositoryImpl
 import com.example.foodapp.domain.repository.RestaurantRepositoryImpl
+import com.example.foodapp.data.repository.ProfileRepository
+import com.example.foodapp.data.repository.ProfileRepositoryImpl
 import com.example.foodapp.domain.repository.UserRepositoryImpl
 import dagger.Binds
 import dagger.Module
@@ -82,4 +84,10 @@ abstract class RepositoryModule {
     abstract fun bindUserRepository(
         impl: UserRepositoryImpl
     ): UserRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindProfileRepository(
+        impl: ProfileRepositoryImpl
+    ): ProfileRepository
 }

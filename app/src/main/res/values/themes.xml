@@ -9,9 +9,21 @@
         <item name="android:textSize">16sp</item>
         <item name="android:textStyle">normal</item>
     </style>-->
+    <style name="Theme.FoodApp"
+        parent="Theme.Material3.DayNight.NoActionBar">
+
+    </style>
     <style name="BottomNavigationTheme" parent="Widget.MaterialComponents.BottomNavigationView">
         <item name="itemBackground">@android:color/transparent</item>
         <item name="itemRippleColor">@android:color/transparent</item>
     </style>
     <style name="Theme.Food_app" parent="Base.Theme.Food_app" />
+
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/white</item>
+         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_app_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.Food_app</item>
+    </style>
+
+
 </resources>

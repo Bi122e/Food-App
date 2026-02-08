@@ -6,4 +6,6 @@ sealed class AuthResult {
     data class LoggedIn(val user: User): AuthResult()
     object LoggedOut: AuthResult()
     object PasswordChange: AuthResult()
+    object Idle: AuthResult()
+    object NotLoggedIn: AuthResult()
 }

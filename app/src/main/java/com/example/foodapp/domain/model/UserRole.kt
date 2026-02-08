@@ -4,10 +4,11 @@ enum class UserRole(
     val displayName: String,
     val priority: Int
 ) {
-
+    DRIVER("Tai xe", 4),
     CUSTOMER("Khach hang", 1),
     RESTAURANT("Chu nha hang", 2),
     ADMIN("Quan tri vien", 3);
+
 
     fun canAccessAdmin(): Boolean = this == ADMIN
 

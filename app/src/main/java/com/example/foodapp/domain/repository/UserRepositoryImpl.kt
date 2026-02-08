@@ -79,7 +79,8 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun updateProfileImage(userId: String, imageUrl: String): ApiResponse<Unit> {
         return try {
-            userRef.document(userId).update("profileUrl", imageUrl).await()
+            // TODO: Move profileUrl to specific Profile collections
+//            userRef.document(userId).update("profileUrl", imageUrl).await()
             ApiResponse.Success(Unit)
         } catch (e: Exception) {
             ApiResponse.Error(e.message ?: "Failed to update profile image")
@@ -94,11 +95,6 @@ class UserRepositoryImpl @Inject constructor(
                 .limit(1)
                 .get()
                 .await()
-//            if (userDoc != null && !userDoc.isEmpty) {
-//                ApiResponse.Success(true)
-//            } else {
-//                ApiResponse.Success(false)
-//            }
             ApiResponse.Success(!userDoc.isEmpty)
         } catch (e: Exception) {
             ApiResponse.Error(e.message ?: "Failed to check email")

@@ -56,7 +56,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.example.foodapp.R
 import com.example.foodapp.core.AuthResult
 import com.example.foodapp.core.UiState
@@ -67,32 +66,36 @@ import com.example.foodapp.ui.theme.secondBlue
 
 @Composable
 fun LoginScreen(
-    navController: NavController,
     uiState: UiState<AuthResult>,
     onLoginClick: (String, String) -> Unit,
     onGoogleLogin: () -> Unit,
     onRegisterClick: () -> Unit,
 ) {
+//    val context = LocalContext.current
+//    LaunchedEffect(uiState) {
+//        when (uiState) {
+//            is UiState.Success -> {
+//                showToast(context, "Đăng nhập thành công")
+//                navController.navigate("home") {
+//                    popUpTo("login") { inclusive = true  }
+//                }
+//            }
+//            else -> Unit
+//        }
+//    }
     val context = LocalContext.current
     LaunchedEffect(uiState) {
         when (uiState) {
             is UiState.Success -> {
                 showToast(context, "Đăng nhập thành công")
-                navController.navigate("home") {
-                    popUpTo("login") { inclusive = true  }
-                }
+            }
+            is UiState.Error -> {
+                showToast(context, uiState.message)
             }
             else -> Unit
         }
     }
 
-//    LaunchedEffect(uiState) {
-////        if (uiState is UiState.Success) {
-////            navController.navigate("home") {
-////                popUpTo("login") { inclusive = true }
-////            }
-////        }
-////    }
     LoginContent(
         uiState = uiState,
         onLoginClick = onLoginClick,
