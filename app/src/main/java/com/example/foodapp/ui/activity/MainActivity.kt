@@ -19,8 +19,8 @@ import com.example.foodapp.core.utils.GoogleSignInManager
 import com.example.foodapp.presentation.state.AppState
 import com.example.foodapp.presentation.viewmodel.AuthViewModel
 import com.example.foodapp.ui.screen.navigation.AppNavGraph
-import com.example.foodapp.ui.screen.navigation.Routes
-import com.example.foodapp.ui.screen.navigation.toRootRoute
+import com.example.foodapp.core.Routes
+import com.example.foodapp.core.toRootRoute
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
