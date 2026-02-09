@@ -1,5 +1,6 @@
 package com.example.foodapp.ui.screen.navigation
 
+import HomeScreen
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +24,6 @@ import com.example.foodapp.core.Routes
 import com.example.foodapp.core.UiState
 import com.example.foodapp.core.toRootRoute
 import com.example.foodapp.presentation.state.AppState
-import com.example.foodapp.ui.screen.home.HomeScreen
 import com.example.foodapp.ui.screen.login.LoginScreen
 import com.example.foodapp.ui.screen.register.RegisterScreen
 import com.example.foodapp.ui.screen.splash.SplashScreen
@@ -44,6 +44,7 @@ fun AppNavGraph(
     // Handle post-launch navigation (Login success, etc.)
     LaunchedEffect(appState) {
         if (appState is AppState.LoggedIn) {
+
             val route = appState.user.role.toRootRoute()
             Log.d("AppNavGraph", "AppState changed to LoggedIn. Navigating to $route")
             navController.navigate(route) {
