@@ -154,10 +154,12 @@ class FoodRepositoryImpl @Inject constructor(
 
     override suspend fun searchFoods(query: String): ApiResponse<List<Food>> {
         return try {
+            val lowerQuery = query.lowercase()
+
             val snapshot = foodRef
-                .orderBy("name") //k co nay se bi loi
-                .whereGreaterThanOrEqualTo("name", query)
-                .whereLessThan("name", query + '\uf8ff')
+                .orderBy("nameLower") //k co nay se bi loi
+                .whereGreaterThanOrEqualTo("nameLower", lowerQuery)
+                .whereLessThan("nameLower", lowerQuery + '\uf8ff')
                 .get()
                 .await()
             val foods = snapshot.documents.mapNotNull {

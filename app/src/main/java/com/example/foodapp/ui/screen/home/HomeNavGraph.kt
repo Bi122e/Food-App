@@ -20,7 +20,7 @@ fun HomeNavGraph(
     NavHost(
         navController = navController,
         startDestination = UserRoutes.HOME,
-        modifier = Modifier
+        modifier = modifier
     ) {
         composable(UserRoutes.HOME) { HomeTab() }
         composable(UserRoutes.CHAT) { ChatTab() }

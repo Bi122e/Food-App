@@ -14,7 +14,7 @@ data class Restaurant(
     val phoneNumber: String = "",
     val email: String = "",
     val description: String = "",
-    val imgUrl: String,
+    val imgUrl: String = "",
     val isOpen: Boolean = true,
     val rating: Double = 0.0,
     val reviews: Int = 0,

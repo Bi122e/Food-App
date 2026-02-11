@@ -12,6 +12,8 @@ import com.example.foodapp.domain.model.CategoryType
 import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.Restaurant
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -48,6 +50,8 @@ class HomeViewModel @Inject constructor(
 
     private val _searchResult = MutableStateFlow<UiState<List<Food>>>(UiState.Loading)
     val searchResult: StateFlow<UiState<List<Food>>> = _searchResult.asStateFlow()
+
+    private var searchJob: Job? = null
 
     init {
         loadCategories()
@@ -106,23 +110,35 @@ class HomeViewModel @Inject constructor(
 
 
     fun updateSearchQuery(query: String) {
+        _searchResult.value = UiState.Loading
+
         _searchQuery.value = query
-        if (query.isNotEmpty()) {
-            searchFood(query)
-        } else {
+//        if (query.isNotEmpty()) {
+//            searchFood(query)
+//        } else {
+//            _searchResult.value = UiState.Success(emptyList())
+//        }
+        searchJob?.cancel()
+        if (query.isBlank()) {
             _searchResult.value = UiState.Success(emptyList())
+            return
+        }
+
+        searchJob = viewModelScope.launch {
+            delay(300)
+            searchFood(query)
         }
     }
 
     private fun searchFood(query: String) {
         viewModelScope.launch {
-            var search = _searchResult.value
-            search = UiState.Loading
-            val response = foodRepository.searchFoods(query)
-            search = response.toUiState()
+            _searchResult.value = UiState.Loading
 
+            val response = foodRepository.searchFoods(query)
+            _searchResult.value = response.toUiState()
         }
     }
+
     fun clearSearch() {
         _searchQuery.value = ""
         _searchResult.value = UiState.Success(emptyList())

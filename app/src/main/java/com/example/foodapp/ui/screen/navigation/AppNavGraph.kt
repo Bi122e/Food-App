@@ -139,7 +139,7 @@ fun RoleRootScreen(roleName: String, onLogout: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Welcome to $roleName Root 🎉")
+        Text("Welcome to $roleName Root ")
         Button(onClick = {
             Log.d("Navigation", "Logging out from $roleName")
             Toast.makeText(context, "Logging out...", Toast.LENGTH_SHORT).show()

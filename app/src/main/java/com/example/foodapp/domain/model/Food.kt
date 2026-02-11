@@ -5,6 +5,7 @@ import java.util.Date
 
 data class Food(
     val name: String = "",
+    val nameLower: String = "",
     val foodId: String = "",
     val description: String = "",
     val price: Int = 0,

@@ -1,7 +1,7 @@
-package com.example.foodapp.data.repository
+package com.example.foodapp.domain.repository
 
 import com.example.foodapp.core.ApiResponse
-import com.example.foodapp.core.Constance
+import com.example.foodapp.data.repository.ProfileRepository
 import com.example.foodapp.domain.model.AdminProfile
 import com.example.foodapp.domain.model.CustomerProfile
 import com.example.foodapp.domain.model.DriverProfile
