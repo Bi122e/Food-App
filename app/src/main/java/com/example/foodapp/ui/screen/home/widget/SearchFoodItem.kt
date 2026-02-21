@@ -1,4 +1,4 @@
-package com.example.foodapp.ui.screen.home
+package com.example.foodapp.ui.screen.home.widget
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,7 +25,8 @@ import com.example.foodapp.ui.theme.PrimaryBlue
 
 @Composable
 fun SearchFoodItem(
-    food: Food, modifier: Modifier = Modifier
+    food: Food,
+    modifier: Modifier = Modifier
 ) {
     Surface(
         modifier = modifier

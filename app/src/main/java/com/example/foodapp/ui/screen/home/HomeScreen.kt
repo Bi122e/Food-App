@@ -27,17 +27,18 @@ fun HomeScreen() {
                     selectedIndex = index
                     navController.navigate(bottomRouteFromIndex(index)) {
                         launchSingleTop = true
-                         restoreState = true
-                        popUpTo(UserRoutes.HOME) {saveState = true}
+                        restoreState = true
+                        popUpTo(UserRoutes.HOME) { saveState = true }
                     }
                 }
             )
         }
     ) { paddingValue ->
-            HomeNavGraph(
-                navController = navController,
-                modifier = Modifier.padding(paddingValue)
-            )
-        }
+        HomeNavGraph(
+            navController = navController,
+            modifier = Modifier.padding(paddingValue),
+
+        )
     }
+}
 

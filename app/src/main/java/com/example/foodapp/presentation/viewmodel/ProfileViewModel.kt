@@ -13,11 +13,15 @@ import com.example.foodapp.presentation.state.ProfileStatistics
 import com.example.foodapp.presentation.state.ProfileUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
@@ -25,15 +29,18 @@ class ProfileViewModel @Inject constructor(
     private val orderRepository: OrderRepository,
     private val favoriteRepository: FavoriteRepository,
     private val profileRepository: ProfileRepository
-): ViewModel() {
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState = _uiState.asStateFlow()
+
     private var observeFavoritesJob: Job? = null
+    private var loadProfileJob: Job? = null
 
     private var currentUserId: String? = null
-    // Temporary storage for profile
     private var currentProfile: CustomerProfile? = null
+
+    // ================= INIT =================
 
     fun init(userId: String) {
         if (currentUserId == userId) return
@@ -43,10 +50,81 @@ class ProfileViewModel @Inject constructor(
         loadProfile(userId)
     }
 
+    // ================= LOAD PROFILE =================
+
+    fun loadProfile(userId: String) {
+        loadProfileJob?.cancel()
+
+        loadProfileJob = viewModelScope.launch {
+            setLoading(true)
+            try {
+                coroutineScope {
+                    awaitAll(
+                        async { loadUserAndProfile(userId) },
+                        async { loadStatistics(userId) }
+                    )
+                }
+            } finally {
+                setLoading(false)
+            }
+        }
+    }
+
+    private suspend fun loadUserAndProfile(userId: String) {
+
+        val userRes = userRepository.getUserById(userId)
+        if (userRes !is ApiResponse.Success) {
+            if (userRes is ApiResponse.Error) showError(userRes.message)
+            return
+        }
+
+        val profileRes = profileRepository.getCustomerProfile(userId)
+        if (profileRes !is ApiResponse.Success) {
+            if (profileRes is ApiResponse.Error) showError(profileRes.message)
+            return
+        }
+
+        val profile = profileRes.data
+        currentProfile = profile
+
+        _uiState.update {
+            it.copy(
+                user = userRes.data,
+                editProfile = EditProfileState(
+                    name = profile.name,
+                    phone = profile.phone,
+                    address = profile.address
+                )
+            )
+        }
+    }
+
+    private suspend fun loadStatistics(userId: String) {
+
+        val orderRes = orderRepository.getTotalOrdersCount(userId)
+        val spentRes = orderRepository.getTotalSpent(userId)
+
+        if (orderRes is ApiResponse.Success &&
+            spentRes is ApiResponse.Success
+        ) {
+            _uiState.update {
+                it.copy(
+                    statistics = ProfileStatistics(
+                        totalOrders = orderRes.data,
+                        totalSpent = spentRes.data.toDouble(),
+                        favoriteFoodsCount = it.favoriteFoods.size
+                    )
+                )
+            }
+        }
+    }
+
+    // ================= OBSERVE FAVORITES =================
+
     private fun observeFavorites(userId: String) {
         observeFavoritesJob?.cancel()
 
-        viewModelScope.launch {
+        observeFavoritesJob = viewModelScope.launch {
             favoriteRepository.observeFavorites(userId)
                 .collect { response ->
                     when (response) {
@@ -60,6 +138,7 @@ class ProfileViewModel @Inject constructor(
                                 )
                             }
                         }
+
                         is ApiResponse.Error -> showError(response.message)
                         else -> Unit
                     }
@@ -67,86 +146,13 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
+    // ================= EDIT MODE =================
 
-    fun loadProfile(userId: String) {
-        viewModelScope.launch {
-            setLoading(true)
-
-            loadUserAndProfile(userId)
-            loadStatistics(userId)
-
-            setLoading(false)
-        }
-    }
-
-    private suspend fun loadUserAndProfile(userId: String) {
-            // First load User to get auth info (e.g. role, though we assume Customer here for now)
-            when (val userResponse = userRepository.getUserById(userId)) {
-                is ApiResponse.Success -> {
-                     // Load Profile
-                     when (val profileResponse = profileRepository.getCustomerProfile(userId)) {
-                         is ApiResponse.Success -> {
-                             currentProfile = profileResponse.data
-                             _uiState.update {
-                                 it.copy(
-                                     isLoading = false,
-                                     user = userResponse.data,
-                                     editProfile = EditProfileState(
-                                         name = profileResponse.data.name,
-                                         phone = profileResponse.data.phone,
-                                         address = profileResponse.data.address,
-                                     ),
-                                 )
-                             }
-                         }
-                         is ApiResponse.Error -> {
-                             // Profile might not exist yet? Create default or show error?
-                             // Assuming error for now, or handle empty profile
-                             showError(profileResponse.message)
-                         }
-                         else -> Unit
-                     }
-                }
-
-                is ApiResponse.Error -> showError(userResponse.message)
-                else -> Unit
-            }
-    }
-
-    private fun loadStatistics(userId: String) {
-        viewModelScope.launch {
-            val orderRes = orderRepository.getTotalOrdersCount(userId = userId)
-            val spentRes = orderRepository.getTotalSpent(userId)
-            if (orderRes is ApiResponse.Success &&
-                spentRes is ApiResponse.Success
-            ) {
-                _uiState.update {
-                    it.copy(
-                        statistics = ProfileStatistics(
-                            totalOrders = orderRes.data,
-                            totalSpent = spentRes.data.toDouble(),
-                            favoriteFoodsCount = it.favoriteFoods.size
-                        )
-                    )
-                }
-            } else {
-                val error = when {
-                    orderRes is ApiResponse.Error -> orderRes.message
-                    spentRes is ApiResponse.Error -> spentRes.message
-                    else -> "Unknown"
-                }
-
-                showError(error)
-            }
-        }
-    }
-
-    //edit mode
     fun toggleEditMode() {
-        _uiState.update {
-            val enable = !it.isEditMode //bat
-            it.copy(
-                isLoading = true,
+        _uiState.update { state ->
+            val enable = !state.isEditMode
+
+            state.copy(
                 isEditMode = enable,
                 editProfile = if (!enable && currentProfile != null) {
                     EditProfileState(
@@ -154,9 +160,7 @@ class ProfileViewModel @Inject constructor(
                         phone = currentProfile!!.phone,
                         address = currentProfile!!.address
                     )
-                } else {
-                    it.editProfile
-                }
+                } else state.editProfile
             )
         }
     }
@@ -175,26 +179,26 @@ class ProfileViewModel @Inject constructor(
 
     fun updateAddress(address: String) {
         _uiState.update {
-            it.copy(
-                editProfile = it.editProfile.copy(address = address)
-            )
+            it.copy(editProfile = it.editProfile.copy(address = address))
         }
     }
 
+    // ================= SAVE PROFILE =================
+
     fun saveProfile() {
+
         val state = uiState.value
         val user = state.user ?: return
         val edit = state.editProfile
-        val currentP = currentProfile ?: CustomerProfile(uid = user.uid)
 
-        // Validate
         if (edit.name.isBlank() || edit.address.isBlank()) {
-             showError("Thong tin khong hop le")
-             return
+            showError("Thong tin khong hop le")
+            return
         }
-        // Simplified validation for now
 
-        val updatedProfile = currentP.copy(
+        val baseProfile = currentProfile ?: CustomerProfile(uid = user.uid)
+
+        val updatedProfile = baseProfile.copy(
             name = edit.name,
             phone = edit.phone,
             address = edit.address
@@ -202,61 +206,68 @@ class ProfileViewModel @Inject constructor(
 
         viewModelScope.launch {
             setLoading(true)
-            when (val response = profileRepository.updateCustomerProfile(updatedProfile)) {
-                is ApiResponse.Success -> {
-                    currentProfile = updatedProfile
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            isEditMode = false,
-                            successMessage = "Cap nhat thanh cong"
+            try {
+                when (val response =
+                    profileRepository.updateCustomerProfile(updatedProfile)
+                ) {
+                    is ApiResponse.Success -> {
+                        currentProfile = updatedProfile
+                        _uiState.update {
+                            it.copy(
+                                isEditMode = false,
+                                successMessage = "Cap nhat thanh cong"
                             )
+                        }
                     }
+
+                    is ApiResponse.Error -> showError(response.message)
+                    else -> Unit
                 }
-                is ApiResponse.Error -> {
-                    _uiState.update {
-                        it.copy(errorMessage = response.message) }
-                }
-                else -> Unit
+            } finally {
+                setLoading(false)
             }
-             setLoading(false)
         }
     }
 
-    fun changePassword(
-        oldPassword: String,
-        newPassword: String
-    ) {
+    // ================= CHANGE PASSWORD =================
+
+    fun changePassword(oldPassword: String, newPassword: String) {
+
         if (newPassword.length < 6) {
-            showError("Mat khau phai >= 6 ky ty")
+            showError("Mat khau phai >= 6 ky tu")
             return
         }
+
         viewModelScope.launch {
             setLoading(true)
-
-            when (val response = userRepository.changePassword(oldPassword, newPassword))
-            {
-                is ApiResponse.Success -> {
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            successMessage = "Doi mat khau thanh cong"
-                        )
+            try {
+                when (val response =
+                    userRepository.changePassword(oldPassword, newPassword)
+                ) {
+                    is ApiResponse.Success -> {
+                        _uiState.update {
+                            it.copy(successMessage = "Doi mat khau thanh cong")
+                        }
                     }
+
+                    is ApiResponse.Error -> showError(response.message)
+                    else -> Unit
                 }
-                is ApiResponse.Error -> showError(response.message)
-                else -> Unit
+            } finally {
+                setLoading(false)
             }
         }
     }
+
+    // ================= LOGOUT =================
 
     fun logout() {
         viewModelScope.launch {
-            setLoading(true)
             userRepository.logout()
-            setLoading(false)
         }
     }
+
+    // ================= STATE HELPERS =================
 
     private fun setLoading(loading: Boolean) {
         _uiState.update {
@@ -275,14 +286,16 @@ class ProfileViewModel @Inject constructor(
                 errorMessage = message
             )
         }
-
     }
 
     fun clearMessage() {
         _uiState.update {
-            it.copy(errorMessage = null,
-                successMessage = null)
+            it.copy(
+                errorMessage = null,
+                successMessage = null
+            )
         }
     }
 }
+
 

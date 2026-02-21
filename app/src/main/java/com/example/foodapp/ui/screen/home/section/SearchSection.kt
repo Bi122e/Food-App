@@ -1,4 +1,4 @@
-package com.example.foodapp.ui.screen.home
+package com.example.foodapp.ui.screen.home.section
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun Search(
+fun SearchSection(
     query: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier

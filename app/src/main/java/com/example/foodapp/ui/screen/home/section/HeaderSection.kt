@@ -1,4 +1,4 @@
-package com.example.foodapp.ui.screen.home
+package com.example.foodapp.ui.screen.home.section
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.example.foodapp.core.utils.displayAddress
 
 @Composable
-fun HeaderHome(
+fun HeaderSection(
     address: String
 ) {
 

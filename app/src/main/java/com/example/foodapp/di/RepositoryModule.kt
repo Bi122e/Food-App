@@ -7,6 +7,8 @@ import com.example.foodapp.data.repository.ChatRepository
 import com.example.foodapp.data.repository.FavoriteRepository
 import com.example.foodapp.data.repository.FoodRepository
 import com.example.foodapp.data.repository.OrderRepository
+import com.example.foodapp.data.repository.ProfileRepository
+import com.example.foodapp.data.repository.PromotionRepository
 import com.example.foodapp.data.repository.RestaurantRepository
 import com.example.foodapp.data.repository.UserRepository
 import com.example.foodapp.domain.repository.AuthRepositoryImpl
@@ -16,13 +18,13 @@ import com.example.foodapp.domain.repository.ChatRepositoryImpl
 import com.example.foodapp.domain.repository.FavoriteRepositoryImpl
 import com.example.foodapp.domain.repository.FoodRepositoryImpl
 import com.example.foodapp.domain.repository.OrderRepositoryImpl
-import com.example.foodapp.domain.repository.RestaurantRepositoryImpl
-import com.example.foodapp.data.repository.ProfileRepository
 import com.example.foodapp.domain.repository.ProfileRepositoryImpl
+import com.example.foodapp.domain.repository.PromotionRepositoryImpl
+import com.example.foodapp.domain.repository.RestaurantRepositoryImpl
 import com.example.foodapp.domain.repository.UserRepositoryImpl
 import dagger.Binds
 import dagger.Module
- import dagger.hilt.InstallIn
+import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
@@ -90,4 +92,10 @@ abstract class RepositoryModule {
     abstract fun bindProfileRepository(
         impl: ProfileRepositoryImpl
     ): ProfileRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindPromotionRepository(
+        impl: PromotionRepositoryImpl
+    ): PromotionRepository
 }

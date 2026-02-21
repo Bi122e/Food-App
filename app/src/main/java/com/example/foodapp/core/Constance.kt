@@ -10,6 +10,7 @@ object Constance {
     const val COLLECTION_CARTS = "carts"
     const val COLLECTION_CONVERSATIONS = "conversations"
     const val COLLECTION_MESSAGES = "messages"
+    const val COLLECTION_PROMOTION = "promotions"
     const val COLLECTION_FAVORITES = "favorites"
     const val COLLECTION_FOLLOWS = "follows"
 
