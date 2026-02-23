@@ -1,5 +1,6 @@
 package com.example.foodapp.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodapp.core.UiState
@@ -63,7 +64,9 @@ class HomeViewModel @Inject constructor(
     private fun loadCategories() {
         viewModelScope.launch {
             categoryRepository.getAllCategories().collect { response ->
-                _categories.value = response.toUiState()
+                val uiState = response.toUiState()
+                _categories.value = uiState
+                Log.d("HomeViewModel", "Categories state: $uiState")
             }
         }
     }

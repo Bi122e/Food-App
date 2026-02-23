@@ -16,9 +16,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.foodapp.core.UiState
+import com.example.foodapp.domain.model.Category
 import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.Promotion
 import com.example.foodapp.presentation.state.ProfileUiState
+import com.example.foodapp.ui.screen.home.section.CategorySelection
 import com.example.foodapp.ui.screen.home.section.HeaderSection
 import com.example.foodapp.ui.screen.home.section.PromotionSection
 import com.example.foodapp.ui.screen.home.section.SearchSection
@@ -35,6 +37,7 @@ fun HomeTab(
     searchQueryState: String,
     searchResultState: UiState<List<Food>>,
     onQueryChange: (String) -> Unit,
+    categoryState: UiState<List<Category>>
 
     ) {
 //    var query by remember { mutableStateOf(query) }
@@ -78,6 +81,11 @@ fun HomeTab(
                 PromotionSection(promotionState = promotionState)
             }
 
+            item {
+                Spacer(Modifier.height(20.dp))
+                CategorySelection(categoryState)
+            }
+
         }
     }
 }
@@ -91,6 +99,7 @@ fun HomeTabPreview() {
         profileState = ProfileUiState(),
         searchQueryState = "",
         searchResultState = UiState.Success(emptyList()),
-        onQueryChange = {}
+        onQueryChange = {},
+        categoryState = UiState.Success(emptyList())
     )
 }

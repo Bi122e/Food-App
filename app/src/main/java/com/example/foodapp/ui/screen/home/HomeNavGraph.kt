@@ -41,7 +41,7 @@ fun HomeNavGraph(
             val searchQueryState by homeViewModel.searchQuery.collectAsStateWithLifecycle()
             val searchResultState by homeViewModel.searchResult.collectAsStateWithLifecycle()
             val addressState = profileState.editProfile.address
-
+            val categoriesState by homeViewModel.categories.collectAsStateWithLifecycle()
 
             HomeTab(
                 promotionState = promotionState,
@@ -50,7 +50,7 @@ fun HomeNavGraph(
                 searchResultState = searchResultState,
                 address = addressState,
                 onQueryChange = homeViewModel::updateSearchQuery,
-
+                categoryState = categoriesState
                 )
         }
 
