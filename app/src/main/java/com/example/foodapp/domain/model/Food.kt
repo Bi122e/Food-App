@@ -10,8 +10,8 @@ data class Food(
     val description: String = "",
     val price: Int = 0,
     val imgUrl: String = "",
-    val isAvailable: Boolean = true,
-    val reviews: Int = 0,
+    val available: Boolean = true,
+    val reviewCount: Int = 0,
     val totalRating: Double = 0.0,
     val foodTime: Int = 0,
     val ingredient: String = "",
@@ -32,9 +32,9 @@ data class Food(
     }
 
     fun getAverageRating(): Double {
-        return if (reviews > 0) {
+        return if (reviewCount > 0) {
             //            (totalRating / reviews).coerceIn(0.0, 5.0) get total rate <= 5
-            totalRating.toDouble() / reviews
+            totalRating.toDouble() / reviewCount
         } else {
             0.0
         }
@@ -72,15 +72,15 @@ data class Food(
     fun addReview(rating: Double): Food {
         require(rating in 1.0..5.0) { "rating must be between 1 and 5" }
         return copy(
-            reviews = reviews + 1,
+            reviewCount = reviewCount + 1,
             totalRating = totalRating + rating.toInt(),
             updatedAt = Date()
         )
     }
 
     //popular by view food
-    fun isPopular(): Boolean = reviews > 2 && getAverageRating() > 2
+    fun isPopular(): Boolean = reviewCount > 2 && getAverageRating() > 2
 
     //popular by rating
-    fun isHighlyRated(): Boolean = getAverageRating() > 3 && reviews > 3
+    fun isHighlyRated(): Boolean = getAverageRating() > 3 && reviewCount > 3
 }

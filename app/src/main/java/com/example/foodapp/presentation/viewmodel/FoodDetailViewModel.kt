@@ -9,6 +9,7 @@ import com.example.foodapp.data.repository.CartRepository
 import com.example.foodapp.data.repository.FavoriteRepository
 import com.example.foodapp.data.repository.FoodRepository
 import com.example.foodapp.data.repository.RestaurantRepository
+import com.example.foodapp.domain.Review
 import com.example.foodapp.domain.model.CartItem
 import com.example.foodapp.domain.model.Favorite
 import com.example.foodapp.domain.model.Food
@@ -53,6 +54,12 @@ class FoodDetailViewModel @Inject constructor(
 
     private val _favorite = MutableStateFlow<Favorite?>(null)
     val favorite: StateFlow<Favorite?> = _favorite.asStateFlow()
+
+    private val _reviewState = MutableStateFlow<UiState<List<Review>>>(UiState.Idle)
+    val reviewState = _reviewState.asStateFlow()
+
+    private val _addReviewState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
+    val addReviewState = _addReviewState.asStateFlow()
 
 
     //cach nayf Không auto cancel request cũ
@@ -105,6 +112,7 @@ class FoodDetailViewModel @Inject constructor(
             _quantity.value--
         }
     }
+
     fun setQuantity(quantity: Int) {
         if (quantity > 1) {
             _quantity.value = quantity
@@ -135,24 +143,24 @@ class FoodDetailViewModel @Inject constructor(
 //        _selectedVariations.value = current
 //    }
 
-        fun selectVariation(optionId: String, variation: Variation) {
-            val current = _selectedVariations.value.toMutableMap()
-            val selectOption = current[variation.id]?.toMutableSet() ?: mutableSetOf()
-            when (variation.type) {
-                Variation.VariationType.SINGLE -> {
-                    selectOption.clear()
-                    selectOption.add(optionId)
-                }
+    fun selectVariation(optionId: String, variation: Variation) {
+        val current = _selectedVariations.value.toMutableMap()
+        val selectOption = current[variation.id]?.toMutableSet() ?: mutableSetOf()
+        when (variation.type) {
+            Variation.VariationType.SINGLE -> {
+                selectOption.clear()
+                selectOption.add(optionId)
+            }
 
-                Variation.VariationType.MULTI -> {
-                    if (!selectOption.add(optionId)) {
-                        selectOption.remove(optionId)
-                    }
+            Variation.VariationType.MULTI -> {
+                if (!selectOption.add(optionId)) {
+                    selectOption.remove(optionId)
                 }
             }
-            current[variation.id] = selectOption
-            _selectedVariations.value = current
         }
+        current[variation.id] = selectOption
+        _selectedVariations.value = current
+    }
 
 //        private fun calculateTotal(variation: Variation): Int {
 //            val selectedOptions = _selectedVariations.value[variation.id]?.toList() ?: emptyList()
@@ -160,62 +168,62 @@ class FoodDetailViewModel @Inject constructor(
 //
 //        }
 
-        fun calculateTotalPrice(): Int {
-            val food = _foodState.value.getDataOrNull() ?: return 0
+    fun calculateTotalPrice(): Int {
+        val food = _foodState.value.getDataOrNull() ?: return 0
 
-            val basePrice = food.price
-            val variationPrice = calculateVariationPrice(
-                _selectedVariations.value, food
-            )
-            return (basePrice + variationPrice) * _quantity.value
-        }
+        val basePrice = food.price
+        val variationPrice = calculateVariationPrice(
+            _selectedVariations.value, food
+        )
+        return (basePrice + variationPrice) * _quantity.value
+    }
 
 
-        //food = pizza() - selectVariation =  map("size" set("lard), "more" set(".."))
-        // Variation(id = )
+    //food = pizza() - selectVariation =  map("size" set("lard), "more" set(".."))
+    // Variation(id = )
 //    return food.variations.sumOf { variation ->
 //        val selectedOptions = selected[variation.id].orEmpty()
 //        variation.options
 //            .filter { it.id in selectedOptions }
 //            .sumOf { it.price }
 //    }
-        private fun calculateVariationPrice(
-            selectVariation: Map<String, Set<String>>,
-            food: Food
-        ): Int {
-            var count = 0
-            food.variations.forEach { item ->
-                val selectOption = selectVariation[item.id] ?: emptyList()
-                item.options.forEach {
-                    if (selectOption.contains(it.id)) {
-                        count += it.price
-                    }
-                }
-            }
-            return count
-        }
-
-        fun resetSelection() {
-            _quantity.value = 1
-            _selectedVariations.value = emptyMap()
-            _specialInstructions.value = ""
-        }
-
-
-        fun toggleFavorite(userId: String, foodId: String) {
-            viewModelScope.launch {
-                val current = _favorite.value
-
-                if (current == null) {
-                    val favorite = Favorite(userId = userId, foodId = foodId)
-                    favoriteRepository.addFavorite(favorite)
-                    _favorite.value = favorite
-                } else {
-                    favoriteRepository.removeFavorite(current.id)
-                    _favorite.value = null
+    private fun calculateVariationPrice(
+        selectVariation: Map<String, Set<String>>,
+        food: Food
+    ): Int {
+        var count = 0
+        food.variations.forEach { item ->
+            val selectOption = selectVariation[item.id] ?: emptyList()
+            item.options.forEach {
+                if (selectOption.contains(it.id)) {
+                    count += it.price
                 }
             }
         }
+        return count
+    }
+
+    fun resetSelection() {
+        _quantity.value = 1
+        _selectedVariations.value = emptyMap()
+        _specialInstructions.value = ""
+    }
+
+
+    fun toggleFavorite(userId: String, foodId: String) {
+        viewModelScope.launch {
+            val current = _favorite.value
+
+            if (current == null) {
+                val favorite = Favorite(userId = userId, foodId = foodId)
+                favoriteRepository.addFavorite(favorite)
+                _favorite.value = favorite
+            } else {
+                favoriteRepository.removeFavorite(current.id)
+                _favorite.value = null
+            }
+        }
+    }
 
 //    fun addToCart(userId: String) {
 //        viewModelScope.launch {
@@ -257,53 +265,120 @@ class FoodDetailViewModel @Inject constructor(
 //        }
 //    }
 
-        fun addToCard(userId: String) {
-            viewModelScope.launch {
-                val food = _foodState.value.getDataOrNull()
-                    ?: return@launch
-//            emitError("Không tìm thấy món ăn")
-                if (!validateVariation(food)) {
-                    return@launch
-                }
+    fun addReview(foodId: String, review: Review) {
+        viewModelScope.launch {
+            _addReviewState.value = UiState.Loading
+            val response = foodRepository.addReview(foodId, review)
+            val uiState = response.toUiState()
+            _addReviewState.value = uiState
 
-                _addToCartState.value = UiState.Loading
-
-                val cartItem = CartItem(
-                    foodId = food.foodId,
-                    name = food.name,
-                    price = calculateTotalPrice(),
-                    quantity = _quantity.value,
-                    imgUrls = food.imgUrl,
-                    restaurantId = food.restaurantId,
-                    notes = _specialInstructions.value,
-                    variation = _selectedVariations.value
-                )
-
-                when (val result = cartRepository.addItem(userId, cartItem)) {
-                    is ApiResponse.Success -> _addToCartState.value = UiState.Success(Unit)
-                    is ApiResponse.Error -> emitError(result.message)
-                    else -> Unit
-                }
+            if (uiState.isSuccess()) {
+                getReviews(foodId) //reload review
+                loadDetailFood(foodId) //reload rating
             }
         }
-
-        private fun emitError(msg: String) {
-            _addToCartState.value = UiState.Error(msg)
-        }
-
-        private fun validateVariation(food: Food): Boolean {
-            return food.variations.all { variation ->
-                val selected = _selectedVariations.value[variation.id] ?: return false
-                when (variation.type) {
-                    Variation.VariationType.SINGLE -> selected.size == 1
-                    Variation.VariationType.MULTI -> selected.isNotEmpty()
-                }
-            }
-        }
-
-        fun resetAddToCartState() {
-            _addToCartState.value = UiState.Idle
-        }
-
     }
+
+    //cách này tối ưu hơn cho addReview để ko gọi 3 lần firestore
+//    fun addReview(foodId: String, review: Review) {
+//        viewModelScope.launch {
+//
+//            _addReviewState.value = UiState.Loading
+//
+//            val response = foodRepository.addReview(foodId, review)
+//            val uiState = response.toUiState()
+//
+//            _addReviewState.value = uiState
+//
+//            if (uiState is UiState.Success) {
+//
+//                // 1️⃣ Update review list local
+//                val currentReviews =
+//                    _reviewState.value.getDataOrNull().orEmpty()
+//
+//                _reviewState.value =
+//                    UiState.Success(listOf(review) + currentReviews)
+//
+//                // 2️⃣ Update rating local
+//                val currentFood =
+//                    _foodState.value.getDataOrNull() ?: return@launch
+//                val currentReview =
+//                    _reviewState.value.getDataOrNull() ?: return@launch
+//
+//                val newCount = currentFood.reviewCount + 1
+//                val newAverage =
+//                    ((currentFood.reviewCount * currentFood.reviewCount)
+//                            + review.rating) / newCount
+//
+//                val updatedFood = currentFood.copy(
+//                    reviewCount = newCount,
+//                    averageRate = newAverage
+//                )
+//
+//                _foodState.value = UiState.Success(updatedFood)
+//            }
+//        }
+//    }
+
+    fun getReviews(foodId: String) {
+        viewModelScope.launch {
+//            _reviewState.value = UiState.Loading
+//            val getReviews = foodRepository.getReviews(foodId)
+//            val uiState = getReviews.toUiState()
+//            _reviewState.value = uiState
+            _reviewState.value = UiState.Loading
+            _reviewState.value = foodRepository.getReviews(foodId).toUiState()
+        }
+    }
+
+    fun addToCard(userId: String) {
+        viewModelScope.launch {
+            val food = _foodState.value.getDataOrNull()
+                ?: return@launch
+//            emitError("Không tìm thấy món ăn")
+            if (!validateVariation(food)) {
+                return@launch
+            }
+
+            _addToCartState.value = UiState.Loading
+
+            val cartItem = CartItem(
+                foodId = food.foodId,
+                name = food.name,
+                price = calculateTotalPrice(),
+                quantity = _quantity.value,
+                imgUrls = food.imgUrl,
+                restaurantId = food.restaurantId,
+                notes = _specialInstructions.value,
+                variation = _selectedVariations.value
+            )
+
+            when (val result = cartRepository.addItem(userId, cartItem)) {
+                is ApiResponse.Success -> _addToCartState.value = UiState.Success(Unit)
+                is ApiResponse.Error -> emitError(result.message)
+                else -> Unit
+            }
+        }
+    }
+
+    private fun emitError(msg: String) {
+        _addToCartState.value = UiState.Error(msg)
+    }
+
+    private fun validateVariation(food: Food): Boolean {
+        return food.variations.all { variation ->
+            val selected = _selectedVariations.value[variation.id] ?: return false
+            when (variation.type) {
+                Variation.VariationType.SINGLE -> selected.size == 1
+                Variation.VariationType.MULTI -> selected.isNotEmpty()
+            }
+        }
+    }
+
+
+    fun resetAddToCartState() {
+        _addToCartState.value = UiState.Idle
+    }
+
+}
 
