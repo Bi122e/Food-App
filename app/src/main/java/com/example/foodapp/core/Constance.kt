@@ -14,6 +14,8 @@ object Constance {
     const val COLLECTION_FAVORITES = "favorites"
     const val COLLECTION_FOLLOWS = "follows"
 
+    const val COLLECTION_REVIEWS = "reviews"
+
     const val MIN_PASSWORD_LENGTH = 6
     const val MAX_PASSWORD_LENGTH = 50
     const val PHONE_NUMBER_LENGTH = 10

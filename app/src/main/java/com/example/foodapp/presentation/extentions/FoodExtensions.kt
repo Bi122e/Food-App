@@ -1,8 +1,8 @@
 package com.example.foodapp.presentation.extentions
 
+import com.example.foodapp.core.utils.toVND
 import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.VariationOption
-import com.example.foodapp.core.utils.toVND
 import java.util.Locale
 
 
@@ -29,8 +29,8 @@ fun Food.getFormattedRating(): String {
 
 //"⭐ 4.5 (120)"
 fun Food.getFormattedText(): String {
-    return if (reviews > 0) {
-        "⭐${getFormattedRating()} (${reviews})"
+    return if (reviewCount > 0) {
+        "⭐${getFormattedRating()} (${reviewCount})"
     } else {
         "Chưa có đánh giá"
     }

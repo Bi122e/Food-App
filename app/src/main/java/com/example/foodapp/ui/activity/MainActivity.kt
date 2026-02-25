@@ -1,6 +1,7 @@
 package com.example.foodapp.ui.activity
 
- import android.content.Intent
+ import AuthStatus
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.compose.setContent
@@ -15,13 +16,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.example.foodapp.core.utils.GoogleSignInManager
-import com.example.foodapp.presentation.state.AppState
-import com.example.foodapp.presentation.viewmodel.AuthViewModel
-import com.example.foodapp.ui.screen.navigation.AppNavGraph
+import androidx.lifecycle.lifecycleScope
 import com.example.foodapp.core.Routes
 import com.example.foodapp.core.toRootRoute
+import com.example.foodapp.core.utils.GoogleSignInManager
+ import com.example.foodapp.data.seed.FoodSeeder
+ import com.example.foodapp.presentation.state.AppState
+import com.example.foodapp.presentation.viewmodel.AuthViewModel
+import com.example.foodapp.ui.screen.navigation.AppNavGraph
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -32,12 +36,17 @@ class MainActivity : AppCompatActivity() {
     private val authViewModel: AuthViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        lifecycleScope.launch {
+            FoodSeeder.seedAllPizza()
+        }
+
         val splashScreen = installSplashScreen()
 
         splashScreen.setKeepOnScreenCondition {
             authViewModel.authStatus.value == AuthStatus.Loading
         }
-        super.onCreate(savedInstanceState)
 
         googleLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
