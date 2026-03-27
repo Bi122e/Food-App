@@ -1,11 +1,11 @@
 package com.example.foodapp.data.repository
 
 import com.example.foodapp.core.ApiResponse
-import com.example.foodapp.domain.Review
 import com.example.foodapp.domain.model.Food
+import com.example.foodapp.domain.model.Review
 import kotlinx.coroutines.flow.Flow
 
-interface FoodRepository {
+interface   FoodRepository {
 
     fun getFoods(): Flow<ApiResponse<List<Food>>>
 

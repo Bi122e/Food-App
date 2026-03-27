@@ -100,7 +100,7 @@ data class FoodDetailState(
         if (food == null || isAddingToCart) return false
 
         // Check all required variations are selected
-        val requiredVariations = food.variations.filter { it.isRequired }
+        val requiredVariations = food.variations.filter { it.required }
         val allRequiredSelected = requiredVariations.all { variation ->
             val selectedCount = getSelectedCount(variation.id)
             variation.isSelectedValid(selectedCount)
@@ -115,7 +115,7 @@ data class FoodDetailState(
     fun getValidationError(): String? {
         if (food == null) return null
 
-        val requiredVariations = food.variations.filter { it.isRequired }
+        val requiredVariations = food.variations.filter { it.required }
         val missingVariation = requiredVariations.find { variation ->
             val selectedCount = getSelectedCount(variation.id)
             !variation.isSelectedValid(selectedCount)

@@ -107,4 +107,7 @@ class AuthRepositoryImpl @Inject constructor(
     override fun currentUserId(): String? {
        return auth.currentUser?.uid
     }
+//    override fun currentUserEmail(): String? {
+//        return auth.currentUser?.email
+//    }
 }

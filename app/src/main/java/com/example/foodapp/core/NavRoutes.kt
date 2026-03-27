@@ -15,9 +15,19 @@ object Routes {
 
 object UserRoutes {
     const val CHAT = "user_chat"
+    const val CHAT_ROOT = "chat_root"
     const val HOME = "user_home"
+    const val HOME_ROOT = "home_root"
     const val CART = "user_cart"
+    const val CART_ROOT = "cart_root"
     const val PROFILE = "user_profile"
+    const val PROFILE_ROOT = "profile_root"
+
+    const val RESTAURANT = "user_restaurant"
+    const val RESTAURANT_ROOT = "restaurant_root"
+    //RESTAURANTDETAIL RESTAURANT DETAIL
+
+
 }
 
 fun UserRole.toRootRoute(): String = when (this) {
@@ -37,3 +47,14 @@ fun bottomRouteFromIndex(index: Int): String {
         else -> UserRoutes.HOME
     }
 }
+
+fun isShowBottomBar(route: String): Boolean {
+    return when(route) {
+        UserRoutes.HOME,
+        UserRoutes.CHAT,
+        UserRoutes.CART,
+        UserRoutes.PROFILE -> true
+        else -> false
+    }
+}
+

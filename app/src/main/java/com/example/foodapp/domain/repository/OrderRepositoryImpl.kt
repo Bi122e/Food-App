@@ -5,11 +5,11 @@ import com.example.foodapp.core.Constance
 import com.example.foodapp.data.repository.OrderRepository
 import com.example.foodapp.domain.model.Order
 import com.example.foodapp.domain.model.OrderStatus
+import com.example.foodapp.domain.model.PaymentStatus
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.ktx.toObject
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -45,6 +45,24 @@ class OrderRepositoryImpl @Inject constructor(
             ApiResponse.Success(orderId)
         } catch (e: Exception) {
             ApiResponse.Error(e.message ?: "Failed to create Order")
+        }
+    }
+
+    override suspend fun updatePaymentStatus(
+        orderId: String,
+        paymentStatus: PaymentStatus
+    ): ApiResponse<Unit> {
+
+        return try {
+            orderCollection
+                .document(orderId)
+                .update(
+                    mapOf(
+                        "paymentStatus" to paymentStatus,
+                        "updatedAt" to Date()))
+            return ApiResponse.Success(Unit)
+        } catch (e: Exception) {
+            ApiResponse.Error(e.message ?: "Update failed")
         }
     }
 

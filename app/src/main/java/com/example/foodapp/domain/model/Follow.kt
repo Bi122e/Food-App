@@ -23,17 +23,18 @@ data class Follow(
 }
 
 data class Favorite(
-    val id: String = "",
+    val favoriteId: String = "",
     val foodId: String = "",
     val foodName: String = "",
-    val userId: String,
+    val userId: String = "",
     val restaurantId: String = "",
     val restaurantName: String = "",
+    var isValid: Boolean = false,
     @ServerTimestamp
     val createdAt: Date? = null,
     val updatedAt: Date? = null
 ) {
-    fun isValid(): Boolean {
+    fun checkIsValid(): Boolean {
         return foodId.isNotEmpty() &&
                 foodName.isNotEmpty() &&
                 restaurantId.isNotEmpty() &&
@@ -42,8 +43,8 @@ data class Favorite(
 
     companion object {
 
-        fun create(foodId: String, foodName: String, restaurantId: String, restaurantName: String, userId: String, id: String): Favorite {
-            return Favorite(foodId, foodName, restaurantId, restaurantName, id,userId,Date())
+        fun create(foodId: String, foodName: String, restaurantId: String, restaurantName: String, userId: String, id: String, isValid: Boolean): Favorite {
+            return Favorite(favoriteId = foodId, foodName = foodName, restaurantId = restaurantId, restaurantName =  restaurantName, foodId = id, userId = userId, isValid = isValid)
         }
     }
 }

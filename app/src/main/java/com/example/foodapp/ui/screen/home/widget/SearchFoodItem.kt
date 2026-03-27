@@ -72,7 +72,7 @@ fun SearchFoodItem(
                 Spacer(Modifier.height(4.dp))
 
                 Text(
-                    text = "⭐ ${food.totalRating} (${food.reviews})",
+                    text = "⭐ ${food.totalRating} (${food.reviewCount})",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Gray
                 )

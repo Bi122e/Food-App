@@ -1,7 +1,7 @@
 package com.example.foodapp.presentation.viewmodel
 
  import AuthStatus
- import android.util.Log
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodapp.core.AuthResult
@@ -10,10 +10,10 @@ import com.example.foodapp.core.flatMap
 import com.example.foodapp.core.map
 import com.example.foodapp.core.toUiState
 import com.example.foodapp.data.repository.AuthRepository
-import com.example.foodapp.data.repository.UserRepository
-import com.example.foodapp.presentation.state.AppState
 import com.example.foodapp.data.repository.ProfileRepository
+import com.example.foodapp.data.repository.UserRepository
 import com.example.foodapp.domain.model.CustomerProfile
+import com.example.foodapp.presentation.state.AppState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -68,6 +68,8 @@ class AuthViewModel @Inject constructor(
 //            _authStatus.value = AuthStatus.Authenticated
 //        }
 //    }
+
+    //tu goi ham nay, neu dang o loading thi tu nhay sang guest, neu da dang nhap thi lay uid cua user va xu ly
     private fun checkInitialAuth() {
 //        val currentId = authRepository.currentUserId()
 //        _authStatus.value =

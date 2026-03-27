@@ -19,7 +19,10 @@ data class Order(
     val estimatedDeliveryTime: Int = 30,
     val status: OrderStatus = OrderStatus.PENDING,
     val paymentStatus: PaymentStatus = PaymentStatus.UNPAID,
+    val paymentMethod: PaymentMethod = PaymentMethod.CASH,
     val notes: String = "",
+    val paymentId: String? = null,
+    val cancelReason: String? = null,
     @ServerTimestamp
     val createdAt: Date? = null,
     val updatedAt: Date? = null,

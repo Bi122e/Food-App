@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         lifecycleScope.launch {
-            FoodSeeder.seedAllPizza()
+            FoodSeeder.seedIfNeeded(this@MainActivity)
         }
 
         val splashScreen = installSplashScreen()
@@ -68,6 +68,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         setContent {
+
+            //logic doan nay kt de quyet dinh start o man nao
             val appState by authViewModel.appState.collectAsState()
             val uiState by authViewModel.uiState.collectAsState()
             val context = LocalContext.current
@@ -99,7 +101,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            if (isDestinationSet || appState !is AppState.Loading) {
+            if (isDestinationSet) {
                 Log.d("MainActivity", "Rendering AppNavGraph with startDestination: $startDestination")
                 AppNavGraph(
                     startDestination = startDestination,

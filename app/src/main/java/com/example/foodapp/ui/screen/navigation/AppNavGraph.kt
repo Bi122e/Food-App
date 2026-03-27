@@ -1,6 +1,7 @@
 package com.example.foodapp.ui.screen.navigation
 
 import HomeScreen
+import android.annotation.SuppressLint
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +29,7 @@ import com.example.foodapp.ui.screen.login.LoginScreen
 import com.example.foodapp.ui.screen.register.RegisterScreen
 import com.example.foodapp.ui.screen.splash.SplashScreen
 
+@SuppressLint("RestrictedApi")
 @Composable
 fun AppNavGraph(
     startDestination: String,
@@ -41,20 +43,35 @@ fun AppNavGraph(
 ) {
     val navController = rememberNavController()
 
-    // Handle post-launch navigation (Login success, etc.)
-    LaunchedEffect(appState) {
-        if (appState is AppState.LoggedIn) {
+    LaunchedEffect(navController) {
+        navController.currentBackStackEntryFlow.collect { entry ->
+            try {
+                val routes = navController.currentBackStack.value.mapNotNull { it.destination.route }
+                Log.d("NavigationLog", "App BackStack: ${routes.joinToString(" -> ")}")
+            } catch (e: Exception) {
+                Log.d("NavigationLog", "App Current destination: ${entry.destination.route}")
+            }
+        }
+    }
 
-            val route = appState.user.role.toRootRoute()
-            Log.d("AppNavGraph", "AppState changed to LoggedIn. Navigating to $route")
-            navController.navigate(route) {
-                popUpTo(0) { inclusive = true }
+    // check key co thay doi ko, neu co thi chay side effect de tranh state thay doi compose recomposition nhieu lan
+    LaunchedEffect(appState) {
+        when (appState) {
+            is AppState.Loading -> {
+                navController.navigate(Routes.Splash)
             }
-        } else if (appState is AppState.Guest) {
-            Log.d("AppNavGraph", "AppState changed to Guest. Navigating to Login")
-            navController.navigate(Routes.Login) {
-                popUpTo(0) { inclusive = true }
+            is AppState.LoggedIn -> {
+                val route = appState.user.role.toRootRoute()
+                navController.navigate(route) {
+                    popUpTo(0) { inclusive = true }
+                }
             }
+            is AppState.Guest -> {
+                navController.navigate(Routes.Login) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+            else -> {}
         }
     }
 
@@ -95,12 +112,15 @@ fun AppNavGraph(
             }
 
 
-            composable(Routes.UserRoot) {
+//            composable(Routes.UserRoot) {
 //                RoleRootScreen(roleName = "User", onLogout = {
 //                    onLogout()
 //                }
 //                )
-                HomeScreen()
+//                HomeScreen()
+//            }
+            composable(Routes.UserRoot) {
+                HomeScreen(parentNavController = navController)
             }
 
             composable(Routes.RestaurantRoot) {

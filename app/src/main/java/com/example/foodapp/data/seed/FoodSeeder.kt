@@ -1,18 +1,33 @@
 package com.example.foodapp.data.seed
 
+import android.content.Context
 import android.util.Log
+import androidx.core.content.edit
 import com.example.foodapp.core.Constance
 import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.Variation
 import com.example.foodapp.domain.model.VariationOption
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
 
 object FoodSeeder {
+    private const val SEED_VERSION = 8
 
+    suspend fun seedIfNeeded(context: Context) {
+        val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        val currentVersion = prefs.getInt("seed_version", 0)
+
+        if (currentVersion < SEED_VERSION) {
+            seedAllPizza()
+            prefs.edit { putInt("seed_version", SEED_VERSION) }
+        }
+        Log.d("Seeder", "Current: $currentVersion - Code: $SEED_VERSION")
+    }
     suspend fun seedAllPizza() {
         val firebase = FirebaseFirestore.getInstance()
         val collection = firebase.collection(Constance.COLLECTION_FOOD)
+
 
 
         val foods = listOf(
@@ -28,7 +43,7 @@ object FoodSeeder {
             foods.forEach { food ->
                 collection
                     .document(food.foodId)
-                    .set(food)
+                    .set(food, SetOptions.merge())
                     .await()
             }
             Log.e("seedAllPizza", "Seed Pizza Successful")
@@ -57,7 +72,7 @@ object FoodSeeder {
         id = "extraTopping",
         description = "Có thể chọn nhiều topping",
         type = Variation.VariationType.MULTI,
-        isRequired = false,
+        required = false,
         minSelection = 0,
         maxSelection = 5,
         options = listOf(
@@ -77,7 +92,8 @@ object FoodSeeder {
         imgUrl = "https://res.cloudinary.com/dgbz1qem7/image/upload/v1751529947/pizza5_kom9ey.jpg",
         available = true,
         reviewCount = 3,
-        totalRating = 4.2,
+        totalRating = 12.6,
+        averageRating = 4.2,
         foodTime = 30,
         ingredient = "Phô mai Mozzarella, Cheddar, Parmesan và phô mai xanh Blue ",
         calories = 255,
@@ -96,7 +112,8 @@ object FoodSeeder {
         imgUrl = "https://res.cloudinary.com/dgbz1qem7/image/upload/v1751529944/pizza4_ftaon4.jpg",
         available = true,
         reviewCount = 3,
-        totalRating = 4.2,
+        totalRating = 12.6,
+        averageRating = 4.2,
         foodTime = 20,
         ingredient = "Pepperoni cay, Mozzarella",
         calories = 266,
@@ -113,8 +130,9 @@ object FoodSeeder {
         price = 0,
         imgUrl = "https://res.cloudinary.com/dgbz1qem7/image/upload/v1751529947/pizza5_kom9ey.jpg",
         available = true,
-        reviewCount = 0,
-        totalRating = 0.0,
+        reviewCount = 3,
+        totalRating = 12.6,
+        averageRating = 4.2,
         foodTime = 20,
         ingredient = "Mozzarella, Cheddar, Parmesan, Blue cheese",
         calories = 266,
@@ -128,11 +146,12 @@ object FoodSeeder {
         nameLower = "pizza bông cải",
         foodId = "pizza_bong_cai",
         description = "Pizza bông cải xanh, ít chất béo và nhiều chất xơ.",
-        price = 0,
+        price = 54000,
         imgUrl = "https://res.cloudinary.com/dgbz1qem7/image/upload/v1751530024/pizza0_tysmwq.jpg",
         available = true,
-        reviewCount = 0,
-        totalRating = 0.0,
+        reviewCount = 3,
+        totalRating = 12.6,
+        averageRating = 4.2,
         foodTime = 20,
         ingredient = "Bông cải xanh, Mozzarella, Ớt chuông, Hành tây",
         calories = 266,
@@ -146,11 +165,12 @@ object FoodSeeder {
         nameLower = "pizza hải sản",
         foodId = "pizza_hai_san",
         description = "Pizza hải sản đậm đà với tôm, mực tươi.",
-        price = 0,
+        price = 54000,
         imgUrl = "https://res.cloudinary.com/dgbz1qem7/image/upload/v1751529957/pizza3_kz3sv3.jpg",
         available = true,
-        reviewCount = 0,
-        totalRating = 0.0,
+        reviewCount = 3,
+        totalRating = 12.6,
+        averageRating = 4.2,
         foodTime = 20,
         ingredient = "Tôm, Mực, Bắp ngọt, Mozzarella",
         calories = 266,
@@ -163,11 +183,12 @@ object FoodSeeder {
         nameLower = "pizza xúc xích",
         foodId = "pizza_xuc_xich",
         description = "Pizza xúc xích với lớp phô mai béo ngậy.",
-        price = 0,
+        price = 54000,
         imgUrl = "https://res.cloudinary.com/dgbz1qem7/image/upload/v1751529957/pizza2_d06ggs.jpg",
         available = true,
-        reviewCount = 0,
-        totalRating = 0.0,
+        reviewCount = 3,
+        totalRating = 12.6,
+        averageRating = 4.2,
         foodTime = 20,
         ingredient = "Xúc xích heo, Xúc xích cay, Mozzarella",
         calories = 266,

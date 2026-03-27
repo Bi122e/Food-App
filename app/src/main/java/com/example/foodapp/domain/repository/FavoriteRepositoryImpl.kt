@@ -22,8 +22,9 @@ class FavoriteRepositoryImpl @Inject constructor(
         return try {
             val docRef = favoriteCollection.document()
             val data = favorite.copy(
-                id = docRef.id,
-                userId = favorite.id,
+                favoriteId = docRef.id,
+                userId = favorite.userId,
+                isValid = true,
                 createdAt = Date(),
                 updatedAt = Date(),
             )

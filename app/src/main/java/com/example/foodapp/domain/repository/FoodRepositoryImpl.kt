@@ -1,10 +1,12 @@
 package com.example.foodapp.domain.repository
 
+import android.util.Log
 import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.core.Constance
 import com.example.foodapp.data.repository.FoodRepository
-import com.example.foodapp.domain.Review
 import com.example.foodapp.domain.model.Food
+import com.example.foodapp.domain.model.Review
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.channels.awaitClose
@@ -22,18 +24,21 @@ class FoodRepositoryImpl @Inject constructor(
 
     override suspend fun getFeaturedFood(limit: Int): Flow<ApiResponse<List<Food>>> = callbackFlow{
         val snapshot = foodRef
-            .whereGreaterThan("totalRating", 4.2)
-            .orderBy("totalRating", Query.Direction.DESCENDING)
+            .whereGreaterThan("averageRating", 4.0)
+            .orderBy("averageRating", Query.Direction.DESCENDING)
             .limit(limit.toLong())
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     trySend(ApiResponse.Error(error.message ?: "Can't found featured food"))
+                    Log.e("Featured", "repo featured${error.message}")
                     return@addSnapshotListener
                 }
                 val featuredFood = snapshot?.documents?.mapNotNull {
                     it.toObject(Food::class.java)
                 } ?: emptyList()
                 trySend(ApiResponse.Success(featuredFood))
+                Log.e("Featured", "repo featured $featuredFood")
+
             }
         awaitClose { snapshot.remove() }
     }
@@ -58,7 +63,7 @@ class FoodRepositoryImpl @Inject constructor(
     override fun getFoodsByRestaurant(restaurantId: String): Flow<ApiResponse<List<Food>>> =
         callbackFlow {
             val listener = foodRef
-                .whereEqualTo("restaurants", restaurantId)
+                .whereEqualTo("restaurantId", restaurantId)
                 .addSnapshotListener { snapshot, error ->
                     if (error != null) {
                         trySend(ApiResponse.Error(error.message ?: "Unknow Error"))
@@ -144,16 +149,19 @@ class FoodRepositoryImpl @Inject constructor(
             firestore.runTransaction { transaction ->
                 val snapshot = transaction.get(foodRef)
                 val currentCount = snapshot.getLong("reviewCount") ?: 0
-                val currentAverage = snapshot.getDouble("averageRate") ?: 0.0
+                val currentTotal = snapshot.getDouble("totalRating") ?: 0.0
 
                 val newCount = currentCount + 1
-                val newAverage = ((currentAverage * currentCount) + review.rating) / newCount
+                val newTotal = currentTotal + review.rating
+                val newAverage = newTotal / newCount
 
                 transaction.set(reviewRef, reviewWithId)
                 transaction.update(
                     foodRef, mapOf(
                         "reviewCount" to newCount,
-                        "averageRate" to newAverage
+                        "averageRating" to newAverage,
+                        "totalRating" to newTotal,
+                        "updatedAt" to FieldValue.serverTimestamp()
                     )
                 )
             }.await()

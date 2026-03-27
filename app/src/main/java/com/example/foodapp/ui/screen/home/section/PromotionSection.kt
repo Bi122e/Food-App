@@ -1,5 +1,6 @@
 package com.example.foodapp.ui.screen.home.section
 
+import AppAsyncImage
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,10 +21,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
 import com.example.foodapp.core.UiState
 import com.example.foodapp.core.utils.showToast
 import com.example.foodapp.domain.model.Promotion
@@ -51,12 +51,23 @@ fun PromotionSection(
 
             val realPage = pagerState.currentPage % promotions.size
 
-            LaunchedEffect(pagerState) {
-                while (true) {
-                    delay(3000)
-                    pagerState.animateScrollToPage(
-                        pagerState.currentPage + 1
-                    )
+//            LaunchedEffect(pagerState) {
+//                while (true) {
+//                    delay(3000)
+//                    pagerState.animateScrollToPage(
+//                        pagerState.currentPage + 1
+//                    )
+//                }
+//            }
+            val isPreview = LocalInspectionMode.current
+            if (!isPreview) {
+                LaunchedEffect(pagerState) {
+                    while (true) {
+                        delay(3000)
+                        pagerState.animateScrollToPage(
+                            pagerState.currentPage + 1
+                        )
+                    }
                 }
             }
             Column(
@@ -77,10 +88,14 @@ fun PromotionSection(
 
                         val index = page % promotions.size
 
-                        AsyncImage(
-                            model = promotions[index].promoUrl,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
+//                        AsyncImage(
+//                            model = promotions[index].promoUrl,
+//                            contentDescription = null,
+//                            contentScale = ContentScale.Crop,
+//                            modifier = Modifier.fillMaxSize()
+//                        )
+                        AppAsyncImage(
+                            imageUrl = promotions[index].promoUrl,
                             modifier = Modifier.fillMaxSize()
                         )
                     }

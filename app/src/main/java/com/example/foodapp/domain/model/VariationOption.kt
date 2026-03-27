@@ -5,19 +5,20 @@ data class VariationOption(
     val price: Int = 0,
     val id: String = "",
     val description: String = "",
-    val isAvailable: Boolean = true
+    val available: Boolean = true,
+    val valid: Boolean = true, //thuoc ve logic he thong
 
 ) {
-    fun isValid(): Boolean {
+    fun isValidOption(): Boolean {
         return name.isNotEmpty() && price >= 0 }
 
-    companion object {
-        fun createStandardSizes(): List<VariationOption> {
-            return  listOf(
-                VariationOption("small", 0, "Nhỏ"),
-                VariationOption("medium", 5000, "Vừa"),
-                VariationOption("large", 1000, "Lớn"),
-            )
-        }
-    }
+//    companion object {
+//        fun createStandardSizes(): List<VariationOption> {
+//            return  listOf(
+//                VariationOption("small", 0, "Nhỏ"),
+//                VariationOption("medium", 5000, "Vừa"),
+//                VariationOption("large", 1000, "Lớn"),
+//            )
+//        }
+//    }
 }

@@ -1,5 +1,6 @@
 package com.example.foodapp.ui.screen.home.section
 
+import AppAsyncImage
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,15 +24,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
-import com.example.foodapp.R
 import com.example.foodapp.core.UiState
 import com.example.foodapp.domain.model.Category
+import com.example.foodapp.ui.theme.Desert
+import com.example.foodapp.ui.theme.MediumOrange
 
 
 @Composable
@@ -80,33 +81,41 @@ fun CategorySelection(categoryState: UiState<List<Category>>) {
 
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(25.dp))
-                                .size(65.dp)
+                                .clip(RoundedCornerShape(20.dp))
+                                .size(50.dp)
                                 .background(
                                     if (isSelected) {
                                         Brush.radialGradient(
                                             colors = listOf(
                                                 Color(0xffFFE0B2),
-                                                Color(0xffFF8C00)
+                                                MediumOrange
+
                                             )
                                         )
                                     } else {
                                         Brush.radialGradient(
                                             colors = listOf(
                                                 Color.White,
-                                                Color(0xffFAD5A5)
+                                                Desert
                                             )
                                         )
                                     }
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
-                            AsyncImage(
+//                            AsyncImage(
+//                                modifier = Modifier
+//                                    .size(30.dp),
+//                                   model = category.iconUrl,
+//                                contentDescription = null,
+//                                placeholder = painterResource(R.drawable.ic_loading),
+//                            )
+                            AppAsyncImage(
+                                imageUrl = category.iconUrl,
                                 modifier = Modifier
-                                    .size(30.dp),
-                                   model = category.iconUrl,
-                                contentDescription = null,
-                                placeholder = painterResource(R.drawable.ic_loading),
+//                                    .height(100.dp)
+//                                    .width(200.dp)
+                                    .size(25.dp)
                             )
                         }
 
@@ -114,11 +123,11 @@ fun CategorySelection(categoryState: UiState<List<Category>>) {
                         Text(
                             text = category.name,
                             color = Color.Black,
-                            fontSize = 14.sp,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Center
-
+                            textAlign = TextAlign.Center,
                         )
                     }
                 }

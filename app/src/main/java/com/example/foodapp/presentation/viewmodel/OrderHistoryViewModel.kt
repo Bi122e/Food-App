@@ -8,7 +8,8 @@ import com.example.foodapp.core.toUiState
 import com.example.foodapp.data.repository.CartRepository
 import com.example.foodapp.data.repository.OrderRepository
 import com.example.foodapp.data.repository.UserRepository
-import com.example.foodapp.domain.model.*
+import com.example.foodapp.domain.model.Order
+import com.example.foodapp.domain.model.OrderStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -102,8 +103,12 @@ fun filterOrders(status: OrderStatus?) {
         viewModelScope.launch {
             _cancelOrderEvent.emit(UiState.Loading)
             val response = orderRepository.cancelOrder(orderId)
-            val uiState = response.toUiState()
-            _cancelOrderEvent.emit(uiState)
+            val result = response.toUiState()
+            _cancelOrderEvent.emit(result)
+
+            if (result is UiState.Success) {
+                loadOrders(userId = "")
+            }
         }
     }
 

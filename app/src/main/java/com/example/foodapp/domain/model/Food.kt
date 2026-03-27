@@ -19,19 +19,26 @@ data class Food(
     val restaurantId: String = "",
     val categoryId: String = "",
     val variations: List<Variation> = emptyList(),
+    val averageRating: Double = 0.0,
+    val minPrice: Int = 0,
+    val maximumPrice: Int = 0,
+    val isHighlyRatedFlag: Boolean = false,
+    val popular: Boolean = false,
+    val valid: Boolean = true,
     @ServerTimestamp
-    val createdAp: Date? = null,
+    val createdAt: Date? = null,
     val updatedAt: Date? = null,
 ) {
-    fun isValid(): Boolean {
+    fun checkIsValid(): Boolean {
         return foodId.isNotEmpty() &&
                 name.isNotEmpty() &&
                 price >= 0 &&
+                variations.all { it.isValidVariation() } &&
                 categoryId.isNotEmpty() &&
                 restaurantId.isNotEmpty()
     }
 
-    fun getAverageRating(): Double {
+    fun calculateAverageRating(): Double {
         return if (reviewCount > 0) {
             //            (totalRating / reviews).coerceIn(0.0, 5.0) get total rate <= 5
             totalRating.toDouble() / reviewCount
@@ -43,44 +50,63 @@ data class Food(
     fun hasVariations(): Boolean = variations.isNotEmpty()
 
     //get base/ default price
-    fun getMinPrice(): Int = price
+//    fun getMinPrice(): Int = price
 
     //get maximum price
-    fun getMaximumPrice(): Int {
-        // if (variations.isEmpty()) return price
-        //
-        //        val maxVariationPrice = variations.maxOfOrNull { variation ->
-        //            variation.options.maxOfOrNull { it.price } ?: 0
-        //        } ?: 0
-        //
-        if (variations.isEmpty()) return getMinPrice()
-        return price + variations.sumOf { it.options.maxOfOrNull { option -> option.price } ?: 0 }
-    }
+//    fun getMaximumPrice(): Int {
+//        // if (variations.isEmpty()) return price
+//        //
+//        //        val maxVariationPrice = variations.maxOfOrNull { variation ->
+//        //            variation.options.maxOfOrNull { it.price } ?: 0
+//        //        } ?: 0
+//        //
+//        if (variations.isEmpty()) return getMinPrice()
+//        return price + variations.sumOf { it.options.maxOfOrNull { option -> option.price } ?: 0 }
+//    }
 
     //calculate price with variation
     fun getPriceWithVariation(selectedVariation: Map<String, List<String>>): Int {
-        val basePrice = price
-        val variationPrice = selectedVariation.entries.sumOf { (variationId, optionIds) ->
-            val variation = variations.find { it.id == variationId }
-            variation?.options?.filter { optionIds.contains(it.id) }?.sumOf { it.price } ?: 0
-        }
-        return basePrice + variationPrice
+        if (!valid || !available) return 0
 
+        val basePrice = price
+
+        val variationPrice = selectedVariation.entries.sumOf { (variationId, optionIds) ->
+
+            val variation = variations.find {
+                it.id == variationId && it.options.isNotEmpty()
+            } ?: return@sumOf 0
+
+            variation.options
+                .filter { option ->
+                    option.valid &&
+                            option.available &&
+                            optionIds.contains(option.id)
+                }
+                .sumOf { it.price }
+        }
+
+        return basePrice + variationPrice
     }
 
     //add a review
     fun addReview(rating: Double): Food {
-        require(rating in 1.0..5.0) { "rating must be between 1 and 5" }
+        require(rating in 1.0..5.0)
+
+        val newReviewCount = reviewCount + 1
+        val newTotalRating = totalRating + rating
+        val newAverage = newTotalRating / newReviewCount
+
         return copy(
-            reviewCount = reviewCount + 1,
-            totalRating = totalRating + rating.toInt(),
+            reviewCount = newReviewCount,
+            totalRating = newTotalRating,
+            averageRating = newAverage,
             updatedAt = Date()
         )
     }
 
     //popular by view food
-    fun isPopular(): Boolean = reviewCount > 2 && getAverageRating() > 2
+    fun checkIsPopular(): Boolean = reviewCount > 2 && calculateAverageRating() > 2
 
     //popular by rating
-    fun isHighlyRated(): Boolean = getAverageRating() > 3 && reviewCount > 3
+    fun checkHighlyRated(): Boolean = calculateAverageRating() > 3 && reviewCount > 3
 }

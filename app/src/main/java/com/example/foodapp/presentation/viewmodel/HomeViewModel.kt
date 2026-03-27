@@ -26,12 +26,15 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val foodRepository: FoodRepository,
     private val restaurantRepository: RestaurantRepository,
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
 ): ViewModel() {
 
     private val _categories = MutableStateFlow<UiState<List<Category>>>(UiState.Loading)
     val categories: StateFlow<UiState<List<Category>>> =_categories.asStateFlow()
 
+    private val _foods = MutableStateFlow<UiState<List<Food>>>(UiState.Loading)
+    val foods = _foods.asStateFlow()
+    
     private val _featureFoods = MutableStateFlow<UiState<List<Food>>>(UiState.Loading)
     val featureFoods: StateFlow<UiState<List<Food>>> = _featureFoods.asStateFlow()
 
@@ -46,6 +49,8 @@ class HomeViewModel @Inject constructor(
     private val _foodByCategory = MutableStateFlow<UiState<List<Food>>>(UiState.Loading)
     val foodByCategory: StateFlow<UiState<List<Food>>> = _foodByCategory.asStateFlow()
 
+    private val _foodByRestaurant = MutableStateFlow<UiState<List<Food>>>(UiState.Loading)
+    val foodByRestaurant = _foodByRestaurant.asStateFlow()
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
@@ -66,7 +71,7 @@ class HomeViewModel @Inject constructor(
             categoryRepository.getAllCategories().collect { response ->
                 val uiState = response.toUiState()
                 _categories.value = uiState
-                Log.d("HomeViewModel", "Categories state: $uiState")
+                Log.d("HomeViewModel", "Categories state: ${_categories.value}")
             }
         }
     }
@@ -79,10 +84,16 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+
     private fun loadFeaturedFood() {
         viewModelScope.launch {
+            Log.d("Featured", "loadFeaturedFood CALLED")
             foodRepository.getFeaturedFood(10).collect { response ->
+                Log.d("Featured", "Featured emit: $response")
+
                 _featureFoods.value = response.toUiState()
+
+                Log.d("Featured", "Updated state ${_featureFoods.value}")
             }
         }
     }
@@ -91,6 +102,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             restaurantRepository.getRestaurants().collect { response ->
                 _restaurants.value = response.toUiState()
+                Log.d("HomeViewModel", "Restaurant State: ${_restaurants.value}")
             }
         }
     }
@@ -104,6 +116,17 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun loadFoodByRestaurant(restaurantId: String) {
+        viewModelScope.launch {
+            Log.d("HomeViewModel", "run run --- ${foodByRestaurant.value}")
+            foodRepository.getFoodsByRestaurant(restaurantId).collect { response ->
+                _foodByRestaurant.value = response.toUiState()
+            }
+            Log.d("HomeViewModel", "list food === ${foodByRestaurant.value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               }")
+        }
+        Log.d("HomeViewModel", "list food === ${foodByRestaurant.value                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               }")
+
+    }
     private fun loadFoodByCategory(categoryId: String) {
         viewModelScope.launch {
             val response = categoryRepository.getCategoryById(categoryId)

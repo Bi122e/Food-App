@@ -14,13 +14,13 @@ data class Restaurant(
     val phoneNumber: String = "",
     val email: String = "",
     val description: String = "",
-    val imgUrl: String = "",
+    val imageUrl: String = "",
     val isOpen: Boolean = true,
     val rating: Double = 0.0,
-    val reviews: Int = 0,
+    val totalReview: Int = 0,
     val estimatedDeliveryTime: Int = 30,
     val minOrderAmount: Double = 0.0,
-
+    val coverImage: String = "",
     val deliveryFee: Int = 30,
     val openingHours: String = "",
     val closingHours: String = "",
@@ -32,8 +32,8 @@ data class Restaurant(
     val createdAt: Date? = null
 ) {
     fun getAverageRating(): Double {
-        if (reviews < 0) return 0.0
-        return (reviews / rating).coerceIn(0.0, 5.0)
+        if (totalReview < 0) return 0.0
+        return (totalReview / rating).coerceIn(0.0, 5.0)
     }
 
     fun calculateDistance(userLat: Double, userLng: Double): Double {
@@ -71,11 +71,11 @@ data class Restaurant(
     }
 
     fun isPopular(): Boolean {
-        return rating >= 5 && reviews >= 5;
+        return rating >= 5 && totalReview >= 5;
     }
 
     fun isHighlyRated(): Boolean {
-        return rating >= 10 && reviews >= 10;
+        return rating >= 10 && totalReview >= 10;
     }
 
     fun isDeliveryFree(): Boolean {
@@ -92,7 +92,15 @@ data class Restaurant(
     }
 
     fun addReview(newRating: Double): Restaurant {
-        require(rating in 1.0..5.0) {"Rating phai trong khoang 1 den 5"}
-        return copy(reviews = reviews + 1, updatedAt = Date(), rating =  rating + newRating)
+        require(newRating in 1.0..5.0)
+
+        val newTotalReview = totalReview + 1
+        val newAvgRating = ((rating * totalReview) + newRating) / newTotalReview
+
+        return copy(
+            rating = newAvgRating,
+            totalReview = newTotalReview,
+            updatedAt = Date()
+        )
     }
 }

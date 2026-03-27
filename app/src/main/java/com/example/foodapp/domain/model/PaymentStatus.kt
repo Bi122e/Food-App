@@ -1,6 +1,7 @@
 package com.example.foodapp.domain.model
 
 enum class PaymentStatus(val label: String) {
+    PENDING("CHUAN BI"),
     UNPAID("Chua thanh toan"),
     PAID("Da thanh toan"),
     REFUNDED("Da hoan tien"),

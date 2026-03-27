@@ -43,6 +43,7 @@ class ProfileRepositoryImpl @Inject constructor(
         }
     }
 
+
     override suspend fun updateCustomerProfile(profile: CustomerProfile): ApiResponse<Unit> {
         return try {
             customerRef.document(profile.uid).set(profile).await()

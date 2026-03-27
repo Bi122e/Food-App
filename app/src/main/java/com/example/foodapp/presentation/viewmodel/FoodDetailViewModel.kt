@@ -1,24 +1,27 @@
 package com.example.foodapp.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.core.UiState
 import com.example.foodapp.core.toUiState
+import com.example.foodapp.data.repository.AuthRepository
 import com.example.foodapp.data.repository.CartRepository
 import com.example.foodapp.data.repository.FavoriteRepository
 import com.example.foodapp.data.repository.FoodRepository
 import com.example.foodapp.data.repository.RestaurantRepository
-import com.example.foodapp.domain.Review
 import com.example.foodapp.domain.model.CartItem
 import com.example.foodapp.domain.model.Favorite
 import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.Restaurant
+import com.example.foodapp.domain.model.Review
 import com.example.foodapp.domain.model.Variation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,6 +32,7 @@ class FoodDetailViewModel @Inject constructor(
     private val restaurantRepository: RestaurantRepository,
     private val cartRepository: CartRepository,
     private val favoriteRepository: FavoriteRepository,
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _foodDetailState = MutableStateFlow<UiState<Food>>(UiState.Loading)
@@ -36,6 +40,8 @@ class FoodDetailViewModel @Inject constructor(
 
     private val _foodState = MutableStateFlow<UiState<Food>>(UiState.Idle)
     val foodState = _foodState.asStateFlow()
+    private val _foodsState = MutableStateFlow<UiState<List<Food>>>(UiState.Idle)
+    val foodsState = _foodsState.asStateFlow()
 
     private val _restaurantState = MutableStateFlow<UiState<Restaurant>>(UiState.Idle)
     val restaurantState: StateFlow<UiState<Restaurant>> = _restaurantState.asStateFlow()
@@ -92,14 +98,37 @@ class FoodDetailViewModel @Inject constructor(
         }
     }
 
-    fun loadRestaurant(restaurantId: String) {
+    fun loadRestaurantById(restaurantId: String) {
         viewModelScope.launch {
-            val response = restaurantRepository.getRestaurantById(restaurantId)
-                .first()
-                .toUiState()
-            _restaurantState.value = response
+//            val response = restaurantRepository.getRestaurantById(restaurantId)
+//                .first()
+//                .toUiState()
+            restaurantRepository.getRestaurantById(restaurantId).collectLatest {  response ->
+                _restaurantState.value = response.toUiState()
+                Log.d("FoodDetailViewModel", "restaurant = ${restaurantState.value}")
+            }
         }
     }
+    fun loadFoodByRestaurant(restaurantId: String) {
+        viewModelScope.launch {
+            foodRepository.getFoodsByRestaurant(restaurantId).collectLatest { response ->
+                _foodsState.value = response.toUiState()
+
+                Log.d("FoodDetailViewModel", "data food by restaurant ${foodsState.value}")
+
+            }
+        }
+
+    }
+
+    fun loadFoodById(foodId: String) {
+        viewModelScope.launch {
+            val response = foodRepository.getFoodById(foodId).toUiState()
+            _foodDetailState.value = response
+            Log.d("FoodDetailViewModel","FOOD DETAIL: ${foodDetailState.value}")
+        }
+    }
+
 
     fun incrementQuantity() {
         if (_quantity.value <= 20)
@@ -187,6 +216,8 @@ class FoodDetailViewModel @Inject constructor(
 //            .filter { it.id in selectedOptions }
 //            .sumOf { it.price }
 //    }
+
+    //chua toi uu
     private fun calculateVariationPrice(
         selectVariation: Map<String, Set<String>>,
         food: Food
@@ -210,16 +241,18 @@ class FoodDetailViewModel @Inject constructor(
     }
 
 
-    fun toggleFavorite(userId: String, foodId: String) {
+    fun toggleFavorite( foodId: String) {
         viewModelScope.launch {
-            val current = _favorite.value
+            val userId = authRepository.currentUserId() ?: return@launch
+            val currentState = _favorite.value
 
-            if (current == null) {
+
+            if (currentState == null) {
                 val favorite = Favorite(userId = userId, foodId = foodId)
                 favoriteRepository.addFavorite(favorite)
                 _favorite.value = favorite
             } else {
-                favoriteRepository.removeFavorite(current.id)
+                favoriteRepository.removeFavorite(currentState.favoriteId)
                 _favorite.value = null
             }
         }
@@ -331,7 +364,7 @@ class FoodDetailViewModel @Inject constructor(
         }
     }
 
-    fun addToCard(userId: String) {
+    fun addToCart(userId: String) {
         viewModelScope.launch {
             val food = _foodState.value.getDataOrNull()
                 ?: return@launch

@@ -1,5 +1,4 @@
- package com.example.foodapp.presentation.viewmodel
-
+package com.example.foodapp.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodapp.core.ApiResponse
@@ -7,15 +6,21 @@ import com.example.foodapp.core.UiState
 import com.example.foodapp.core.toUiState
 import com.example.foodapp.data.repository.CartRepository
 import com.example.foodapp.data.repository.OrderRepository
-import com.example.foodapp.data.repository.UserRepository
 import com.example.foodapp.data.repository.ProfileRepository
+import com.example.foodapp.data.repository.UserRepository
 import com.example.foodapp.domain.mapper.toVariations
-import com.example.foodapp.domain.model.*
+import com.example.foodapp.domain.model.Cart
+import com.example.foodapp.domain.model.Order
+import com.example.foodapp.domain.model.OrderItem
+import com.example.foodapp.domain.model.PaymentMethod
+import com.example.foodapp.domain.model.PaymentStatus
+import com.example.foodapp.domain.model.User
 import com.example.foodapp.presentation.state.CheckoutState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -28,71 +33,64 @@ class CheckoutViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val profileRepository: ProfileRepository
 ) : ViewModel() {
+
     private var job: Job? = null
 
     private val _checkoutState = MutableStateFlow(CheckoutState())
-    val checkoutState: StateFlow<CheckoutState> = _checkoutState.asStateFlow()
+    val checkoutState = _checkoutState.asStateFlow()
 
     private val _cart = MutableStateFlow<UiState<Cart>>(UiState.Loading)
-    val cart: StateFlow<UiState<Cart>> = _cart.asStateFlow()
+    val cart = _cart.asStateFlow()
 
     private val _user = MutableStateFlow<UiState<User>>(UiState.Loading)
-    val user: StateFlow<UiState<User>> = _user.asStateFlow()
-
-    private val _order = MutableStateFlow<UiState<Order>>(UiState.Loading)
-    val order: StateFlow<UiState<Order>> = _order.asStateFlow()
-
+    val user = _user.asStateFlow()
 
     private val _selectedPaymentMethod = MutableStateFlow(PaymentMethod.CASH)
-    val selectedPaymentMethod: StateFlow<PaymentMethod> =
-        _selectedPaymentMethod.asStateFlow()
+    val selectedPaymentMethod = _selectedPaymentMethod.asStateFlow()
 
+    // order result
+    private val _orderResult = MutableSharedFlow<UiState<Order>>(extraBufferCapacity = 1)
+    val orderResult = _orderResult.asSharedFlow()
+
+    // LOAD DATA
 
     fun loadCart(userId: String) {
         job?.cancel()
-
-        viewModelScope.launch {
-            cartRepository.getCart(userId)
-                .collect { response ->
-                    _cart.value = response.toUiState()
-                }
+        job = viewModelScope.launch {
+            cartRepository.getCart(userId).collect {
+                _cart.value = it.toUiState()
+            }
         }
     }
 
     fun loadUser(userId: String) {
         job?.cancel()
-        viewModelScope.launch {
-            // Load User for Email/Auth info
-            userRepository.getCurrentUser(userId)
-                .collect { response ->
-                    _user.value = response.toUiState()
+        job = viewModelScope.launch {
+            userRepository.getCurrentUser(userId).collect { response ->
+                _user.value = response.toUiState()
 
-                    if (response is ApiResponse.Success) {
-                        // Load Profile for Address/Phone
-                        val profileRes = profileRepository.getCustomerProfile(userId)
-                        if (profileRes is ApiResponse.Success) {
-                             _checkoutState.update { it.copy(address = profileRes.data.address) }
-                             _checkoutState.update { it.copy(phoneNumber = profileRes.data.phone) }
+                if (response is ApiResponse.Success) {
+                    val profile = profileRepository.getCustomerProfile(userId)
+                    if (profile is ApiResponse.Success) {
+                        _checkoutState.update {
+                            it.copy(
+                                address = profile.data.address,
+                                phoneNumber = profile.data.phone
+                            )
                         }
                     }
                 }
+            }
         }
     }
 
-    fun loadOrder(orderId: String) {
-        viewModelScope.launch {
-            _order.value = UiState.Loading
-            val response = orderRepository.getOrderById(orderId)
-            _order.value = response.toUiState()
-        }
-    }
+    // UPDATE UI STATE
 
-
-    fun updateDeliveryAddress(address: String) {
+    fun updateAddress(address: String) {
         _checkoutState.update { it.copy(address = address) }
     }
 
-    fun updatePhoneNumber(phone: String) {
+    fun updatePhone(phone: String) {
         _checkoutState.update { it.copy(phoneNumber = phone) }
     }
 
@@ -104,53 +102,37 @@ class CheckoutViewModel @Inject constructor(
         _selectedPaymentMethod.value = method
     }
 
+    // =========================
+    // VALIDATE
 
-    private fun calculateTotals(cart: Cart): CheckoutTotals {
-        val subTotal = cart.calculateSubTotalPrice()
-        val deliveryFee = 3000
-        val discount = 0
-        val total = subTotal + deliveryFee - discount
-
-        return CheckoutTotals(
-            subTotal = subTotal,
-            deliveryFee = deliveryFee,
-            discount = discount,
-            total = total
-        )
+    private fun validate(): String? {
+        val state = _checkoutState.value
+        if (state.address.isBlank()) return "Thiếu địa chỉ"
+        if (!state.phoneNumber.matches(Regex("0[0-9]{9}")))
+            return "SĐT không hợp lệ"
+        return null
     }
 
+    // =========================
+    // PLACE ORDER
 
     fun placeOrder(userId: String) {
-
         viewModelScope.launch {
+
             val cartData = (_cart.value as? UiState.Success)?.data
             val userData = (_user.value as? UiState.Success)?.data
 
             if (cartData == null || userData == null) {
-                _checkoutState.update {
-                    it.copy(
-                        error = "Khong tim thay du lieu"
-                    )
-                }
+                _checkoutState.update { it.copy(error = "Thiếu dữ liệu") }
                 return@launch
             }
 
-            if (_checkoutState.value.address.isBlank() ||
-                _checkoutState.value.phoneNumber.length <= 10
-            ) {
-                _checkoutState.update {
-                    it.copy(
-                        error = "Thong tin khong hop le"
-                    )
-                }
+            validate()?.let {
+                _checkoutState.update { state -> state.copy(error = it) }
                 return@launch
             }
 
-            _checkoutState.update {
-                it.copy(
-                    isProcessingOrder = true, error = null
-                )
-            }
+            _checkoutState.update { it.copy(isProcessingOrder = true, error = null) }
 
             val order = Order(
                 restaurantId = cartData.restaurantId,
@@ -160,8 +142,10 @@ class CheckoutViewModel @Inject constructor(
                 address = _checkoutState.value.address,
                 phone = _checkoutState.value.phoneNumber,
                 userId = cartData.userId,
-                orderId = "",
                 email = userData.email,
+                paymentMethod = selectedPaymentMethod.value,
+                paymentStatus = if (selectedPaymentMethod.value.isOnlinePayment)
+                    PaymentStatus.PENDING else PaymentStatus.UNPAID,
                 items = cartData.cartItems.map { item ->
                     OrderItem(
                         foodId = item.foodId,
@@ -176,13 +160,14 @@ class CheckoutViewModel @Inject constructor(
                 }
             )
 
-            when (val response = orderRepository.createOrder(order)) {
+            when (val res = orderRepository.createOrder(order)) {
                 is ApiResponse.Success -> {
                     cartRepository.clearCart(userId)
+
+                    _orderResult.emit(UiState.Success(order.copy(orderId = res.data)))
+
                     _checkoutState.update {
-                        it.copy(
-                            isProcessingOrder = false
-                        )
+                        it.copy(isProcessingOrder = false)
                     }
                 }
 
@@ -190,46 +175,13 @@ class CheckoutViewModel @Inject constructor(
                     _checkoutState.update {
                         it.copy(
                             isProcessingOrder = false,
-                            error = response.message
+                            error = res.message
                         )
                     }
                 }
 
                 else -> Unit
             }
-
-//            if (!validateCheckoutInfo()) {
-//                _checkoutState.value =
-//                    CheckoutState.Error("Vui lòng điền đầy đủ thông tin")
-//                return@launch
-//            }
-
-        }
-    }
-
-
-//    private fun validateCheckoutInfo(): Boolean {
-//        return _deliveryAddress.value.isNotBlank() &&
-//                _phoneNumber.value.length >= 10
-//    }
-
-    fun resetCheckoutState() {
-        _checkoutState.value = CheckoutState()
-    }
-
-    fun resetError() {
-        _checkoutState.update {
-            it.copy(error = null)
         }
     }
 }
-
-
-
-data class CheckoutTotals(
-    val subTotal: Int = 0,
-    val deliveryFee: Int = 0,
-    val discount: Int = 0,
-    val total: Int = 0
-)
-

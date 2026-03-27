@@ -10,8 +10,8 @@ class RestaurantExtentions {
     }
 
     fun Restaurant.getRattingText(): String {
-        return if (reviews > 0) {
-            "⭐ ${getFormattedRating()} ($reviews)"
+        return if (totalReview > 0) {
+            "⭐ ${getFormattedRating()} ($totalReview)"
         } else {
             "chưa có đánh giá"
         }
@@ -59,8 +59,8 @@ class RestaurantExtentions {
     }fun Restaurant.getInfoText(userLat: Double = 0.0, userLng: Double = 0.0): String {
         val parts = mutableListOf<String>()
 
-        if (reviews > 0) {
-            parts.add("⭐ ${getFormattedRating()} ($reviews)")
+        if (totalReview > 0) {
+            parts.add("⭐ ${getFormattedRating()} ($totalReview)")
         }
 
         parts.add(getTimeText())

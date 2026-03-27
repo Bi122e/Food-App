@@ -1,6 +1,5 @@
 package com.example.foodapp.presentation.extentions
 
-import com.example.foodapp.core.utils.toVND
 import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.VariationOption
 import java.util.Locale
@@ -8,23 +7,23 @@ import java.util.Locale
 
 // 50000 → "50.000₫","50.000₫ - 60.000₫"
 
-fun Food.getFormattedPrice(): String {
-    return if (hasVariations()) {
-        val min = getMinPrice().toInt()
-        val max = getMaximumPrice().toInt()
-        if (min == max) {
-            "${min.toVND()}đ"
-        } else {
-            "${min.toVND()}đ - ${max.toVND()}đ"
-        }
-    } else {
-        "${price.toVND()}đ"
-    }
-
-}
+//fun Food.getFormattedPrice(): String {
+//    return if (hasVariations()) {
+//        val min = getMinPrice().toInt()
+//        val max = getMaximumPrice().toInt()
+//        if (min == max) {
+//            "${min.toVND()}đ"
+//        } else {
+//            "${min.toVND()}đ - ${max.toVND()}đ"
+//        }
+//    } else {
+//        "${price.toVND()}đ"
+//    }
+//
+//}
 
 fun Food.getFormattedRating(): String {
-    return String.format(Locale.getDefault(), "%.1f", getAverageRating().toDouble())
+    return String.format(Locale.getDefault(), "%.1f", calculateAverageRating())
 }
 
 //"⭐ 4.5 (120)"
@@ -41,8 +40,8 @@ fun Food.getFormattedFoodTime(): String = "$foodTime phút"
 
 fun Food.getBadgeText(): String? {
     return when {
-        isHighlyRated() -> "Danh gia cao"
-        isPopular() -> "Pho bien"
+        checkHighlyRated() -> "Danh gia cao"
+        checkIsPopular() -> "Pho bien"
         else -> null
     }
 }

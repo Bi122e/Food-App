@@ -9,7 +9,7 @@
 //        val restaurants = listOf(
 //            Restaurant(
 //                restaurantId = "phuclong",
-//                restaurantName = "Phúc Long Coffee & Tea",
+            //                restaurantName = "Phúc Long Coffee & Tea",
 //                description = "Thương hiệu trà và cà phê nổi tiếng Việt Nam với hương vị đậm đà.",
 //                imageUrl = "https://res.cloudinary.com/dgbz1qem7/image/upload/v1749103446/logo_phuclong_qaa02v.png",
 //                phoneNumber = "0901234567",

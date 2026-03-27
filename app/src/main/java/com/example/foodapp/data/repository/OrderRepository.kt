@@ -3,6 +3,7 @@ package com.example.foodapp.data.repository
 import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.domain.model.Order
 import com.example.foodapp.domain.model.OrderStatus
+import com.example.foodapp.domain.model.PaymentStatus
 import kotlinx.coroutines.flow.Flow
 
 interface OrderRepository {
@@ -30,6 +31,6 @@ interface OrderRepository {
     suspend fun getTotalOrdersCount(userId: String): ApiResponse<Int>
     suspend fun getTotalSpent(userId: String): ApiResponse<Int>
 
-
+    suspend fun updatePaymentStatus(orderId: String, paymentStatus: PaymentStatus): ApiResponse<Unit>
 
 }

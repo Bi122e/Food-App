@@ -39,13 +39,13 @@ data class BottomNavItem(
 @Composable
 fun HomeBottomBar(
     selectedIndex: Int,
-    onItemSelected: (Int) -> Unit = {}
+    onItemSelected: (Int) -> Unit
 ) {
     val items = listOf(
         BottomNavItem("Trang chủ", Icons.Default.People),
         BottomNavItem("Chat", Icons.Default.Chat),
         BottomNavItem("Giỏ hàng", Icons.Default.ShoppingCartCheckout),
-        BottomNavItem("Hồ sơ", Icons.Default.Person)
+        BottomNavItem("Hồ sơ", Icons.Default.Person),
     )
 
     Box(
@@ -67,6 +67,8 @@ fun HomeBottomBar(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
+
+            //loop for item in list,
             items.forEachIndexed { index, item ->
                 BottomNavItemView(
                     item = item,

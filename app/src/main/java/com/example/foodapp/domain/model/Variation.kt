@@ -6,20 +6,24 @@ data class Variation(
     val id: String = "",
     val description: String = "",
     val type: VariationType = VariationType.SINGLE, //chi duoc chon 1 option, multi la chon nhieu option
-    val isRequired: Boolean = true,
-    val minSelection: Int = 0,
-    val maxSelection: Int = 0,
-    val  options: List<VariationOption> = emptyList()
+    val required: Boolean = true, //co bat buoc user chon variation ko
+    val minSelection: Int = 0, // so luong min khi user chon
+    val maxSelection: Int = 0, // so luong max khi user chon
+    val  options: List<VariationOption> = emptyList(),
+    val valid: Boolean = true
 ) {
-    fun isValid(): Boolean {
+    fun isValidVariation(): Boolean {
         return id.isNotEmpty() && name.isNotEmpty() && options.isNotEmpty()
     }
 
     fun isSelectedValid(selectedCount: Int): Boolean {
         return when (type) {
-            VariationType.SINGLE -> selectedCount == 1
+            VariationType.SINGLE -> {
+                if (required) selectedCount == 1
+                else selectedCount in 0..1
+            }
             VariationType.MULTI -> {
-                val min = if (isRequired)
+                val min = if (required)
                     minSelection.coerceAtLeast(1) else 0
                 val max = if (maxSelection > 0) maxSelection else Int.MAX_VALUE
                 selectedCount in min..max
@@ -31,12 +35,12 @@ data class Variation(
     fun getSelectionRuleText(): String {
         return when (type) {
             VariationType.SINGLE -> {
-                if (isRequired) "Chọn 1" else "Chọn 1 (tùy chọn)"
+                if (required) "Chọn 1" else "Chọn 1 (tùy chọn)"
             }
             VariationType.MULTI ->  {
                 when {
-                    isRequired && maxSelection > 0 -> "Chọn từ $minSelection đến $maxSelection"
-                    isRequired -> "Chọn tối thiểu $minSelection"
+                    required && maxSelection > 0 -> "Chọn từ $minSelection đến $maxSelection"
+                    required -> "Chọn tối thiểu $minSelection"
                     maxSelection > 0 -> "Chọn tối đa $maxSelection"
                     else -> "Tùy chọn"
                     }
@@ -46,7 +50,11 @@ data class Variation(
 
     fun calculatePrice(selectedOptions: List<String>): Int {
         return options
-            .filter { selectedOptions.contains(it.id) }
+            .filter { option ->
+                option.valid &&
+                        option.available &&
+                        selectedOptions.contains(option.id)
+            }
             .sumOf { it.price }
     }
     //thit, trung, canh
@@ -54,7 +62,11 @@ data class Variation(
     //
 
     fun getOptionById(id: String): VariationOption? {
-        return options.find { it.id == id }
+        return options.find {
+            it.id == id &&
+                    it.valid &&
+                    it.available
+        }
     }
 
     enum class VariationType {
