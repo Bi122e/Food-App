@@ -5,12 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.data.repository.AuthRepository
-import com.example.foodapp.data.repository.UserProfileCombineRepository
 import com.example.foodapp.data.repository.UserRepository
 import com.example.foodapp.domain.model.ProfileCompleteness
 import com.example.foodapp.presentation.state.ProfileUiState
 import com.example.foodapp.presentation.state.toEditProfile
-import com.example.foodapp.presentation.state.toUserProfileCombine
+import com.example.foodapp.presentation.state.toUser
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,14 +21,12 @@ import javax.inject.Inject
 @HiltViewModel
 class UserProfileViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val authRepository: AuthRepository,
-    private val userProfileCombineRepository: UserProfileCombineRepository,
-    private val restaurantRepository: UserRepository
-
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState = _uiState.asStateFlow()
+    private val phoneRegex = Regex("^[0-9]*$")
 
     init {
         loadCurrentUser()
@@ -39,26 +36,24 @@ class UserProfileViewModel @Inject constructor(
         viewModelScope.launch {
             val userId = authRepository.currentUserId() ?: return@launch
             _uiState.update { it.copy(isLoading = true) }
-            userProfileCombineRepository.getUserProfile(userId).collectLatest { response ->
+            userRepository.getCurrentUser(userId).collectLatest { response ->
                 when (response) {
                     is ApiResponse.Success -> {
                         Log.d("UserProfileViewModel", "api success")
-
                         val data = response.data
-
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
                                 user = data,
                                 editProfile = data.toEditProfile(),
                                 profileCompleteness =
-                                    if (data.isProfileComplete()) ProfileCompleteness.COMPLETE
+                                    if (data.isComplete()) ProfileCompleteness.COMPLETE
                                     else ProfileCompleteness.INCOMPLETE
 
                             )
 
                         }
-                        Log.d("UserProfileViewModel", "get user profile| User combine: $response")
+                        Log.d("UserProfileViewModel", "get user profile| User: $response")
                     }
 
 
@@ -81,46 +76,55 @@ class UserProfileViewModel @Inject constructor(
     }
 
     fun updateUserProfile() {
-        val userProfile = _uiState.value.toUserProfileCombine() ?: return
+        Log.d("UserProfileViewModel", "ApiResponse Run: ${_uiState.value}")
+
         val phone = _uiState.value.editProfile.phone
-        if (phone.length < 12)  {
+        //validate phone input 10 - 11
+        if (phone.length < 10 || phone.length > 11) {
             _uiState.update {
                 it.copy(
                     errorMessage = mapOf(
                         "phone" to "Số điện thoại phải lớn hơn 10 và nhỏ hơn 11"))
             }
+            Log.d("UserProfileViewModel", "ApiResponse Error valid: ${_uiState.value}")
             return
         }
-
+        val userProfile = _uiState.value.toUser() ?: return
+        Log.d("UserProfileViewModel", "ApiResponse checked success: ${_uiState.value}")
 
         viewModelScope.launch {
             _uiState.update {
                 it.copy(isLoading = true)
             }
-            val response = userProfileCombineRepository.updateCustomerProfile(userProfile)
-            if (response is ApiResponse.Success) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        isEditMode = false,
-                        user = userProfile,
-                        isClickedUpdate = false,
-                        isEnable = false,
-                        editProfile = userProfile.toEditProfile(),
-                        profileCompleteness =
-                            if (userProfile.isProfileComplete()) ProfileCompleteness.COMPLETE
-                            else ProfileCompleteness.COMPLETE,
-                        successMessage = "Profile updated successfully",
+            val response = userRepository.updateUser(userProfile)
+            when (response) {
+                is ApiResponse.Success -> {
+                     _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isEditMode = false,
+                            user = userProfile,
+                            isClickedUpdate = false,
+                            isEnable = false,
+                            editProfile = userProfile.toEditProfile(),
+                            profileCompleteness =
+                                if (userProfile.isComplete()) ProfileCompleteness.COMPLETE
+                                else ProfileCompleteness.INCOMPLETE,
+                            successMessage = "Profile updated successfully",
 
-                    )
+                            )
+                    }
                 }
-            }
-            if (response is ApiResponse.Error) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = mapOf("ApiResponse" to response.message)) }
+                is ApiResponse.Error -> {
+                    Log.d("UserProfileViewModel", "ApiResponse Error: ${_uiState.value}")
+                _uiState.update { it.copy(isLoading = false, errorMessage = mapOf("ApiResponse" to response.message))
+                 }}
+                is ApiResponse.Loading -> {
+                }
+                is ApiResponse.Empty -> {
+                    _uiState.update { it.copy(isLoading = false, errorMessage = mapOf("ApiResponse" to "Empty")) }
 
-            }
-            else {
-                _uiState.update { it.copy(isLoading = false, errorMessage = mapOf("ApiResponse" to "UNKNOW")) }
+                }
             }
         }
     }
@@ -144,17 +148,14 @@ class UserProfileViewModel @Inject constructor(
 
         _uiState.update { current ->
 
-            //gán gias trị new input cho biến edit
+            //gán gias trị new input cho biến state edit
             val editedProfile = when (field) {
                 "name" -> current.editProfile.copy(name = value)
                 "address" -> {
                      current.editProfile.copy(address = value)
                 }
                 "phone" -> {
-
-                    val isValid = value.matches(Regex("^[0-9]*$"))
-                    Log.d("PHONE_INPUT", "value = $value, isValid = $isValid")
-                    val editProfile = _uiState.value.editProfile
+                    val isValid = phoneRegex.matches(value) //dùng regex đã khởi tạo
                     if (isValid) current.editProfile.copy(phone = value)
                     else current.editProfile
 
@@ -168,24 +169,23 @@ class UserProfileViewModel @Inject constructor(
 
             //cập nhật state
             current.copy(
-
                 editProfile = editedProfile,
                 isEditMode = isEditing // true khi đang gõ
             )
         }
     }
 
+    //toggle click update
     fun onCheckedChange() {
-        val reverse = !_uiState.value.isClickedUpdate
-        _uiState.update {
-            it.copy(isClickedUpdate = reverse)
+         _uiState.update {
+            it.copy(isClickedUpdate = !it.isClickedUpdate)
         }
     }
 
-    fun setEnable(value: Boolean = false): Boolean {
+    //enable can edit
+    fun setEnable(value: Boolean = false) {
          _uiState.update { it.copy(isEnable = value) }
-        return value
-    }
+     }
 
 
 

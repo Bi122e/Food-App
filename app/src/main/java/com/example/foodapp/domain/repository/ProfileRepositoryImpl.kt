@@ -2,10 +2,11 @@ package com.example.foodapp.domain.repository
 
 import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.data.repository.ProfileRepository
+import com.example.foodapp.domain.model.UserProfile
 import com.example.foodapp.domain.model.AdminProfile
 import com.example.foodapp.domain.model.CustomerProfile
-import com.example.foodapp.domain.model.DriverProfile
 import com.example.foodapp.domain.model.RestaurantProfile
+import com.example.foodapp.domain.model.DriverProfile
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject

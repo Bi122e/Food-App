@@ -12,7 +12,7 @@ import com.example.foodapp.core.toUiState
 import com.example.foodapp.data.repository.AuthRepository
 import com.example.foodapp.data.repository.ProfileRepository
 import com.example.foodapp.data.repository.UserRepository
-import com.example.foodapp.domain.model.CustomerProfile
+import com.example.foodapp.domain.model.UserProfile
 import com.example.foodapp.presentation.state.AppState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -172,12 +172,6 @@ class AuthViewModel @Inject constructor(
             val finalResponse = authRepository.register(email, password)
                 .flatMap { uid ->
                     userRepository.createUser(uid, email)
-                        .flatMap {
-                            // Create default CustomerProfile
-                            profileRepository.createCustomerProfile(
-                                CustomerProfile(uid = uid, name = "", phone = "", address = "", profileUrl = "")
-                            ).map { uid }
-                        }
                         .flatMap { uid ->
                             userRepository.getUserById(uid)
                         }

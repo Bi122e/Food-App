@@ -60,7 +60,16 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun createUser(uid: String, email: String): ApiResponse<String> {
         return  try {
-            val user = User(uid = uid, email = email, updatedAt = null, createdAt = null, lastLogin = null)
+            val user = User(
+                uid = uid,
+                email = email,
+                profile = com.example.foodapp.domain.model.UserProfile(
+                    customer = com.example.foodapp.domain.model.CustomerProfile(uid = uid, name = "", phone = "", address = "", profileUrl = "")
+                ),
+                updatedAt = null,
+                createdAt = null,
+                lastLogin = null
+            )
              userRef.document(uid).set(user).await()
             ApiResponse.Success(uid)
         } catch (e: Exception) {

@@ -70,12 +70,12 @@ class CheckoutViewModel @Inject constructor(
                 _user.value = response.toUiState()
 
                 if (response is ApiResponse.Success) {
-                    val profile = profileRepository.getCustomerProfile(userId)
-                    if (profile is ApiResponse.Success) {
+                    val profile = response.data.profile?.customer
+                    if (profile != null) {
                         _checkoutState.update {
                             it.copy(
-                                address = profile.data.address,
-                                phoneNumber = profile.data.phone
+                                address = profile.address,
+                                phoneNumber = profile.phone
                             )
                         }
                     }
