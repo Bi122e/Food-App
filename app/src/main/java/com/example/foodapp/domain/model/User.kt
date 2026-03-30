@@ -15,6 +15,7 @@ data class User(
     val createdAt: Date? = null,
     @ServerTimestamp
     val lastLogin: Date? = null,
+    @ServerTimestamp
     val updatedAt: Date? = null
 ) {
     fun isValid(): Boolean {

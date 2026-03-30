@@ -79,7 +79,11 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun updateUser(user: User): ApiResponse<Unit> {
         return try {
-            userRef.document(user.uid).set(user).await()
+            val newUser = user.copy(
+                lastLogin = null,
+                updatedAt = null
+            )
+            userRef.document(user.uid).set(newUser).await()
             ApiResponse.Success(Unit)
         } catch (e: Exception) {
             ApiResponse.Error(e.message ?: "Failed to update user")
@@ -88,7 +92,6 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun updateProfileImage(userId: String, imageUrl: String): ApiResponse<Unit> {
         return try {
-            // TODO: Move profileUrl to specific Profile collections
 //            userRef.document(userId).update("profileUrl", imageUrl).await()
             ApiResponse.Success(Unit)
         } catch (e: Exception) {

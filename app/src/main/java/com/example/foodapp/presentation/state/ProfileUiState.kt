@@ -1,5 +1,6 @@
 package com.example.foodapp.presentation.state
 
+import com.example.foodapp.domain.model.CustomerProfile
 import com.example.foodapp.domain.model.Favorite
 import com.example.foodapp.domain.model.ProfileCompleteness
 import com.example.foodapp.domain.model.User
@@ -51,14 +52,14 @@ fun ProfileUiState.toUser(): User? {
                 name = editProfile.name,
                 phone = editProfile.phone,
                 address = editProfile.address
-            ) ?: com.example.foodapp.domain.model.CustomerProfile(
+            ) ?: CustomerProfile(
                 uid = user.uid,
                 name = editProfile.name,
                 phone = editProfile.phone,
                 address = editProfile.address
             )
-        ) ?: com.example.foodapp.domain.model.UserProfile(
-            customer = com.example.foodapp.domain.model.CustomerProfile(
+        ) ?: UserProfile(
+            customer = CustomerProfile(
                 uid = user.uid,
                 name = editProfile.name,
                 phone = editProfile.phone,

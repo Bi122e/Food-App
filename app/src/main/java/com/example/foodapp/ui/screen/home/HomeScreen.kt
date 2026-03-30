@@ -1,4 +1,3 @@
-
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.layout.Box
@@ -8,7 +7,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -16,6 +18,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.foodapp.core.UserRoutes
 import com.example.foodapp.core.bottomRouteFromIndex
+import com.example.foodapp.domain.model.ProfileCompleteness
+import com.example.foodapp.presentation.viewmodel.UserProfileViewModel
 import com.example.foodapp.ui.components.HomeBottomBar
 import com.example.foodapp.ui.screen.home.HomeNavGraph
 
@@ -53,77 +57,94 @@ import com.example.foodapp.ui.screen.home.HomeNavGraph
 @SuppressLint("RestrictedApi")
 @Composable
 fun HomeScreen(
-    parentNavController: NavHostController
+    parentNavController: NavHostController, userProfile: UserProfileViewModel = hiltViewModel()
 ) {
 
     val homeNavController = rememberNavController()
+    val profileState by userProfile.uiState.collectAsStateWithLifecycle()
 
     val navBackStackEntry by homeNavController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    val selectedIndex = when {
-        //get destination
-        currentDestination?.hierarchy?.any { it.route == UserRoutes.HOME_ROOT || it.route == UserRoutes.HOME } == true -> 0
-        currentDestination?.hierarchy?.any { it.route == UserRoutes.CHAT_ROOT || it.route == UserRoutes.CHAT } == true -> 1
-        currentDestination?.hierarchy?.any { it.route == UserRoutes.CART_ROOT || it.route == UserRoutes.CART } == true -> 2
-        currentDestination?.hierarchy?.any { it.route == UserRoutes.PROFILE_ROOT || it.route == UserRoutes.PROFILE } == true -> 3
-        else -> 0
+    // Sử dụng derivedStateOf để đảm bảo selectedIndex luôn phản ánh đúng trạng thái NavController
+    val selectedIndex = remember(currentDestination) {
+        val route = currentDestination?.route
+        // Chuyển đổi Sequence sang List để tránh lỗi 'any' unresolved reference
+        val hierarchy = currentDestination?.hierarchy?.map { it.route }?.toList() ?: emptyList()
+
+        //  check các tab con trong HomeNavGraph,
+        // các root khác đang được lồng bên trong HOME_ROOT.
+        val index = when {
+            route == UserRoutes.CHAT || hierarchy.any { it == UserRoutes.CHAT_ROOT } -> 1
+            route == UserRoutes.CART || hierarchy.any { it == UserRoutes.CART_ROOT } -> 2
+            route == UserRoutes.PROFILE || hierarchy.any { it == UserRoutes.PROFILE_ROOT } -> 3
+            route == UserRoutes.HOME || hierarchy.any { it == UserRoutes.HOME_ROOT } -> 0
+            else -> 0
+        }
+        Log.d("NAV_DEBUG", "Calculated SelectedIndex: $index for route: $route")
+        index
     }
+
 
 
     LaunchedEffect(homeNavController) {
 
         homeNavController.currentBackStackEntryFlow.collect { entry ->
             try {
-                val routes = homeNavController.currentBackStack.value.mapNotNull { it.destination.route }
+                val routes =
+                    homeNavController.currentBackStack.value.mapNotNull { it.destination.route }
                 Log.d("NavigationLog", "Home BackStack: ${routes.joinToString(" -> ")}")
             } catch (e: Exception) {
-                Log.d("NavigationLog",  "Current route: ${entry.destination.route}")
+                Log.d("NavigationLog", "Current route: ${entry.destination.route}")
             }
         }
     }
 
 
     //logic valid bottom bar for navigation
-    val isShowBottomBar = navBackStackEntry?.destination?.hierarchy?.any {
-        it.route in setOf(
-            UserRoutes.HOME_ROOT,
-            UserRoutes.CHAT_ROOT,
-            UserRoutes.CART_ROOT,
-            UserRoutes.PROFILE_ROOT
-        )
-    } == true
+    val isShowBottomBar = remember(currentDestination) {
+        currentDestination?.hierarchy?.any {
+            it.route in setOf(
+                UserRoutes.HOME,
+                UserRoutes.CHAT,
+                UserRoutes.CART,
+                UserRoutes.PROFILE,
+                UserRoutes.HOME_ROOT,
+                UserRoutes.CHAT_ROOT,
+                UserRoutes.CART_ROOT,
+                UserRoutes.PROFILE_ROOT
+            )
+        } == true
+    }
 
-    val isShowBottomBar2 = when (currentDestination?.route) {
-        UserRoutes.HOME,
-        UserRoutes.CHAT,
-        UserRoutes.CART,
-        UserRoutes.PROFILE -> true
+    // Ưu tiên sử dụng logic linh hoạt và ổn định hơn cho việc hiển thị BottomBar
+    val isShowBottomBar2 = isShowBottomBar && when (currentDestination?.route) {
+        // Chỉ hiển thị ở các màn hình tab chính, không hiển thị ở màn hình chi tiết
+        UserRoutes.HOME, UserRoutes.CHAT, UserRoutes.CART, UserRoutes.PROFILE -> true
+
         else -> false
     }
 
 
     Scaffold(
         bottomBar = {
+            Log.d("NAV_DEBUG", "BottomBar visible: $isShowBottomBar2, index: $selectedIndex")
             if (isShowBottomBar2) {
                 HomeBottomBar(
-                    selectedIndex = selectedIndex, //-> current idx nav
-                    onItemSelected = { index -> // -> item was on click in list
-                        val route = bottomRouteFromIndex(index) // -> map idx to route
-                        if (selectedIndex == index) { //-> flow pop loop current click vd: home home - pop 1 home
-                            homeNavController.popBackStack(route, inclusive = false)
+                    selectedIndex = selectedIndex,
+                    badgeProfile = profileState.profileCompleteness == ProfileCompleteness.INCOMPLETE,
+                    onItemSelected = { index ->
+                        val route = bottomRouteFromIndex(index)
 
-                        } else {
-                            homeNavController.navigate(route) {
-                                popUpTo(homeNavController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
+                        // Sử dụng logic điều hướng chuẩn cho Bottom Bar
+                        homeNavController.navigate(route) {
+                            popUpTo(homeNavController.graph.findStartDestination().id) {
+                                saveState = true
                             }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                    }
-                )
+                    })
             }
         }
 
@@ -133,11 +154,10 @@ fun HomeScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding()
         ) {
             HomeNavGraph(
-                navController = homeNavController,
-                parentNavController = parentNavController
+                navController = homeNavController, parentNavController = parentNavController
             )
         }
     }

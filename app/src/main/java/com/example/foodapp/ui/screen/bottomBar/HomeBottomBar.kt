@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Circle
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCartCheckout
@@ -26,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -39,7 +42,8 @@ data class BottomNavItem(
 @Composable
 fun HomeBottomBar(
     selectedIndex: Int,
-    onItemSelected: (Int) -> Unit
+    onItemSelected: (Int) -> Unit,
+    badgeProfile: Boolean,
 ) {
     val items = listOf(
         BottomNavItem("Trang chủ", Icons.Default.People),
@@ -72,9 +76,10 @@ fun HomeBottomBar(
             items.forEachIndexed { index, item ->
                 BottomNavItemView(
                     item = item,
-                    selected = selectedIndex == index,
+                    selected = selectedIndex == index, //selected Idx ==
                     onClick = { onItemSelected(index) },
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    badgeProfile = badgeProfile
                 )
             }
         }
@@ -87,7 +92,8 @@ private fun BottomNavItemView(
     item: BottomNavItem,
     selected: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    badgeProfile: Boolean,
 ) {
     val backgroundColor = if (selected) {
         Color(0xFF1E88E5).copy(alpha = 0.1f)
@@ -110,12 +116,25 @@ private fun BottomNavItemView(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(
-            imageVector = item.icon,
-            contentDescription = item.title,
-            tint = contentColor,
-            modifier = Modifier.size(22.dp)
-        )
+        Box(modifier = Modifier) {
+            if (item.title == "Hồ sơ" && !selected && badgeProfile) {
+                Icon(
+                    imageVector = Icons.Default.Circle,
+                    modifier = Modifier
+                        .size(14.dp)
+                        .offset {IntOffset(x = 60, y = -20)},
+                    contentDescription = null,
+                    tint = Color.Red)
+            }
+
+            Icon(
+                imageVector = item.icon,
+                contentDescription = item.title,
+                tint = contentColor,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+
         Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = item.title,

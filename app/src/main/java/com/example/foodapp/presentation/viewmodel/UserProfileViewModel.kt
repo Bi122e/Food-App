@@ -67,7 +67,12 @@ class UserProfileViewModel @Inject constructor(
                     }
 
                     else -> {
-                        _uiState.update { it.copy(isLoading = false, errorMessage = mapOf("ApiResponse" to "UNKNOW")) }
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = mapOf("ApiResponse" to "UNKNOW")
+                            )
+                        }
 
                     }
                 }
@@ -84,7 +89,9 @@ class UserProfileViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     errorMessage = mapOf(
-                        "phone" to "Số điện thoại phải lớn hơn 10 và nhỏ hơn 11"))
+                        "phone" to "Số điện thoại phải lớn hơn 10 và nhỏ hơn 11"
+                    )
+                )
             }
             Log.d("UserProfileViewModel", "ApiResponse Error valid: ${_uiState.value}")
             return
@@ -96,10 +103,21 @@ class UserProfileViewModel @Inject constructor(
             _uiState.update {
                 it.copy(isLoading = true)
             }
+            if (!userProfile.isComplete()) {
+                _uiState.update {
+                    it.copy(
+                        profileCompleteness = ProfileCompleteness.INCOMPLETE,
+                        errorMessage = mapOf("profile" to "Vui lòng điền đầy đủ thông tin profile"),
+                        isLoading = false,
+                    )
+                }
+                return@launch
+            }
             val response = userRepository.updateUser(userProfile)
+
             when (response) {
                 is ApiResponse.Success -> {
-                     _uiState.update {
+                    _uiState.update {
                         it.copy(
                             isLoading = false,
                             isEditMode = false,
@@ -115,14 +133,27 @@ class UserProfileViewModel @Inject constructor(
                             )
                     }
                 }
+
                 is ApiResponse.Error -> {
                     Log.d("UserProfileViewModel", "ApiResponse Error: ${_uiState.value}")
-                _uiState.update { it.copy(isLoading = false, errorMessage = mapOf("ApiResponse" to response.message))
-                 }}
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = mapOf("ApiResponse" to response.message)
+                        )
+                    }
+                }
+
                 is ApiResponse.Loading -> {
                 }
+
                 is ApiResponse.Empty -> {
-                    _uiState.update { it.copy(isLoading = false, errorMessage = mapOf("ApiResponse" to "Empty")) }
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = mapOf("ApiResponse" to "Empty")
+                        )
+                    }
 
                 }
             }
@@ -152,14 +183,16 @@ class UserProfileViewModel @Inject constructor(
             val editedProfile = when (field) {
                 "name" -> current.editProfile.copy(name = value)
                 "address" -> {
-                     current.editProfile.copy(address = value)
+                    current.editProfile.copy(address = value)
                 }
+
                 "phone" -> {
                     val isValid = phoneRegex.matches(value) //dùng regex đã khởi tạo
                     if (isValid) current.editProfile.copy(phone = value)
                     else current.editProfile
 
                 }
+
                 else -> current.editProfile
             }
 
@@ -177,16 +210,15 @@ class UserProfileViewModel @Inject constructor(
 
     //toggle click update
     fun onCheckedChange() {
-         _uiState.update {
+        _uiState.update {
             it.copy(isClickedUpdate = !it.isClickedUpdate)
         }
     }
 
     //enable can edit
     fun setEnable(value: Boolean = false) {
-         _uiState.update { it.copy(isEnable = value) }
-     }
-
+        _uiState.update { it.copy(isEnable = value) }
+    }
 
 
 }

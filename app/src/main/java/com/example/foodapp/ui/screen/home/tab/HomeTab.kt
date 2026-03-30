@@ -181,7 +181,7 @@ fun HomeTabPreview() {
 
         Scaffold(
             bottomBar = {
-                HomeBottomBar(selectedIndex = 0, onItemSelected = {})
+                HomeBottomBar(selectedIndex = 0, onItemSelected = {}, false)
             }
         ) { padding ->
 
