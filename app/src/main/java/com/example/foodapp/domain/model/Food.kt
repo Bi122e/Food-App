@@ -64,6 +64,7 @@ data class Food(
 //        return price + variations.sumOf { it.options.maxOfOrNull { option -> option.price } ?: 0 }
 //    }
 
+
     //calculate price with variation
     fun getPriceWithVariation(selectedVariation: Map<String, List<String>>): Int {
         if (!valid || !available) return 0
@@ -109,4 +110,24 @@ data class Food(
 
     //popular by rating
     fun checkHighlyRated(): Boolean = calculateAverageRating() > 3 && reviewCount > 3
+}
+
+// File: domain/model/Food.kt hoặc FoodExt.kt
+
+fun Food.toCartItem(
+    quantity: Int,
+    selectedVariations: Map<String, List<VariationOption>>,
+    specialInstructions: String,
+): CartItem {
+    return CartItem(
+//        cartItemId = "${this.foodId}_${selectedVariations.hashCode()}",
+        foodId = this.foodId,
+        basePrice = this.price,
+        name = this.name,
+        quantity = quantity,
+        imgUrls = this.imgUrl,
+        restaurantId = this.restaurantId,
+        notes = specialInstructions,
+        variation = selectedVariations
+    )
 }

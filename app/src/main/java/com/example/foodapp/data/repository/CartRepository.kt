@@ -3,13 +3,14 @@ package com.example.foodapp.data.repository
 import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.domain.model.Cart
 import com.example.foodapp.domain.model.CartItem
+import com.example.foodapp.domain.model.Restaurant
 import kotlinx.coroutines.flow.Flow
 
 interface CartRepository {
 
     fun getCart(userId: String): Flow<ApiResponse<Cart>>
 
-    suspend fun addItem(userId: String, item: CartItem): ApiResponse<Unit>
+    suspend fun addItem(userId: String, item: CartItem, restaurant: Restaurant): ApiResponse<Unit>
 
     suspend fun updateItemQuantity(userId: String, foodId: String, quantity: Int): ApiResponse<Unit>
 

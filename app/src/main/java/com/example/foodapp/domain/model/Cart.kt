@@ -1,5 +1,8 @@
 package com.example.foodapp.domain.model
 
+import com.google.firebase.firestore.ServerTimestamp
+import java.util.Date
+
 data class Cart(
     val userId: String = "",
     val cartItems: List<CartItem> = emptyList(),
@@ -8,11 +11,15 @@ data class Cart(
     val deliveryFee: Int = 0,
     val restaurantName: String = "",
     val restaurantId: String = "",
+    @ServerTimestamp
+    val createdAt: Date? = null,
+    @ServerTimestamp
+    val updatedAt: Date? = null,
 ) {
-    fun calculateSubTotalPrice(): Int {
-        return cartItems.sumOf {it.price * it.quantity}
+    fun calculateSubTotalPrice(): Double {
+        return cartItems.sumOf {it.price * it.quantity}.toDouble()
     }
-    fun calculateTotalPrice(): Int {
+    fun calculateTotalPrice(): Double {
         return calculateSubTotalPrice() + deliveryFee
     }
     fun getTotalItemCount(): Int {
@@ -57,4 +64,6 @@ data class Cart(
     fun canCheckout(): Boolean {
         return cartItems.isNotEmpty() && calculateTotalPrice() > 0 && isValid()
     }
+
+
 }

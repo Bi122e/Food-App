@@ -17,6 +17,8 @@ import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.Restaurant
 import com.example.foodapp.domain.model.Review
 import com.example.foodapp.domain.model.Variation
+import com.example.foodapp.domain.model.VariationOption
+import com.example.foodapp.domain.model.toCartItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -35,11 +37,9 @@ class FoodDetailViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    private val _foodDetailState = MutableStateFlow<UiState<Food>>(UiState.Loading)
-    val foodDetailState: StateFlow<UiState<Food>> = _foodDetailState.asStateFlow()
-
-    private val _foodState = MutableStateFlow<UiState<Food>>(UiState.Idle)
+    private val _foodState = MutableStateFlow<UiState<Food>>(UiState.Loading)
     val foodState = _foodState.asStateFlow()
+
     private val _foodsState = MutableStateFlow<UiState<List<Food>>>(UiState.Idle)
     val foodsState = _foodsState.asStateFlow()
 
@@ -49,14 +49,17 @@ class FoodDetailViewModel @Inject constructor(
     private val _quantity = MutableStateFlow(1)
     val quantity: StateFlow<Int> = _quantity.asStateFlow()
 
-    private val _selectedVariations = MutableStateFlow<Map<String, Set<String>>>(emptyMap())
-    val selectedVariations: StateFlow<Map<String, Set<String>>> = _selectedVariations.asStateFlow()
+    //    private val _selectedVariations = MutableStateFlow<Map<String, Set<String>>>(emptyMap())
+//    val selectedVariations: StateFlow<Map<String, Set<String>>> = _selectedVariations.asStateFlow()
+    private val _selectedVariations =
+        MutableStateFlow<Map<String, List<VariationOption>>>(emptyMap())
+    val selectedVariations = _selectedVariations.asStateFlow()
 
     private val _specialInstructions = MutableStateFlow("")
     val specialInstruction: StateFlow<String> = _specialInstructions.asStateFlow()
 
-    private val _addToCartState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
-    val addToCartState: StateFlow<UiState<Unit>> = _addToCartState.asStateFlow()
+    private val _addToCartState = MutableStateFlow<UiState<CartItem>>(UiState.Idle)
+    val addToCartState: StateFlow<UiState<CartItem>> = _addToCartState.asStateFlow()
 
     private val _favorite = MutableStateFlow<Favorite?>(null)
     val favorite: StateFlow<Favorite?> = _favorite.asStateFlow()
@@ -66,7 +69,6 @@ class FoodDetailViewModel @Inject constructor(
 
     private val _addReviewState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
     val addReviewState = _addReviewState.asStateFlow()
-
 
     //cach nayf Không auto cancel request cũ
     //Nếu foodId đổi liên tục → có thể call thừa API
@@ -103,18 +105,19 @@ class FoodDetailViewModel @Inject constructor(
 //            val response = restaurantRepository.getRestaurantById(restaurantId)
 //                .first()
 //                .toUiState()
-            restaurantRepository.getRestaurantById(restaurantId).collectLatest {  response ->
+            restaurantRepository.getRestaurantById(restaurantId).collectLatest { response ->
                 _restaurantState.value = response.toUiState()
                 Log.d("FoodDetailViewModel", "restaurant = ${restaurantState.value}")
             }
         }
     }
+
     fun loadFoodByRestaurant(restaurantId: String) {
         viewModelScope.launch {
             foodRepository.getFoodsByRestaurant(restaurantId).collectLatest { response ->
                 _foodsState.value = response.toUiState()
 
-                Log.d("FoodDetailViewModel", "data food by restaurant ${foodsState.value}")
+                Log.d("add cart", "data food by restaurant ${foodsState.value}")
 
             }
         }
@@ -123,9 +126,8 @@ class FoodDetailViewModel @Inject constructor(
 
     fun loadFoodById(foodId: String) {
         viewModelScope.launch {
-            val response = foodRepository.getFoodById(foodId).toUiState()
-            _foodDetailState.value = response
-            Log.d("FoodDetailViewModel","FOOD DETAIL: ${foodDetailState.value}")
+            _foodState.value = foodRepository.getFoodById(foodId).toUiState()
+            Log.d("FoodDetailViewModel", "FOOD DETAIL: ${foodState.value}")
         }
     }
 
@@ -174,20 +176,26 @@ class FoodDetailViewModel @Inject constructor(
 
     fun selectVariation(optionId: String, variation: Variation) {
         val current = _selectedVariations.value.toMutableMap()
-        val selectOption = current[variation.id]?.toMutableSet() ?: mutableSetOf()
+        val currentOptions = current[variation.id]?.toMutableList() ?: mutableListOf()
+        val option = variation.getOptionById(optionId) ?: return
+
         when (variation.type) {
             Variation.VariationType.SINGLE -> {
-                selectOption.clear()
-                selectOption.add(optionId)
+                currentOptions.clear()
+                currentOptions.add(option)
             }
 
             Variation.VariationType.MULTI -> {
-                if (!selectOption.add(optionId)) {
-                    selectOption.remove(optionId)
+                val existing = currentOptions.find { it.id == optionId }
+                if (existing != null) {
+                    currentOptions.remove(existing)
+                } else {
+                    currentOptions.add(option)
                 }
             }
+
         }
-        current[variation.id] = selectOption
+        current[variation.id] = currentOptions
         _selectedVariations.value = current
     }
 
@@ -219,19 +227,13 @@ class FoodDetailViewModel @Inject constructor(
 
     //chua toi uu
     private fun calculateVariationPrice(
-        selectVariation: Map<String, Set<String>>,
+        selected: Map<String, List<VariationOption>>,
         food: Food
     ): Int {
-        var count = 0
-        food.variations.forEach { item ->
-            val selectOption = selectVariation[item.id] ?: emptyList()
-            item.options.forEach {
-                if (selectOption.contains(it.id)) {
-                    count += it.price
-                }
-            }
+        return food.variations.sumOf { variation ->
+            val selectedOptions = selected[variation.id].orEmpty()
+            selectedOptions.sumOf { it.price }
         }
-        return count
     }
 
     fun resetSelection() {
@@ -241,7 +243,7 @@ class FoodDetailViewModel @Inject constructor(
     }
 
 
-    fun toggleFavorite( foodId: String) {
+    fun toggleFavorite(foodId: String) {
         viewModelScope.launch {
             val userId = authRepository.currentUserId() ?: return@launch
             val currentState = _favorite.value
@@ -312,6 +314,7 @@ class FoodDetailViewModel @Inject constructor(
         }
     }
 
+
     //cách này tối ưu hơn cho addReview để ko gọi 3 lần firestore
 //    fun addReview(foodId: String, review: Review) {
 //        viewModelScope.launch {
@@ -364,30 +367,27 @@ class FoodDetailViewModel @Inject constructor(
         }
     }
 
-    fun addToCart(userId: String) {
+    fun addToCart() {
         viewModelScope.launch {
-            val food = _foodState.value.getDataOrNull()
-                ?: return@launch
-//            emitError("Không tìm thấy món ăn")
+            val userId = authRepository.currentUserId() ?: return@launch
+            val food = _foodState.value.getDataOrNull() ?: return@launch
+            val restaurantState = _restaurantState.value
+            val restaurant = restaurantState.getDataOrNull() ?: return@launch
+
             if (!validateVariation(food)) {
+                emitError("Vui lòng chọn đầy đủ tùy chọn")
                 return@launch
             }
-
             _addToCartState.value = UiState.Loading
-
-            val cartItem = CartItem(
-                foodId = food.foodId,
-                name = food.name,
-                price = calculateTotalPrice(),
-                quantity = _quantity.value,
-                imgUrls = food.imgUrl,
-                restaurantId = food.restaurantId,
-                notes = _specialInstructions.value,
-                variation = _selectedVariations.value
+            val cartItem = food.toCartItem(
+                _quantity.value,
+                specialInstructions = _specialInstructions.value,
+                selectedVariations = _selectedVariations.value
             )
 
-            when (val result = cartRepository.addItem(userId, cartItem)) {
-                is ApiResponse.Success -> _addToCartState.value = UiState.Success(Unit)
+            when (val result =
+                cartRepository.addItem(item = cartItem, userId = userId, restaurant = restaurant)) {
+                is ApiResponse.Success -> _addToCartState.value = UiState.Success(cartItem)
                 is ApiResponse.Error -> emitError(result.message)
                 else -> Unit
             }
@@ -400,7 +400,10 @@ class FoodDetailViewModel @Inject constructor(
 
     private fun validateVariation(food: Food): Boolean {
         return food.variations.all { variation ->
-            val selected = _selectedVariations.value[variation.id] ?: return false
+            val selected = _selectedVariations.value[variation.id]
+            if (!variation.required && (selected == null || selected.isEmpty())) return@all true
+            selected ?: return false
+
             when (variation.type) {
                 Variation.VariationType.SINGLE -> selected.size == 1
                 Variation.VariationType.MULTI -> selected.isNotEmpty()
@@ -413,5 +416,8 @@ class FoodDetailViewModel @Inject constructor(
         _addToCartState.value = UiState.Idle
     }
 
+    fun selectedFood(food: Food) {
+        _foodState.value = UiState.Success(food)
+    }
 }
 

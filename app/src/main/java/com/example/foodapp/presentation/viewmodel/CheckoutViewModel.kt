@@ -146,7 +146,7 @@ class CheckoutViewModel @Inject constructor(
                 paymentMethod = selectedPaymentMethod.value,
                 paymentStatus = if (selectedPaymentMethod.value.isOnlinePayment)
                     PaymentStatus.PENDING else PaymentStatus.UNPAID,
-                items = cartData.cartItems.map { item ->
+                    items = cartData.cartItems.map { item ->
                     OrderItem(
                         foodId = item.foodId,
                         foodName = item.name,
