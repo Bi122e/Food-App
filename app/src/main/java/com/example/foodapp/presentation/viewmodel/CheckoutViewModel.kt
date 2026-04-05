@@ -8,7 +8,6 @@ import com.example.foodapp.data.repository.CartRepository
 import com.example.foodapp.data.repository.OrderRepository
 import com.example.foodapp.data.repository.ProfileRepository
 import com.example.foodapp.data.repository.UserRepository
-import com.example.foodapp.domain.mapper.toVariations
 import com.example.foodapp.domain.model.Cart
 import com.example.foodapp.domain.model.Order
 import com.example.foodapp.domain.model.OrderItem
@@ -102,8 +101,7 @@ class CheckoutViewModel @Inject constructor(
         _selectedPaymentMethod.value = method
     }
 
-    // =========================
-    // VALIDATE
+     // VALIDATE
 
     private fun validate(): String? {
         val state = _checkoutState.value
@@ -113,8 +111,7 @@ class CheckoutViewModel @Inject constructor(
         return null
     }
 
-    // =========================
-    // PLACE ORDER
+     // PLACE ORDER
 
     fun placeOrder(userId: String) {
         viewModelScope.launch {
@@ -137,8 +134,8 @@ class CheckoutViewModel @Inject constructor(
             val order = Order(
                 restaurantId = cartData.restaurantId,
                 restaurantName = cartData.restaurantName,
-                subTotal = cartData.calculateSubTotalPrice(),
-                total = cartData.calculateTotalPrice() + cartData.deliveryFee,
+                subTotal = cartData.calculateSubTotalPrice().toInt(),
+                total = (cartData.calculateTotalPrice() + cartData.deliveryFee).toInt(),
                 address = _checkoutState.value.address,
                 phone = _checkoutState.value.phoneNumber,
                 userId = cartData.userId,
@@ -150,11 +147,12 @@ class CheckoutViewModel @Inject constructor(
                     OrderItem(
                         foodId = item.foodId,
                         foodName = item.name,
-                        variations = item.variation.toVariations(),
-                        selectedOptions = item.variation.mapValues { it.value.toList() },
+                        //sua 2 cai nay
+//                        variations = item.variation.toVariations(),
+//                        selectedOptions = item.variation.mapValues { it.value.toList() },
                         imgUrl = item.imgUrls,
                         notes = item.notes,
-                        price = item.price,
+                        price = item.basePrice,
                         quantity = item.quantity
                     )
                 }

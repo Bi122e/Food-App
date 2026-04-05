@@ -27,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -34,13 +35,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.foodapp.R
+import com.example.foodapp.core.UiState
 import com.example.foodapp.core.utils.toVND
+import com.example.foodapp.domain.model.Cart
 import com.example.foodapp.domain.model.Food
+import com.example.foodapp.presentation.state.ProfileUiState
 import com.example.foodapp.ui.theme.Yellow0
 
 @Composable
-fun FoodItemCard(item: Food, onClickFavorite: (foodId: String) -> Unit, isFavorite: Boolean) {
+fun FoodItemCard(
+    item: Food,
+//    selectedFood: (food: Food) -> Unit,
+    onClickFavorite: (String) -> Unit,
+    isFavorite: Boolean,
+    profileState: ProfileUiState,
+    cartState: UiState<Cart>,
+    onClickAddCart: (Food) -> Unit
+) {
     val isPreview = LocalInspectionMode.current
+    val context = LocalContext.current
     Box(
         modifier = Modifier
             .shadow(1.dp, RoundedCornerShape(24.dp), clip = true)
@@ -73,7 +86,10 @@ fun FoodItemCard(item: Food, onClickFavorite: (foodId: String) -> Unit, isFavori
                     modifier = Modifier
                         .padding(10.dp).align(Alignment.TopEnd).size(25.dp)
                         .background(Color(0xFFf2eded), CircleShape).padding(3.dp)
-                        .clickable { onClickFavorite(item.foodId)}
+                        .clickable {
+                            onClickFavorite(item.foodId)
+
+                        }
                 )
             }
 
@@ -123,6 +139,8 @@ fun FoodItemCard(item: Food, onClickFavorite: (foodId: String) -> Unit, isFavori
                             .background(Color.Black, RoundedCornerShape(30.dp))
                             .padding(vertical = 4.dp, horizontal = 8.dp)
                     )
+
+                    //add cart icon
                     Icon(
                         imageVector = Icons.Default.Add,
                         tint = Color.White,
@@ -130,6 +148,9 @@ fun FoodItemCard(item: Food, onClickFavorite: (foodId: String) -> Unit, isFavori
                         modifier = Modifier
                             .size(24.dp)
                             .background(Color(0xFF34c2c3), RoundedCornerShape(8.dp))
+                            .clickable{
+                                onClickAddCart(item)
+                             }
                     )
                 }
             }

@@ -17,7 +17,7 @@ data class Cart(
     val updatedAt: Date? = null,
 ) {
     fun calculateSubTotalPrice(): Double {
-        return cartItems.sumOf {it.price * it.quantity}.toDouble()
+        return cartItems.sumOf {it.getTotalPrice()}.toDouble()
     }
     fun calculateTotalPrice(): Double {
         return calculateSubTotalPrice() + deliveryFee

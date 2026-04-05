@@ -3,7 +3,6 @@ package com.example.foodapp.ui.screen.home.tab
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -15,7 +14,6 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,15 +25,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.core.UiState
 import com.example.foodapp.core.utils.UiStateHandler
+import com.example.foodapp.domain.model.Cart
 import com.example.foodapp.domain.model.Favorite
 import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.Restaurant
+import com.example.foodapp.presentation.state.ProfileUiState
 import com.example.foodapp.ui.preview.PreviewDataFood
 import com.example.foodapp.ui.preview.PreviewDataRestaurant
-import com.example.foodapp.ui.preview.PreviewDataRestaurant.restaurantState
 import com.example.foodapp.ui.screen.home.section.CartBottomBar
 import com.example.foodapp.ui.screen.home.section.FoodItemCard
 import com.example.foodapp.ui.screen.home.section.RestaurantHeaderSection
@@ -47,9 +45,14 @@ fun RestaurantDetailTab(
     restaurantState: UiState<Restaurant?>,
     foodsState: UiState<List<Food>?>,
     foodId: String? = null,
+    cartState: UiState<Cart>,
+    overallCartState: UiState<Cart>,
+    profileState: ProfileUiState,
     favoriteState: UiState<Map<String, Favorite>>,
-    onClickFavorite: (foodId: String) -> Unit,
+    onClickFavorite: (String) -> Unit,
     onClickBackHome: () -> Unit,
+    onClickAddCart: (Food) -> Unit,
+    onClickViewCart: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val isPreview = LocalInspectionMode.current
@@ -57,8 +60,18 @@ fun RestaurantDetailTab(
 
 
     Scaffold(
-        modifier = Modifier.fillMaxSize().background(Pink0),
-        bottomBar = { CartBottomBar() }
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Pink0),
+        bottomBar = {
+            val cart = (overallCartState as? UiState.Success)?.data
+            CartBottomBar(
+                itemCount = cart?.getTotalItemCount() ?: 0,
+                totalPrice = cart?.calculateSubTotalPrice() ?: 0.0,
+                cartState = cartState,
+                onClick = onClickViewCart
+            )
+        }
     ) { _ ->
 
         Column(
@@ -115,7 +128,11 @@ fun RestaurantDetailTab(
                                 FoodItemCard(
                                     item = item,
                                     onClickFavorite = onClickFavorite,
-                                    isFavorite = favorite.containsKey(item.foodId) )
+                                    isFavorite = favorite.containsKey(item.foodId),
+                                    onClickAddCart = onClickAddCart,
+                                    profileState = profileState,
+                                    cartState = cartState,
+                                    )
                             }
                         }
                     }
@@ -138,6 +155,11 @@ fun RestaurantTabPreview() {
         onClickFavorite = {},
         favoriteState = UiState.Loading,
         onClickBackHome = {},
+        profileState = ProfileUiState(),
+        onClickAddCart = {},
+        cartState = UiState.Loading,
+        overallCartState = UiState.Loading,
+        onClickViewCart = {}
     )
 }
 

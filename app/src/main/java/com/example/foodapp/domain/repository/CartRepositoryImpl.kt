@@ -1,11 +1,11 @@
 package com.example.foodapp.domain.repository
 
+import android.util.Log
 import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.core.Constance
 import com.example.foodapp.data.repository.CartRepository
 import com.example.foodapp.domain.model.Cart
 import com.example.foodapp.domain.model.CartItem
-import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.Restaurant
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
@@ -17,6 +17,7 @@ import javax.inject.Inject
 class CartRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore
 ) : CartRepository {
+
 
     private val cartRef = firestore.collection(Constance.COLLECTION_CARTS)
 
@@ -41,53 +42,95 @@ class CartRepositoryImpl @Inject constructor(
     override suspend fun addItem(
         userId: String,
         item: CartItem,
-        food: Food,
         restaurant: Restaurant
-    ): ApiResponse<Unit> {
+    ): ApiResponse<Cart> {
         return try {
-            food.toCart
             val doc = cartRef.document(userId).get().await()
             val currentCart = doc.toObject(Cart::class.java)
-            val updateCart =
+            val cart =
                 if (currentCart == null) {
-                    //chua co cart, tao moi
-                    val rawCart = Cart(
+                    Cart(
                         userId = userId,
                         cartItems = listOf(item),
-                        restaurantId = item.restaurantId,
-                        restaurantName = restaurant.restaurantName,
                         deliveryFee = restaurant.deliveryFee,
-                    )
-
-                    //copy lai obj de dung ham calculate
-                    rawCart.copy(
-                        totalPrice = rawCart.calculateTotalPrice(),
-                        price = rawCart.calculateSubTotalPrice(),
+                        restaurantName = restaurant.restaurantName,
+                        restaurantId = restaurant.restaurantId,
                         createdAt = null,
-                        updatedAt = null
+                        updatedAt = null,
                     )
-
                 } else {
-                    val newCart = currentCart.copy(
-                        cartItems = currentCart.cartItems + item
-                    )
-
-                    //copy lai obj de su dung ham calculate
-                    newCart.copy(
+                    currentCart.copy(
                         cartItems = currentCart.cartItems + item,
-                        price = newCart.calculateSubTotalPrice(),
-                        totalPrice = newCart.calculateTotalPrice(),
                         updatedAt = null
                     )
                 }
-            cartRef
-                .document(userId)
-                .update("cartItems", updateCart)
-                .await()
-            ApiResponse.Success(Unit)
+//            currentCart?.copy(          ---------> viet cach nay hay hon
+//                cartItems = currentCart.cartItems + item,
+//                updatedAt = null
+//            )
+//                ?: Cart(
+//                    userId = userId,
+//                    cartItems = listOf(item),
+//                    deliveryFee = restaurant.deliveryFee,
+//                    restaurantName = restaurant.restaurantName,
+//                    restaurantId = restaurant.restaurantId,
+//                    createdAt = null,
+//                    updatedAt = null,
+//                )
+            //lưu price như vậy để khi rơi vào trường hợp else nó sẽ ko price bị freeze giá trị của obj trước, do lấy data và gọi chính cal của obj cũ,
+            // nên dùng cách này luôn update mới nhất, order mới nên set price cứng, cart ko cần do luôn thay đổi
+            val updateCart = cart.copy(
+                totalPrice = cart.calculateTotalPrice(),
+                price = cart.calculateSubTotalPrice()
+            )
+            ApiResponse.Success(updateCart)
         } catch (e: Exception) {
+            Log.d("ADDCART", "FAILED")
             ApiResponse.Error(e.message ?: "Failed to add item")
         }
+
+//    return try {
+//        val doc = cartRef.document(userId).get().await()
+//        val currentCart = doc.toObject(Cart::class.java)
+//        val updateCart =
+//            if (currentCart == null) {
+//                Log.d("ADDCART", "CURRENT == NULL")
+//                //chua co cart, tao moi
+//                val rawCart = Cart(
+//                    userId = userId,
+//                    cartItems = listOf(item),
+//                    restaurantId = item.restaurantId,
+//                    restaurantName = restaurant.restaurantName,
+//                    deliveryFee = restaurant.deliveryFee,
+//                )
+//
+//                //copy lai obj de dung ham calculate
+//                rawCart.copy(
+//                    totalPrice = rawCart.calculateTotalPrice(),
+//                    price = rawCart.calculateSubTotalPrice(),
+//                    createdAt = null,
+//                    updatedAt = null
+//                )
+//
+//            } else {
+//                Log.d("ADDCART", "ELSE")
+//                val newCart = currentCart.copy(
+//                    cartItems = currentCart.cartItems + item
+//                )
+//
+//                //copy lai obj de su dung ham calculate
+//                newCart.copy(
+//                    cartItems = currentCart.cartItems + item,
+//                    price = newCart.calculateSubTotalPrice(),
+//                    totalPrice = newCart.calculateTotalPrice(),
+//                    updatedAt = null
+//                )
+//            }
+//        cartRef
+//            .document(userId)
+//            .set(updateCart, SetOptions.merge())
+//            .await()
+//        ApiResponse.Success(Unit)
 
         //cach khac, co kt logic khi user click vao item da ton tai, thi tang quantity do len
         /*
@@ -97,7 +140,7 @@ class CartRepositoryImpl @Inject constructor(
         val currentCart = doc.toObject(Cart::class.java)
 
         val updatedCart = if (currentCart == null) {
-            // 👉 chưa có cart → tạo mới
+            // chưa có cart → tạo mới
             Cart(
                 userId = userId,
                 cartItems = listOf(item),

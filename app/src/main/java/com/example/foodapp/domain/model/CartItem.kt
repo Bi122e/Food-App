@@ -20,8 +20,8 @@ data class CartItem(
 ) {
 
     //flattent la hàm làm phẳng vd: map.value -> [ Variation("M"),Variation("L"),Variation("cheese")]
-    val totalPrice: Int
-        get() = (basePrice + variation.values.flatten().sumOf { it.price }) * quantity
+//    val totalPrice: Int
+//        get() = (basePrice + variation.values.flatten().sumOf { it.price }) * quantity
     fun isValid(): Boolean {
         return foodId.isNotEmpty() &&
                 name.isNotEmpty() &&
@@ -30,11 +30,11 @@ data class CartItem(
     }
 
 
-    fun getTotalPrice(): Int = basePrice * quantity
+//    fun getTotalPrice(): Int = basePrice * quantity
 
-    fun getFormattedPrice(): String {
-        return "$basePrice đ"
-    }
+//    fun getFormattedPrice(): String {
+//        return "$basePrice đ"
+//    }
 
     //    fun getUniqueKey(): String {
 //        val variationKey = variation.joinToString("|") { variation ->
@@ -57,6 +57,22 @@ data class CartItem(
         return copy(quantity = quantity - 1)
     }
 
+    fun getTotalPrice(): Int {
+       val variationPrice =  variation.values.flatten().sumOf { it.price }
+        return (variationPrice + basePrice) * quantity
+    }
+
+    //co the nen dung property de clean code hon
+//    val totalPrice: Int
+//        get() {
+//            val variationPrice = variation.values.flatten().sumOf { it.price }
+//            return (basePrice + variationPrice) * quantity
+//        }
+    //variation = {"size" to list("x", "y","z")
+    //list< variation(name, price, variationOption(name, price)),
+//          variation(name, price, variationOption(name, price))>.flatten()
+    // variation
+    //câu hoỉ đặt ra flatten() có dạng như thế nào
     //    fun Food.toCartItem(): CartItem = CartItem(
 //        foodId = foodId,
 //        name = name,

@@ -31,7 +31,7 @@ data class CheckoutState(
     val error: String? = null
     ) {
 
-    fun getSubTotal(): Int = cart?.calculateSubTotalPrice()?: 0
+//    fun getSubTotal(): Int = cart?.calculateSubTotalPrice()?: 0
 
     fun getDeliveryFee(): Int = cart?.deliveryFee ?: 0
 

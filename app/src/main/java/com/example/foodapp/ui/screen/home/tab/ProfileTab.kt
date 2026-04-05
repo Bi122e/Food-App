@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -42,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.example.foodapp.domain.model.ProfileCompleteness
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -54,10 +56,18 @@ import com.example.foodapp.ui.theme.Gray65
 
 @Composable
 fun ProfileTab(
-    onClickBack: () -> Unit
+    onClickBack: () -> Unit,
+    onProfileCompleted: () -> Unit = {}
 ) {
     val userProfile: UserProfileViewModel = hiltViewModel()
     val profileState by userProfile.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(profileState.successMessage) {
+        if (profileState.successMessage != null && 
+            profileState.profileCompleteness == ProfileCompleteness.COMPLETE) {
+            onProfileCompleted()
+        }
+    }
     var clickedUpdate by remember { mutableStateOf(false) }
 
     val context = LocalContext.current

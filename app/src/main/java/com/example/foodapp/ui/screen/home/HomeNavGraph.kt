@@ -146,6 +146,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -157,11 +158,17 @@ import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.example.foodapp.core.UiState
 import com.example.foodapp.core.UserRoutes
+import com.example.foodapp.core.utils.showToast
+import com.example.foodapp.domain.model.ProfileCompleteness
 import com.example.foodapp.presentation.viewmodel.AuthViewModel
+import com.example.foodapp.presentation.viewmodel.CartViewModel
+import com.example.foodapp.presentation.viewmodel.FoodAction
 import com.example.foodapp.presentation.viewmodel.FoodDetailViewModel
 import com.example.foodapp.presentation.viewmodel.HomeViewModel
 import com.example.foodapp.presentation.viewmodel.PromotionViewModel
 import com.example.foodapp.presentation.viewmodel.RestaurantViewModel
+import com.example.foodapp.presentation.viewmodel.SharedViewModel
+import com.example.foodapp.presentation.viewmodel.UserProfileViewModel
 import com.example.foodapp.ui.screen.home.tab.ChatTab
 import com.example.foodapp.ui.screen.home.tab.HomeTab
 import com.example.foodapp.ui.screen.home.tab.ProfileTab
@@ -173,6 +180,8 @@ fun HomeNavGraph(
     navController: NavHostController,
     parentNavController: NavHostController
 ) {
+
+    val sharedViewModel: SharedViewModel = hiltViewModel()
 
     NavHost(
         navController = navController,
@@ -233,6 +242,7 @@ fun HomeNavGraph(
             ) { backStackEntry ->
 
                 val restaurantId = backStackEntry.arguments?.getString("restaurantId")
+                //hệ thống không đảm bảo có dữ liệu nên null
                 val foodId = backStackEntry.arguments?.getString("foodId")
 
                 Log.d(
@@ -244,6 +254,8 @@ fun HomeNavGraph(
                 val homeViewModel: HomeViewModel = hiltViewModel()
                 val authViewModel: AuthViewModel = hiltViewModel()
                 val restaurantViewMode: RestaurantViewModel = hiltViewModel()
+                val profileViewModel: UserProfileViewModel = hiltViewModel()
+                val cartViewModel: CartViewModel = hiltViewModel()
 
                 LaunchedEffect(Unit) {
                     if (foodId != null && restaurantId != null) {
@@ -260,14 +272,35 @@ fun HomeNavGraph(
                         Log.e("HomeNavGraph", "foodId is null, cannot load data")
                     }
                 }
+                val context = LocalContext.current
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
                 Log.d("NavigationLog", "Current route: $currentRoute")
 
+                // Lắng nghe các event từ FoodDetailViewModel (Add to cart trực tiếp hoặc Điều hướng)
+                LaunchedEffect(Unit) {
+                    foodViewModel.event.collect { action ->
+                        when (action) {
+                            is FoodAction.AddToCart -> {
+                                cartViewModel.addToCart(action.food, action.restaurant )
+                                Log.d("ADDCART", "LAUNCHED RUN ADD TO CART")
+                                showToast(context, "add cart")
+                            }
+                            is FoodAction.OpenDetail -> {
+                                showToast(context, "open nav")
+                            }
+                            is FoodAction.ShowMessage -> {}
+                        }
+                    }
+                }
                 val restaurantState by foodViewModel.restaurantState.collectAsStateWithLifecycle()
                 val foodsState by foodViewModel.foodsState.collectAsStateWithLifecycle()
                 val favoriteState by restaurantViewMode.favorites.collectAsStateWithLifecycle()
                 val userState by authViewModel.authStatus.collectAsStateWithLifecycle()
+                val cartState by cartViewModel.cartState.collectAsStateWithLifecycle()
+                val profileState by profileViewModel.uiState.collectAsStateWithLifecycle()
+                val addToCartState by cartViewModel.addToCartState.collectAsStateWithLifecycle()
+                val overallCartState by cartViewModel.cartState.collectAsStateWithLifecycle()
 //                val foodState by homeViewModel.foodByRestaurant.collectAsStateWithLifecycle()
 
                 Log.d("HomeNavGraph", "Restaurant state: $restaurantState")
@@ -290,9 +323,32 @@ fun HomeNavGraph(
                 RestaurantDetailTab(
                     restaurantState = restaurantState,
                     foodId = foodId,
+                    cartState = cartState,
+                    overallCartState = overallCartState,
                     foodsState = foodsState,
                     favoriteState = favoriteState,
                     onClickFavorite = restaurantViewMode::toggleFavorite,
+                    profileState = profileState,
+                    onClickViewCart = {
+                        navController.navigate(UserRoutes.CART)
+                    },
+                    onClickAddCart = { food ->
+                        if (profileState.profileCompleteness == ProfileCompleteness.INCOMPLETE) {
+                            // User chưa hoàn thiện profile -> Lưu lại route để quay lại sau khi xong
+                            val currentRoute = "restaurant/${restaurantId}/${foodId}"
+                            sharedViewModel.savePendingRoute(currentRoute)
+//                            sharedViewModel.savePendingItem(food.variations)
+                            navController.navigate(UserRoutes.PROFILE) {
+                                popUpTo(currentRoute) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        } else {
+                            // Profile đã OK -> Báo ViewModel xử lý việc chọn món (check variation)
+//                            foodViewModel.selectedFood(food)
+                            foodViewModel.selectedFood(food)
+                        }
+                    },
+//                    selectedFood = {},
                     onClickBackHome = {
 //                        navController.navigate(UserRoutes.HOME) {
 //                            popUpTo(navController.graph.findStartDestination().id) {
@@ -333,7 +389,16 @@ fun HomeNavGraph(
                 route = UserRoutes.PROFILE_ROOT
             ) {
                 composable(UserRoutes.PROFILE) {
-                    ProfileTab(onClickBack = {navController.popBackStack()})
+                    ProfileTab(
+                        onClickBack = { navController.popBackStack() },
+                        onProfileCompleted = {
+                            sharedViewModel.consumePendingRoute()?.let { route ->
+                                navController.navigate(route) {
+                                    popUpTo(UserRoutes.PROFILE) { inclusive = true }
+                                }
+                            }
+                        }
+                    )
                 }
 
 

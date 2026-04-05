@@ -12,7 +12,7 @@ import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
 
 object FoodSeeder {
-    private const val SEED_VERSION = 8
+    private const val SEED_VERSION = 9
 
     suspend fun seedIfNeeded(context: Context) {
         val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
@@ -36,7 +36,8 @@ object FoodSeeder {
             createPizzaHaiSan(),
             createPizzaPepperoni1(),
             createPizzaPepperoni2(),
-            createPizzaXucXich()
+            createPizzaXucXich(),
+            createPizzaTest()
         )
 
         try {
@@ -195,5 +196,23 @@ object FoodSeeder {
         restaurantId = "pizza_hurt",
         categoryId = "pizza",
         variations = setDefaultOption()
+    )
+    private fun createPizzaTest() = Food(
+        name = "Pizza xúc xích",
+        nameLower = "pizza xúc xích",
+        foodId = "pizza_xuc_xich",
+        description = "Pizza xúc xích với lớp phô mai béo ngậy.",
+        price = 54000,
+        imgUrl = "",
+        available = true,
+        reviewCount = 3,
+        totalRating = 12.6,
+        averageRating = 4.2,
+        foodTime = 20,
+        ingredient = "Xúc xích heo, Xúc xích cay, Mozzarella",
+        calories = 266,
+        restaurantId = "pizza_hurt",
+        categoryId = "pizza",
+        variations = emptyList(),
     )
 }

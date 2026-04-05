@@ -10,7 +10,7 @@ interface CartRepository {
 
     fun getCart(userId: String): Flow<ApiResponse<Cart>>
 
-    suspend fun addItem(userId: String, item: CartItem, restaurant: Restaurant): ApiResponse<Unit>
+    suspend fun addItem( userId: String, item: CartItem, restaurant: Restaurant): ApiResponse<Cart>
 
     suspend fun updateItemQuantity(userId: String, foodId: String, quantity: Int): ApiResponse<Unit>
 

@@ -21,10 +21,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.foodapp.core.UiState
+import com.example.foodapp.domain.model.Cart
 import com.example.foodapp.ui.theme.Blue1
 
 @Composable
-fun CartBottomBar() {
+fun CartBottomBar(
+    itemCount: Int,
+    totalPrice: Double,
+    onClick: () -> Unit = {},
+    cartState: UiState<Cart>,
+) {
+
     Box(
         Modifier
             .fillMaxWidth()
@@ -36,6 +44,7 @@ fun CartBottomBar() {
             tonalElevation = 6.dp,
             color = Blue1,
             modifier = Modifier.widthIn(max = 350.dp).padding(horizontal = 16.dp),
+            onClick = onClick
         ) {
             Row(
                 modifier = Modifier
@@ -53,7 +62,7 @@ fun CartBottomBar() {
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = "2",
+                        text = "$itemCount",
                         fontSize = 12.sp,
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
@@ -64,7 +73,7 @@ fun CartBottomBar() {
                     )
                 }
                 Text(
-                    text = "19.300.000 đ",
+                    text = "${totalPrice.toInt()} đ",
                     fontSize = 16.sp,
                     color = Color.White,
                     fontWeight = FontWeight.ExtraBold
