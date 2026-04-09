@@ -31,6 +31,7 @@ import com.example.foodapp.domain.model.Cart
 import com.example.foodapp.domain.model.Favorite
 import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.Restaurant
+import com.example.foodapp.presentation.state.CartUiState
 import com.example.foodapp.presentation.state.ProfileUiState
 import com.example.foodapp.ui.preview.PreviewDataFood
 import com.example.foodapp.ui.preview.PreviewDataRestaurant
@@ -45,8 +46,7 @@ fun RestaurantDetailTab(
     restaurantState: UiState<Restaurant?>,
     foodsState: UiState<List<Food>?>,
     foodId: String? = null,
-    cartState: UiState<Cart>,
-    overallCartState: UiState<Cart>,
+    cartState: CartUiState,
     profileState: ProfileUiState,
     favoriteState: UiState<Map<String, Favorite>>,
     onClickFavorite: (String) -> Unit,
@@ -64,10 +64,8 @@ fun RestaurantDetailTab(
             .fillMaxSize()
             .background(Pink0),
         bottomBar = {
-            val cart = (overallCartState as? UiState.Success)?.data
+//            val cart = (overallCartState as? UiState.Success)?.data
             CartBottomBar(
-                itemCount = cart?.getTotalItemCount() ?: 0,
-                totalPrice = cart?.calculateSubTotalPrice() ?: 0.0,
                 cartState = cartState,
                 onClick = onClickViewCart
             )
@@ -79,7 +77,7 @@ fun RestaurantDetailTab(
                 .fillMaxSize()
 //                .padding(paddingValues)
         ) {
-            //hEADER (COVER + AVATAR + INFO) ---
+            //hEADER (COVER + AVATAR + INFO)
             UiStateHandler(uiState = restaurantState) { resData ->
                 resData?.let { data ->
                     RestaurantHeaderSection(restaurant = data, onClickBackHome = onClickBackHome)
@@ -157,8 +155,7 @@ fun RestaurantTabPreview() {
         onClickBackHome = {},
         profileState = ProfileUiState(),
         onClickAddCart = {},
-        cartState = UiState.Loading,
-        overallCartState = UiState.Loading,
+        cartState = CartUiState(),
         onClickViewCart = {}
     )
 }

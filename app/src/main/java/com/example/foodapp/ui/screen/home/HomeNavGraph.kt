@@ -277,17 +277,18 @@ fun HomeNavGraph(
                 val currentRoute = navBackStackEntry?.destination?.route
                 Log.d("NavigationLog", "Current route: $currentRoute")
 
-                // Lắng nghe các event từ FoodDetailViewModel (Add to cart trực tiếp hoặc Điều hướng)
+                // Lắng nghe các event từ FoodDetailViewModel (Add to cart trực tiếp hoặc Điều hướng), user click là effect tự động chạy
                 LaunchedEffect(Unit) {
                     foodViewModel.event.collect { action ->
                         when (action) {
                             is FoodAction.AddToCart -> {
-                                cartViewModel.addToCart(action.food, action.restaurant )
+                                cartViewModel.addSimpleItem(action.food, action.restaurant)
                                 Log.d("ADDCART", "LAUNCHED RUN ADD TO CART")
                                 showToast(context, "add cart")
                             }
                             is FoodAction.OpenDetail -> {
                                 showToast(context, "open nav")
+                                showToast(context, "this opened from")
                             }
                             is FoodAction.ShowMessage -> {}
                         }
@@ -297,10 +298,11 @@ fun HomeNavGraph(
                 val foodsState by foodViewModel.foodsState.collectAsStateWithLifecycle()
                 val favoriteState by restaurantViewMode.favorites.collectAsStateWithLifecycle()
                 val userState by authViewModel.authStatus.collectAsStateWithLifecycle()
-                val cartState by cartViewModel.cartState.collectAsStateWithLifecycle()
+//                val cartState by cartViewModel.cartState.collectAsStateWithLifecycle()
+                val cartState by cartViewModel.uiCartState.collectAsStateWithLifecycle()
                 val profileState by profileViewModel.uiState.collectAsStateWithLifecycle()
-                val addToCartState by cartViewModel.addToCartState.collectAsStateWithLifecycle()
-                val overallCartState by cartViewModel.cartState.collectAsStateWithLifecycle()
+//                val addToCartState by cartViewModel.addToCartState.collectAsStateWithLifecycle()
+//                val overallCartState by cartViewModel.cartState.collectAsStateWithLifecycle()
 //                val foodState by homeViewModel.foodByRestaurant.collectAsStateWithLifecycle()
 
                 Log.d("HomeNavGraph", "Restaurant state: $restaurantState")
@@ -324,7 +326,6 @@ fun HomeNavGraph(
                     restaurantState = restaurantState,
                     foodId = foodId,
                     cartState = cartState,
-                    overallCartState = overallCartState,
                     foodsState = foodsState,
                     favoriteState = favoriteState,
                     onClickFavorite = restaurantViewMode::toggleFavorite,

@@ -22,7 +22,7 @@ data class CartItem(
     //flattent la hàm làm phẳng vd: map.value -> [ Variation("M"),Variation("L"),Variation("cheese")]
 //    val totalPrice: Int
 //        get() = (basePrice + variation.values.flatten().sumOf { it.price }) * quantity
-    fun isValid(): Boolean {
+    fun validate(): Boolean {
         return foodId.isNotEmpty() &&
                 name.isNotEmpty() &&
                 basePrice >= 0 &&

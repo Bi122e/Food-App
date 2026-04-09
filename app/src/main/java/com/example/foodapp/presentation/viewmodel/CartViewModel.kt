@@ -6,11 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.data.repository.AuthRepository
 import com.example.foodapp.data.repository.CartRepository
-import com.example.foodapp.domain.model.CartItem
+import com.example.foodapp.domain.mapper.CartMapper
+import com.example.foodapp.domain.model.Cart
 import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.Restaurant
 import com.example.foodapp.domain.model.Variation
-import com.example.foodapp.domain.model.toCartItem
 import com.example.foodapp.presentation.state.ActiveCartItemUi
 import com.example.foodapp.presentation.state.CartUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,27 +27,10 @@ class CartViewModel @Inject constructor(
     private val cartRepository: CartRepository,
     private val authRepository: AuthRepository
 ) : ViewModel() {
+
     private var cartJob: Job? = null
 
-//     private val _cartState = MutableStateFlow<UiState<Cart>>(UiState.Loading)
-//    val cartState: StateFlow<UiState<Cart>> = _cartState.asStateFlow()
-//
-//     private val _selectedQuantity = MutableStateFlow(1)
-//    val selectedQuantity: StateFlow<Int> = _selectedQuantity.asStateFlow()
-//
-//    private val _selectedVariations = MutableStateFlow<Map<String, List<VariationOption>>>(emptyMap())
-//    val selectedVariations = _selectedVariations.asStateFlow()
-//
-//    private val _specialInstructions = MutableStateFlow("")
-//    val specialInstruction: StateFlow<String> = _specialInstructions.asStateFlow()
-//
-//    private val _addToCartState = MutableStateFlow<UiState<Cart>>(UiState.Idle)
-//    val addToCartState = _addToCartState.asStateFlow()
-//
-//    private val _activeItems = MutableStateFlow<Map<String, ActiveCartItem>>(emptyMap())
-//    val activeItem = _activeItems.asStateFlow()
-
-    private val _uiCartState = MutableStateFlow<CartUiState>(CartUiState())
+    private val _uiCartState = MutableStateFlow(CartUiState())
     val uiCartState = _uiCartState.asStateFlow()
 
     init {
@@ -66,202 +49,356 @@ class CartViewModel @Inject constructor(
         }
     }
 
-    //   Active Item Operations
+    //food ko co variation
+    fun addSimpleItem(food: Food, restaurant: Restaurant) {
+        Log.d("Check Food", food.toString())
+//        if (food.variations.isNotEmpty()) { //flow đoạn này nên tạo 1 hàm để kt food có var opttion ko, rồi mới nên gọi addSimpleItem hay addEditingItem, khi user click item hàm trung gian đó chỉ cần gọi ra thôi
+//            startEditing(food)
+//            return
+//        }
+        val baseItem = ActiveCartItemUi(food)
+        val key = buildKey(baseItem)
+
+        if (key in _uiCartState.value.loadingFoodIds) return //chawn user bam nhieu lan
+
+//        viewModelScope.launch {
+//            setFoodLoading(food.foodId, true) //k su dung cai nay o editing item vi co the gay ra loi, api chưa kịp trả về mà người dùng back, loading kẹt mãi gây lỗi UI
+//            val userId = authRepository.currentUserId() ?: return@launch
+//            val item = ActiveCartItemUi(food, 1 )
+//            handleCartResult(cartRepository.addItem(userId, CartMapper.toDomain(item), restaurant))
+//            setFoodLoading(food.foodId, false)
+//        }
+        viewModelScope.launch {
+            try {
+                setItemLoading(food.foodId, true)
+                val userId = authRepository.currentUserId() ?: return@launch
+                val currentQty = _uiCartState.value.cart?.getQuantityOf(food.foodId) ?: 0
+                val item = ActiveCartItemUi(food, (currentQty + 1).coerceIn(1, 20))
+                handleCartResult(
+                    cartRepository.addItem(
+                        userId,
+                        CartMapper.toDomain(item),
+                        restaurant
+                    )
+                )
+            } finally {
+                setItemLoading(key = key, false)
+            }
+        }
+    }
+
+    //fun addSimpleItem(food: Food, restaurant: Restaurant) {
+    //    if (food.foodId in _uiCartState.value.loadingFoodIds) return
+    //
+    //    viewModelScope.launch {
+    //        try {
+    //            setFoodLoading(food.foodId, true)
+    //            val userId = authRepository.currentUserId() ?: return@launch
+    //            val currentQty = _uiCartState.value.cart?.getQuantityOf(food.foodId) ?: 0
+    //            val item = ActiveCartItemUi(food, (currentQty + 1).coerceIn(1, 20))
+    //            handleCartResult(cartRepository.addItem(userId, CartMapper.toDomain(item), restaurant))
+    //        } finally {
+    //            setFoodLoading(food.foodId, false) // luôn được gọi dù có lỗi hay return
+    //        }
+    //    }
+
+    //food co variation
+    fun addEditingItem(restaurant: Restaurant) {
+        val missing = getInvalidVariation()
+        if (missing.isNotEmpty()) {
+            _uiCartState.update {
+                it.copy(error = "Vui lòng chọn: ${missing.joinToString(", ")}")
+            }
+            return
+        }
+
+        viewModelScope.launch {
+            val userId = authRepository.currentUserId() ?: return@launch
+            val item = _uiCartState.value.currentEditingItem ?: return@launch
+            handleCartResult(cartRepository.addItem(userId, CartMapper.toDomain(item), restaurant))
+            _uiCartState.update { it.copy(currentEditingItem = null) }
+
+        }
+    }
+
+//    val cartSummary: StateFlow<CartSummary> = _uiCartState
+//        .map { state ->
+//            val cartQty = state.cart?.getTotalItemCount() ?: 0
+//            val cartPrice = state.cart?.calculateTotalPrice() ?: 0.0
+//
+//            val editingQty = state.currentEditingItem?.quantity ?: 0
+//            val editingPrice = state.currentEditingItem?.calculatePrice() ?: 0.0
+//
+//            CartSummary(
+//                totalQuantity = cartQty + editingQty,
+//                totalPrice = cartPrice + editingPrice
+//            )
+//    }
+//        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CartSummary())
 
 
-    fun selectVariation(optionId: String, variation: Variation) {
-        val current = _uiCartState.value.selectedVariations.toMutableMap()
-        val currentOptions = current[variation.id]?.toMutableList()
-            ?: mutableListOf() //lấy option hiện tại nếu id ko khớp, -> trống user chưa chọn tạo mới
-        val option = variation.getOptionById(optionId)
-            ?: return //kiểm tra option usr chọn có khớp với option dữ liệu thật tế ko
+    //thoong bao cho UI biet co required ko
+//    fun getMissingRequiredVariations(): List<String> {
+//        val item = _uiCartState.value.currentEditingItem ?: return emptyList()
+//        return item.food.variations
+//            .filter { variation ->
+//                variation.required &&
+//                        item.variations[variation.id].isNullOrEmpty()
+//            }
+//            .map { it.name }
+//    }
+//    private fun validateCurrentItem(): Boolean {
+//        val item = _uiCartState.value.currentEditingItem ?: return false
+//
+//        return item.food.variations.all { variation ->
+//            val selected = item.variations[variation.id].orEmpty()
+//
+//            if (!variation.required && selected.isEmpty()) return@all true //kt required co bat buoc k
+//            if (variation.required && selected.isEmpty()) return@all false
+//
+//            when (variation.type) {
+//                Variation.VariationType.SINGLE -> selected.size == 1
+//                Variation.VariationType.MULTI -> selected.isNotEmpty()
+//            }
+//        }
+//    }
 
-        when (variation.type) { //kiểm tra mode option food
-            Variation.VariationType.SINGLE -> {  //single thì xóa cái cũ thêm cái mới, chỉ được phép chứa 1 option
-                currentOptions.clear()
-                currentOptions.add(option)
+    //dựa vào id food để loading trạng thái, để tránh user spam
+    private fun setItemLoading  (key: String, loading: Boolean) {
+//        val current = _uiCartState.value.currentEditingItem ?: return
+        _uiCartState.update { state ->
+            val current = state.loadingFoodIds.toMutableSet()
+             if (loading) current.add(key) else current.remove(key)
+            state.copy(loadingFoodIds = current)
+        }
+    }
+
+    private fun getInvalidVariation(): List<String> {
+        val item = _uiCartState.value.currentEditingItem ?: return emptyList()
+        return item.food.variations.mapNotNull { variation ->  //kt xem food var co bat buoc chon ko
+            val selected = item.variations[variation.id].orEmpty()
+            val isValid = when {
+                !variation.required && selected.isEmpty() -> false
+                variation.required && selected.isEmpty() -> true
+                variation.type == Variation.VariationType.SINGLE -> selected.size == 1
+                variation.type == Variation.VariationType.MULTI -> selected.isNotEmpty()
+                else -> true
+            }
+            if (isValid) null else variation.name // trả về danh sách trống nếu ko có lỗi, và ngược lại
+        }
+    }
+
+
+    //wrapper api
+    private fun handleCartResult(result: ApiResponse<Cart>, onSuccess: (() -> Unit)? = null) {
+        when (result) {
+            is ApiResponse.Success -> {
+                _uiCartState.update {
+                    it.copy(cart = result.data)
+                }
+                onSuccess?.invoke() //gọi lại callback nếu ko null -> success
+
+
             }
 
-            Variation.VariationType.MULTI -> { //multi kiểm tra để xóa cái đã tồn tại, cơ chế toggle -> user bấm lại cái đã thêm trước đó, xóa
-                val existing = currentOptions.find { it.id == optionId }
-                if (existing != null) {
-                    currentOptions.remove(existing)
-                } else {
+            is ApiResponse.Error -> _uiCartState.update { it.copy(error = result.message) }
+            is ApiResponse.Loading -> {}
+            else -> {}
+        }
+    }
+
+
+    //set state co variation
+    fun startEditing(food: Food) {
+        _uiCartState.update {
+            it.copy(
+                currentEditingItem = ActiveCartItemUi(food = food)
+            )
+        }
+    }
+
+    fun selectVariation(optionId: String, variation: Variation) {
+        _uiCartState.update { state ->
+            val item = state.currentEditingItem ?: return@update state
+
+            val current = item.variations.toMutableMap()
+            val currentOptions = current[variation.id]?.toMutableList() ?: mutableListOf()
+
+            val option = variation.getOptionById(optionId) ?: return@update state //kt var có tồn tại trong food k
+
+            when (variation.type) {
+                Variation.VariationType.MULTI -> { //kt mode multi, toggle bật tắt nếu user click 2 lần
+                    val existing = currentOptions.find { it.id == optionId }
+                    if (existing != null) currentOptions.remove(existing)
+                    else currentOptions.add(option)
+                }
+
+                Variation.VariationType.SINGLE -> {
+                    currentOptions.clear()
                     currentOptions.add(option)
                 }
             }
+
+            current[variation.id] = currentOptions
+
+            state.copy(
+                currentEditingItem = item.copy(variations = current)
+            )
         }
-        current[variation.id] = currentOptions
-
     }
 
-    fun updateSpecialInstructions(instructions: String) {
-        _uiCartState.update { it.copy(specialInstructions = instructions) }
-    }
-
-    fun calculateItemPreviewPrice(food: Food): Int {
-        return buildCartItem(food).getTotalPrice()
-    }
-
-
+    //change quantity in detail food
     fun changeQuantity(by: Int) {
-        val newQty = (_uiCartState.value.selectedQuantity + by).coerceIn(1, 20)
-        _uiCartState.update { it.copy(selectedQuantity = newQty) }
+        _uiCartState.update { state ->
+            val item = state.currentEditingItem ?: return@update state
+
+            val newQty = (item.quantity + by).coerceIn(1, 20)
+
+            state.copy(
+                currentEditingItem = item.copy(quantity = newQty)
+            )
+        }
     }
 
-    //real price
+    //update note in detail food
+    fun updateNote(note: String) {
+        _uiCartState.update { state ->
+            val item = state.currentEditingItem ?: return@update state
+            state.copy(
+                currentEditingItem = item.copy(note = note)
+            )
+        }
+    }
+
+
+    fun removeItem(key: String) {
+        if (key in _uiCartState.value.loadingFoodIds) return
+        try {
+            viewModelScope.launch {
+                setItemLoading(key, true)
+                val userId = authRepository.currentUserId() ?: return@launch
+//             handleCartResult(cartRepository.removeItem(userId, food = food.foodId)) {
+                handleUnitResult(cartRepository.removeItem(userId, key)) {
+                    checkAndClearCartIfEmpty(userId) //nếu api succes gọi tiếp hàm này
+                }
+            }
+        } finally {
+            setItemLoading(key, false)
+        }
+
+    }
+
+    //edit quantity ko co var, va xoa cart neu quantity < 0
+    fun changeSimpleQuantity(food: Food, by: Int) {
+        val restaurant = _uiCartState.value.restaurant ?: return
+        val baseItem = ActiveCartItemUi(food)
+        val key = buildKey(baseItem)
+        if (key in _uiCartState.value.loadingFoodIds) return
+
+        viewModelScope.launch {
+            try {
+                setItemLoading(key, true)
+                val userId = authRepository.currentUserId() ?:return@launch
+                val currentQty = _uiCartState.value.cart?.getQuantityOf(key) ?: 0
+                val newQty = currentQty + by //+ qty moi voi cu
+                when {
+                    newQty <= 0 -> { //neu newqty < 0, thi xoa item, va kiem tra cart co trong ko, neu co xoa luon
+                        handleUnitResult(
+                            cartRepository.removeItem(userId = userId, key = key)
+                        ) {
+                            checkAndClearCartIfEmpty(userId = userId)
+                        } //wrapper response api thanh cong
+                    }
+                    else -> { //goi addItem de ghi de item moi da + food
+                        val item = ActiveCartItemUi(food = food, quantity = newQty.coerceIn(1, 20))
+                        handleCartResult(
+                            cartRepository.addItem(
+                                userId, CartMapper.toDomain(item), restaurant = restaurant))
+                    }
+                }
+            } finally {
+                setItemLoading(key, false)
+            }
+        }
+    }
+
+    private fun checkAndClearCartIfEmpty(userId: String) {
+        viewModelScope.launch {
+            val cart = _uiCartState.value.cart ?: return@launch //cart trống xóa cart
+            if (cart.isEmpty()) {
+                cartRepository.clearCart(userId)
+                _uiCartState.update { it.copy(cart = null) }
+            }
+
+        }
+    }
+
+    private fun handleUnitResult(result: ApiResponse<Unit>, onSuccess: (() -> Unit)? = null) {
+        when (result) {
+            is ApiResponse.Success -> onSuccess?.invoke()
+            is ApiResponse.Error -> _uiCartState.update { it.copy(error = result.message) }
+            else -> {}
+        }
+    }
+
+
+    // ADD TO ACTIVE CART (LOCAL)
+
+//    fun confirmAddItem() {
+//        if (!validateCurrentItem()) return
+//        addActiveItem()
+//    }
+
+//    private fun addActiveItem() {
+//        _uiCartState.update { state ->
+//            val item = state.currentEditingItem ?: return@update state //có kiểu  ActiveCartItemUi? = null
+//            val current = state.activeItems.toMutableMap() //là value nên cũng có kiểu  ActiveCartItemUi
+//
+//            val key = buildKey(item) //tạo key để ko trùng
+//            val existing = current[key] //kiểm tra có dữ liệu trước đó ko
+//
+//            current[key] = if (existing != null) { //nếu có tức đã tồn tại +1 quality lên
+//                existing.copy(quantity = existing.quantity + item.quantity)
+//            } else {
+//                    item //đoạn này có nghĩa là tạo mới, nhưng tôi ko hiểu do item bị trống do lúc đầu chưa có giá trị, và dc mặc định bằng null, tức là return
+//            }
+//
+//            state.copy(
+//                activeItems = current, //đoạn này tôi cũng ko hiểu vì tôi vẫn chưa thấy set giá trị mới. ví dụ user chọn food item thì hàm này phải nhận giá trị đó, hoặc state nhưng tôi ko thấy gì hết
+//                currentEditingItem = null
+//            )
+//        }
+//    }
+//    fun addItemDirectly(food: Food) {
+//        val item = ActiveCartItemUi(food = food, quantity = 1)
+//        _uiCartState.update { state ->
+//            val current = state.activeItems.toMutableMap()
+//            val key = buildKey(item)
+//            val existing = current[key]
+//            current[key] = if (existing != null) {
+//                existing.copy(quantity = existing.quantity + 1)
+//            } else {
+//                item
+//            }
+//            state.copy(activeItems = current)
+//        }
+//    }
+
+
+    private fun buildKey(item: ActiveCartItemUi): String {
+        val variationKey = item.variations
+            .toSortedMap()
+            .map { (k, v) ->
+                val sortedIds = v.map { it.id }.sorted()
+                "$k:${sortedIds.joinToString()}"
+            }
+            .joinToString("|")
+
+        return "${item.food.foodId}#$variationKey"
+    }
+
+
     fun getCartTotalPrice(): Double {
         return _uiCartState.value.cart?.calculateTotalPrice() ?: 0.0
     }
-
-    //fake price when render UI
-    fun previewCartTotal(food: Food): Double {
-        val currentCart = _uiCartState.value.cart ?: return 0.0
-        val newItem = buildCartItem(food)
-        val newCartItems = currentCart.cartItems.toMutableList()
-
-        // check nếu item giống thì cộng quantity (optional - advanced)
-        val existingIndex = newCartItems.indexOfFirst {
-            it.foodId == newItem.foodId &&
-                    it.variation == newItem.variation
-        }
-
-        if (existingIndex != -1) {
-            val existing = newCartItems[existingIndex]
-            newCartItems[existingIndex] =
-                existing.copy(quantity = existing.quantity + newItem.quantity)
-        } else {
-            newCartItems.add(newItem)
-        }
-        val previewSubTotal = newCartItems.sumOf { it.getTotalPrice() }
-        return previewSubTotal + currentCart.deliveryFee.toDouble()
-    }
-
-    fun addToCart(food: Food, restaurant: Restaurant) {
-        Log.d("ADDSTATE", "run")
-        viewModelScope.launch {
-            if (_uiCartState.value.isLoading) return@launch //tranh user spam add btn
-            val userId = authRepository.currentUserId() ?: return@launch
-
-            if (!validateVariation(food)) {
-                _uiCartState.update { it.copy(error = true) }
-                return@launch
-            }
-
-            _uiCartState.update { it.copy(isLoading = true) }
-            val cartItem = buildCartItem(food) //set state selected item
-
-
-            when (val result =
-                cartRepository.addItem(item = cartItem, userId = userId, restaurant = restaurant)) {
-                is ApiResponse.Success -> {
-                    _uiCartState.update { it.copy(cart = result.data) }
-                    Log.d("ADDSTATE", "thanh cong")
-                    resetSelection()
-                }
-
-                is ApiResponse.Error -> {
-                    _uiCartState.update { it.copy(error = true) }
-                    Log.d("CartViewModel", "Failed to add to cart: ${result.message}")
-                }
-
-                else -> Unit
-            }
-        }
-    }
-
-    //ham nay
-    private fun validateVariation(food: Food): Boolean {
-        //all return true/false neu thoa man dieu kien trong danh sách user đã chọn, nếu 1 item false thì trả về tất cả false, muc dich de kiem tra variation co hop le k
-        return food.variations.all { variation ->
-            val selected =
-                _uiCartState.value.selectedVariations[variation.id].orEmpty()     // lay current variation hiện tại, nếu current ko có varId thì null
-//            if (!variation.required && (selected == null || selected.isEmpty())) return@all true // kiểm tra variation tồn tại - trống và "ko bắt buộc chọn option = false" -> vì user ko chọn gì và variation ko bắt buộc chọn nếu kt tiếp sẽ vô nghĩa, nên return true
-            if (!variation.required && selected.isEmpty()) return@all true
-            if (variation.required && selected.isEmpty()) return@all false
-//            selected ?: return false //variation = true mà user chưa chọn selected == null, return
-
-            when (variation.type) { //và trường hợp ngược lại nếu user đã chọn, selected != null, kt type mode
-                Variation.VariationType.SINGLE -> selected.size == 1 // selected, option phải bằng 1 c
-                // ho single mode
-                Variation.VariationType.MULTI -> selected.isNotEmpty() //multi thế nào cũng được
-            }
-        }
-    }
-
-    private fun buildCartItem(food: Food): CartItem {
-        return food.toCartItem(
-            quantity = _uiCartState.value.selectedQuantity,
-            selectedVariations = _uiCartState.value.selectedVariations,
-            specialInstructions = _uiCartState.value.specialInstructions
-        )
-    }
-
-    fun resetSelection() {
-        _uiCartState.update { it.copy(selectedQuantity = 1) }
-        _uiCartState.update { it.copy(selectedVariations = emptyMap()) }
-        _uiCartState.update { it.copy(specialInstructions = "") }
-
-    }
-
-
-    fun onQuickAdd(food: Food) {
-        _uiCartState.update { state ->
-
-            val current =
-                state.activeItem.toMutableMap() //map <k, v>,
-            val existing = current[food.foodId] //map[v]
-
-            if (existing != null) {
-//                cartItem.values.map { it.copy(quantity = it.quantity + 1) }
-                current[food.foodId] = existing.copy(quantity = existing.quantity + 1)
-            } else {
-                // tai sao current = thi loi 'val' cannot be reassigned., du mutableMap
-                current[food.foodId] = ActiveCartItemUi(food, quantity = 1, emptyMap())
-            }
-
-            state.copy(activeItem = current)
-        }
-    }
-
-    //cach viet gon hon
-    fun onQuickAdd2(food: Food) {
-        _uiCartState.update { state ->
-            val item = state.activeItem[food.foodId]
-
-            val updated = item?.copy(quantity = item.quantity + 1)
-                ?: ActiveCartItemUi(food = food, quantity = 1, variations = emptyMap())
-            state.copy(activeItem = state.activeItem + mapOf(food.foodId to updated))
-
-        }
-    }
-
-        fun onQuantityChange(foodId: String, delta: Int) {
-            _uiCartState.update { state ->
-                val currentMap = state.activeItem.toMutableMap()
-                val item = currentMap[foodId] ?: return@update state
-
-                val newQty = item.quantity + delta
-
-                when {
-                    newQty <= 0 -> {
-                        // remove item
-                        currentMap.remove(foodId)
-                    }
-
-                    newQty > 20 -> {
-                        // giữ nguyên (không update)
-                        return@update state
-                    }
-
-                    else -> {
-                        currentMap[foodId] = item.copy(quantity = newQty)
-                    }
-                }
-
-                state.copy(activeItem = currentMap)
-            }
-        }
-    fun increase(foodId: String) = onQuantityChange(foodId, +1)
-    fun decrease(foodId: String) = onQuantityChange(foodId, -1)
 }

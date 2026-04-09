@@ -53,7 +53,7 @@ data class CheckoutState(
                 address.isNotEmpty() &&
                 isPhoneNumberValid() &&
                 isEmailValid() &&
-                cart?.isValid() == true
+                cart?.checkValid()== true
     }
 
     fun canCheckout(): Boolean {

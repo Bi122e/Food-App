@@ -21,16 +21,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.foodapp.core.UiState
-import com.example.foodapp.domain.model.Cart
+import com.example.foodapp.presentation.state.CartUiState
 import com.example.foodapp.ui.theme.Blue1
 
 @Composable
 fun CartBottomBar(
-    itemCount: Int,
-    totalPrice: Double,
     onClick: () -> Unit = {},
-    cartState: UiState<Cart>,
+    cartState: CartUiState,
 ) {
 
     Box(
@@ -62,7 +59,7 @@ fun CartBottomBar(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = "$itemCount",
+                        text = "$",
                         fontSize = 12.sp,
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
@@ -73,7 +70,7 @@ fun CartBottomBar(
                     )
                 }
                 Text(
-                    text = "${totalPrice.toInt()} đ",
+                    text = "$ đ",
                     fontSize = 16.sp,
                     color = Color.White,
                     fontWeight = FontWeight.ExtraBold

@@ -254,7 +254,7 @@ class FoodDetailViewModel @Inject constructor(
         // Placeholder if needed, but the state was moved to CartViewModel
     }
 
-    // logic xử lý khi user click chọn món ăn
+    // logic xử lý khi user click chọn món ăn, mỗi lần user click là emit tự phát để UI collect
     fun selectedFood(food: Food) {
         val restaurant = (_restaurantState.value as? UiState.Success)?.data ?: return
         _foodState.value = UiState.Success(food)

@@ -30,7 +30,7 @@ class CartRepositoryImpl @Inject constructor(
                     trySend(ApiResponse.Error(error.message ?: "Unknow"))
                 }
                 val cart = snapshot?.toObject(Cart::class.java)
-                if (cart != null && cart.isValid()) {
+                if (cart != null && cart.checkValid()) {
                     trySend(ApiResponse.Success(cart))
                 } else {
                     trySend(ApiResponse.Error("Failed to load cart"))
@@ -48,7 +48,7 @@ class CartRepositoryImpl @Inject constructor(
             val doc = cartRef.document(userId).get().await()
             val currentCart = doc.toObject(Cart::class.java)
             val cart =
-                if (currentCart == null) {
+                if (currentCart == null) { //nếu chưa có thì tạo mới
                     Cart(
                         userId = userId,
                         cartItems = listOf(item),
@@ -58,31 +58,18 @@ class CartRepositoryImpl @Inject constructor(
                         createdAt = null,
                         updatedAt = null,
                     )
-                } else {
+                } else { //có rồi thì thêm mới
+                    val mergedItems = mergeItem(currentCart.cartItems, item) //merge item cũ + mới
                     currentCart.copy(
-                        cartItems = currentCart.cartItems + item,
+                        cartItems = mergedItems,
                         updatedAt = null
                     )
                 }
-//            currentCart?.copy(          ---------> viet cach nay hay hon
-//                cartItems = currentCart.cartItems + item,
-//                updatedAt = null
-//            )
-//                ?: Cart(
-//                    userId = userId,
-//                    cartItems = listOf(item),
-//                    deliveryFee = restaurant.deliveryFee,
-//                    restaurantName = restaurant.restaurantName,
-//                    restaurantId = restaurant.restaurantId,
-//                    createdAt = null,
-//                    updatedAt = null,
-//                )
-            //lưu price như vậy để khi rơi vào trường hợp else nó sẽ ko price bị freeze giá trị của obj trước, do lấy data và gọi chính cal của obj cũ,
-            // nên dùng cách này luôn update mới nhất, order mới nên set price cứng, cart ko cần do luôn thay đổi
             val updateCart = cart.copy(
                 totalPrice = cart.calculateTotalPrice(),
                 price = cart.calculateSubTotalPrice()
             )
+            cartRef.document(userId).set(updateCart).await()
             ApiResponse.Success(updateCart)
         } catch (e: Exception) {
             Log.d("ADDCART", "FAILED")
@@ -186,6 +173,23 @@ fun mergeItem(
 }
         * */
     }
+    // Merge item nếu đã tồn tại
+    private fun mergeItem(
+        current: List<CartItem>,
+        newItem: CartItem
+    ): List<CartItem> {
+        val index = current.indexOfFirst {
+            it.foodId == newItem.foodId && it.variation == newItem.variation
+        }
+        return if (index != -1) {
+            current.mapIndexed { i, item ->
+                if (i == index) item.copy(quantity = item.quantity + newItem.quantity)
+                else item
+            }
+        } else {
+            current + newItem
+        }
+    }
 
     override suspend fun updateDeliveryFee(userId: String, fee: Int): ApiResponse<Unit> {
         return try {
@@ -201,7 +205,7 @@ fun mergeItem(
 
     override suspend fun updateItemQuantity(
         userId: String,
-        foodId: String,
+        key: String,
         quantity: Int
     ): ApiResponse<Unit> {
         return try {
@@ -211,9 +215,9 @@ fun mergeItem(
                 .await()
 
             val cart = cartDoc?.toObject(Cart::class.java)
-            if (cart != null && cart.isValid()) {
+            if (cart != null && cart.checkValid()) {
                 val updatedItems = cart.cartItems.map { item ->
-                    if (item.foodId == foodId) {
+                    if (item.foodId == key) {
                         item.copy(
                             quantity = quantity
                         )
@@ -231,13 +235,13 @@ fun mergeItem(
 
     }
 
-    override suspend fun removeItem(userId: String, foodId: String): ApiResponse<Unit> {
+    override suspend fun removeItem(userId: String, key: String): ApiResponse<Unit> {
         return try {
             val cartDoc = cartRef.document(userId).get().await()
             val cart = cartDoc?.toObject(Cart::class.java)
 
-            if (cart != null && cart.isValid()) {
-                val removeItem = cart.cartItems.filter { it.foodId != foodId }
+            if (cart != null && cart.checkValid()) {
+                val removeItem = cart.cartItems.filter { it.foodId != key }
                 val updatedCart = cart.copy(cartItems = removeItem)
 
                 cartRef.document(userId).set(updatedCart).await()

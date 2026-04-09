@@ -12,9 +12,9 @@ interface CartRepository {
 
     suspend fun addItem( userId: String, item: CartItem, restaurant: Restaurant): ApiResponse<Cart>
 
-    suspend fun updateItemQuantity(userId: String, foodId: String, quantity: Int): ApiResponse<Unit>
+    suspend fun updateItemQuantity(userId: String, key: String, quantity: Int): ApiResponse<Unit>
 
-    suspend fun removeItem(userId: String, foodId: String): ApiResponse<Unit>
+    suspend fun removeItem(userId: String, key: String): ApiResponse<Unit>
 
     suspend fun clearCart(userId: String): ApiResponse<Unit>
 

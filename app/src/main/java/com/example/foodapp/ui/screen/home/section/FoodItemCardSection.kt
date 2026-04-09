@@ -35,10 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.foodapp.R
-import com.example.foodapp.core.UiState
 import com.example.foodapp.core.utils.toVND
-import com.example.foodapp.domain.model.Cart
 import com.example.foodapp.domain.model.Food
+import com.example.foodapp.presentation.state.CartUiState
 import com.example.foodapp.presentation.state.ProfileUiState
 import com.example.foodapp.ui.theme.Yellow0
 
@@ -49,7 +48,7 @@ fun FoodItemCard(
     onClickFavorite: (String) -> Unit,
     isFavorite: Boolean,
     profileState: ProfileUiState,
-    cartState: UiState<Cart>,
+    cartState: CartUiState,
     onClickAddCart: (Food) -> Unit
 ) {
     val isPreview = LocalInspectionMode.current
