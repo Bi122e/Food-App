@@ -9,7 +9,11 @@ sealed class ApiResponse<out T> {
         val code: ErrorCode = ErrorCode.UNKNOW,
         val throwable: Throwable? = null
     ): ApiResponse<Nothing>()
-
+    data class Conflict(
+        val message: String,
+        val oldRestaurantName: String,
+        val newRestaurantName: String,
+    ): ApiResponse<Nothing>()
     fun isSuccess(): Boolean = this is Success
     fun isEmpty(): Boolean = this is Empty
     fun isError(): Boolean = this is Error
@@ -38,6 +42,7 @@ inline fun <T, R> ApiResponse<T>.map(transform: (T) -> R): ApiResponse<R> {
         is ApiResponse.Loading -> ApiResponse.Loading
         is ApiResponse.Empty -> ApiResponse.Empty
         is ApiResponse.Error -> ApiResponse.Error(message, code, throwable)
+        is ApiResponse.Conflict -> ApiResponse.Conflict(message, oldRestaurantName, newRestaurantName)
     }
 }
 
@@ -52,6 +57,7 @@ inline fun <T, R> ApiResponse<T>.flatMap(transform: (T) -> ApiResponse<R>): ApiR
         is ApiResponse.Error -> ApiResponse.Error(message, code, throwable)
         is ApiResponse.Loading -> ApiResponse.Loading
         is ApiResponse.Empty -> ApiResponse.Empty
+        is ApiResponse.Conflict -> ApiResponse.Conflict(message, oldRestaurantName, newRestaurantName)
     }
 }
 

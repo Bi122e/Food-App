@@ -8,6 +8,7 @@ package com.example.foodapp.domain.model
 *  */
 // variation (ten option vd: size, option(ten vd: M, S, L)
 data class CartItem(
+    val key: String = "", //luu key tranh 1 foodId bi trung voi nhieu op
     val foodId: String = "",
     val name: String = "",
     val basePrice: Int = 0,
@@ -22,7 +23,7 @@ data class CartItem(
     //flattent la hàm làm phẳng vd: map.value -> [ Variation("M"),Variation("L"),Variation("cheese")]
 //    val totalPrice: Int
 //        get() = (basePrice + variation.values.flatten().sumOf { it.price }) * quantity
-    fun validate(): Boolean {
+    fun     validate(): Boolean {
         return foodId.isNotEmpty() &&
                 name.isNotEmpty() &&
                 basePrice >= 0 &&

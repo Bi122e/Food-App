@@ -27,7 +27,8 @@ data class FoodDetailState(
 
     fun getCurrentPrice(): Int {
         if (food == null) return 0
-        return food.getPriceWithVariation(selectedVariations)
+//        return food.getPriceWithVariation(selectedVariations)
+        return 0
     }
     fun getTotalPrice(): Int = getCurrentPrice() * quantity
 

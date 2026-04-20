@@ -37,7 +37,9 @@ data class Food(
                 categoryId.isNotEmpty() &&
                 restaurantId.isNotEmpty()
     }
-
+    fun getVariationSize(): Int {
+        return variations.sumOf { it.options.size }
+    }
     fun calculateAverageRating(): Double {
         return if (reviewCount > 0) {
             //            (totalRating / reviews).coerceIn(0.0, 5.0) get total rate <= 5
@@ -66,22 +68,26 @@ data class Food(
 
 
     //calculate price with variation
-    fun getPriceWithVariation(selectedVariation: Map<String, List<String>>): Int {
+
+    //variation: Map<String, List<VariationOption>>
+    fun getPriceWithVariation(selectedVariation: Map<String, List<VariationOption>>): Int {
         if (!valid || !available) return 0
 
         val basePrice = price
 
-        val variationPrice = selectedVariation.entries.sumOf { (variationId, optionIds) ->
+         val variationPrice = selectedVariation.entries.sumOf { (variationId, variationOption, ) ->
 
             val variation = variations.find {
                 it.id == variationId && it.options.isNotEmpty()
             } ?: return@sumOf 0
 
+
+
             variation.options
                 .filter { option ->
                     option.valid &&
                             option.available &&
-                            optionIds.contains(option.id)
+                            variationOption.contains(option)
                 }
                 .sumOf { it.price }
         }

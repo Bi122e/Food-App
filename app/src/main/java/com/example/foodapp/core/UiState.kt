@@ -55,6 +55,10 @@ fun <T> ApiResponse<T>.toUiState(): UiState<T> {
         )
         is ApiResponse.Empty -> UiState.Empty()
         is ApiResponse.Loading -> UiState.Loading
+        is ApiResponse.Conflict -> {
+            throw IllegalStateException("Conflict should be handled separately")
+
+        }
     }
 }
 
@@ -71,6 +75,10 @@ fun <T, R> ApiResponse<T>.toUiState(transform: (T) ->(R)): UiState<R> {
         }
         is ApiResponse.Empty -> {
             UiState.Empty()
+        }
+        is ApiResponse.Conflict -> {
+            throw IllegalStateException("Conflict should be handled separately")
+
         }
     }
 }

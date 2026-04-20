@@ -27,13 +27,23 @@ class CartRepositoryImpl @Inject constructor(
             .document(userId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    Log.d("CartState", "Api Error")
                     trySend(ApiResponse.Error(error.message ?: "Unknow"))
                 }
                 val cart = snapshot?.toObject(Cart::class.java)
-                if (cart != null && cart.checkValid()) {
-                    trySend(ApiResponse.Success(cart))
-                } else {
-                    trySend(ApiResponse.Error("Failed to load cart"))
+                when {
+                    cart == null -> {
+                        trySend(ApiResponse.Empty)
+                        Log.d("CartState", "empty:")
+                    }
+                    cart.checkValid() -> {
+                        trySend(ApiResponse.Success(cart))
+                        Log.d("CartState", "check valid: ${cart.toString()}")
+                    }
+                    else -> {
+                        trySend(ApiResponse.Error("Invalid cart"))
+                        Log.d("CartState", "error:")
+                    }
                 }
             }
         awaitClose { listener.remove() }
@@ -42,7 +52,8 @@ class CartRepositoryImpl @Inject constructor(
     override suspend fun addItem(
         userId: String,
         item: CartItem,
-        restaurant: Restaurant
+        restaurant: Restaurant,
+        forceClear: Boolean
     ): ApiResponse<Cart> {
         return try {
             val doc = cartRef.document(userId).get().await()
@@ -58,12 +69,31 @@ class CartRepositoryImpl @Inject constructor(
                         createdAt = null,
                         updatedAt = null,
                     )
-                } else { //có rồi thì thêm mới
-                    val mergedItems = mergeItem(currentCart.cartItems, item) //merge item cũ + mới
-                    currentCart.copy(
-                        cartItems = mergedItems,
-                        updatedAt = null
-                    )
+                } else { //có rồi thì kiểm tra tiếp có thuộc nhà hàng tồn tại đó ko, ngược lại kt tieeps có thuộc nhà hàng hiện tại ko, có thì thêm mới
+                    if (currentCart.canAddFromRestaurant(restaurant.restaurantId)) {
+                        val mergedItems = mergeItem(currentCart.cartItems, item) //merge item cũ + mới
+                        currentCart.copy(
+                            cartItems = mergedItems,
+                            updatedAt = null
+                        )
+                    } else {
+                        if (!forceClear) {
+                            return ApiResponse.Conflict(
+                                message = "Giỏ hàng hiện tại thuộc nhà hàng khác",
+                                oldRestaurantName = currentCart.restaurantName,
+                                newRestaurantName = restaurant.restaurantName
+                            )
+                        }
+                        Cart(
+                            userId = userId,
+                            cartItems = listOf(item),
+                            deliveryFee = restaurant.deliveryFee,
+                            restaurantName = restaurant.restaurantName,
+                            restaurantId = restaurant.restaurantId,
+                            createdAt = null,
+                            updatedAt = null
+                        )
+                    }
                 }
             val updateCart = cart.copy(
                 totalPrice = cart.calculateTotalPrice(),
@@ -217,7 +247,7 @@ fun mergeItem(
             val cart = cartDoc?.toObject(Cart::class.java)
             if (cart != null && cart.checkValid()) {
                 val updatedItems = cart.cartItems.map { item ->
-                    if (item.foodId == key) {
+                    if (item.key == key) {
                         item.copy(
                             quantity = quantity
                         )
@@ -241,7 +271,7 @@ fun mergeItem(
             val cart = cartDoc?.toObject(Cart::class.java)
 
             if (cart != null && cart.checkValid()) {
-                val removeItem = cart.cartItems.filter { it.foodId != key }
+                val removeItem = cart.cartItems.filter { it.key != key }
                 val updatedCart = cart.copy(cartItems = removeItem)
 
                 cartRef.document(userId).set(updatedCart).await()
