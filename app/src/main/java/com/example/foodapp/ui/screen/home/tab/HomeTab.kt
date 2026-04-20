@@ -195,7 +195,8 @@ fun HomeTabPreview() {
                 categoryState = PreviewData.categoryState,
                 featuredFoodState = PreviewData.foodState,
                 restaurantState = UiState.Loading,
-                onClick = {_, _, _ ->}
+                onClick = {_, _, _ ->},
+
             )
         }
     }

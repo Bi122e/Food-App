@@ -157,7 +157,9 @@ fun HomeScreen(
                 .padding()
         ) {
             HomeNavGraph(
-                navController = homeNavController, parentNavController = parentNavController
+                navController = homeNavController,
+                parentNavController = parentNavController,
+                padding =paddingValues
             )
         }
     }

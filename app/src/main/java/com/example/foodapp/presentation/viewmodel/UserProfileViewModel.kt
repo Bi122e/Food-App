@@ -156,6 +156,7 @@ class UserProfileViewModel @Inject constructor(
                     }
 
                 }
+                is ApiResponse.Conflict -> {}
             }
         }
     }

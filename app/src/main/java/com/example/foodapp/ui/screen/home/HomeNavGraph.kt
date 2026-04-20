@@ -1,146 +1,9 @@
-//package com.example.foodapp.ui.screen.home
-//
-//import CartTab
-//import androidx.compose.foundation.layout.fillMaxSize
-//import androidx.compose.runtime.Composable
-//import androidx.compose.runtime.getValue
-//import androidx.compose.ui.Modifier
-//import androidx.hilt.navigation.compose.hiltViewModel
-//import androidx.lifecycle.compose.collectAsStateWithLifecycle
-//import androidx.navigation.NavHostController
-//import androidx.navigation.compose.NavHost
-//import androidx.navigation.compose.composable
-//import androidx.navigation.navigation
-//import com.example.foodapp.core.UserRoutes
-//import com.example.foodapp.presentation.viewmodel.FoodDetailViewModel
-//import com.example.foodapp.presentation.viewmodel.HomeViewModel
-//import com.example.foodapp.presentation.viewmodel.ProfileViewModel
-//import com.example.foodapp.presentation.viewmodel.PromotionViewModel
-//import com.example.foodapp.ui.screen.home.tab.ChatTab
-//import com.example.foodapp.ui.screen.home.tab.HomeTab
-//import com.example.foodapp.ui.screen.home.tab.ProfileTab
-//import com.example.foodapp.ui.screen.home.tab.RestaurantDetailTab
-//
-//
-////@Composable
-////fun HomeNavGraph(
-////    navController: NavHostController,
-////    modifier: Modifier = Modifier,
-//////    promotionState: UiState<List<Promotion>>,
-//////    profileState: ProfileUiState
-////) {
-////    NavHost(
-////        navController = navController,
-////        startDestination = UserRoutes.HOME,
-////        modifier = modifier,
-////    ) {
-////        composable(UserRoutes.HOME) {
-////
-////            val promotionViewModel: PromotionViewModel = hiltViewModel()
-////            val profileViewModel: ProfileViewModel = hiltViewModel()
-////            val homeViewModel: HomeViewModel = hiltViewModel()
-////
-////
-////            val promotionState by promotionViewModel.uiState.collectAsStateWithLifecycle()
-////            val profileState by profileViewModel.uiState.collectAsStateWithLifecycle()
-////            val searchQueryState by homeViewModel.searchQuery.collectAsStateWithLifecycle()
-////            val searchResultState by homeViewModel.searchResult.collectAsStateWithLifecycle()
-////            val addressState = profileState.editProfile.address
-////            val categoriesState by homeViewModel.categories.collectAsStateWithLifecycle()
-////            val foodFeaturedState by homeViewModel.featureFoods.collectAsStateWithLifecycle()
-////
-////            HomeTab(
-////                promotionState = promotionState,
-////                profileState = profileState,
-////                searchQueryState = searchQueryState,
-////                searchResultState = searchResultState,
-////                address = addressState,
-////                onQueryChange = homeViewModel::updateSearchQuery,
-////                categoryState = categoriesState,
-////                featuredFoodState = foodFeaturedState,
-////                modifier = Modifier.fillMaxSize(),
-////                )
-////        }
-////
-////        composable(UserRoutes.CHAT) { ChatTab() }
-////        composable(UserRoutes.CART) { CartTab() }
-////        composable(UserRoutes.PROFILE) { ProfileTab() }
-////    }
-////}
-//@Composable
-//fun HomeNavGraph(
-//    navController: NavHostController,
-//    parentNavController: NavHostController
-//
-//) {
-//    NavHost(
-//        navController = navController,
-////        startDestination = UserRoutes.HOME,
-//        startDestination = "home_root",
-//                modifier = Modifier.fillMaxSize()
-//    ) {
-//
-//        navigation(
-//            startDestination = UserRoutes.HOME,
-//            route = "home_root"
-//        ) {
-//
-//        }
-//        composable(UserRoutes.HOME) {
-//
-//            val promotionViewModel: PromotionViewModel = hiltViewModel()
-//            val profileViewModel: ProfileViewModel = hiltViewModel()
-//            val homeViewModel: HomeViewModel = hiltViewModel()
-//            val foodDetailViewModel: FoodDetailViewModel = hiltViewModel()
-//
-//            val promotionState by promotionViewModel.uiState.collectAsStateWithLifecycle()
-//            val profileState by profileViewModel.uiState.collectAsStateWithLifecycle()
-//            val searchQueryState by homeViewModel.searchQuery.collectAsStateWithLifecycle()
-//            val searchResultState by homeViewModel.searchResult.collectAsStateWithLifecycle()
-//            val categoriesState by homeViewModel.categories.collectAsStateWithLifecycle()
-//            val foodFeaturedState by homeViewModel.featureFoods.collectAsStateWithLifecycle()
-//            val restaurantState by homeViewModel.restaurants.collectAsStateWithLifecycle()
-//
-//            val addressState = profileState.editProfile.address
-//
-//            HomeTab(
-//                address = addressState,
-//                promotionState = promotionState,
-//                profileState = profileState,
-//                searchQueryState = searchQueryState,
-//                searchResultState = searchResultState,
-//                onQueryChange = homeViewModel::updateSearchQuery,
-//                categoryState = categoriesState,
-//                featuredFoodState = foodFeaturedState,
-//                restaurantState = restaurantState,
-//                onClick = {navController.navigate(UserRoutes.RESTAURANTDETAIL)}
-//            )
-//        }
-//
-//        composable(UserRoutes.CHAT) { ChatTab() }
-//        composable(UserRoutes.CART) { CartTab() }
-////        composable(UserRoutes.PROFILE) { ProfileTab() }
-//        composable(UserRoutes.PROFILE) {
-//            ProfileTab(
-////                onLogout = {
-////                    // Ví dụ dùng parentNavController để ra ngoài graph
-////                    parentNavController.navigate(UserRoutes.LOGIN) {
-////                        popUpTo(0)
-////                    }
-////                }
-//            )
-//        }
-//        composable(UserRoutes.RESTAURANTDETAIL) {
-//            RestaurantDetailTab()
-//        }
-//    }
-//}
-
 package com.example.foodapp.ui.screen.home
 
 import CartTab
 import android.annotation.SuppressLint
 import android.util.Log
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -158,6 +21,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.example.foodapp.core.UiState
 import com.example.foodapp.core.UserRoutes
+import com.example.foodapp.core.utils.UiStateHandler
 import com.example.foodapp.core.utils.showToast
 import com.example.foodapp.domain.model.ProfileCompleteness
 import com.example.foodapp.presentation.viewmodel.AuthViewModel
@@ -170,6 +34,7 @@ import com.example.foodapp.presentation.viewmodel.RestaurantViewModel
 import com.example.foodapp.presentation.viewmodel.SharedViewModel
 import com.example.foodapp.presentation.viewmodel.UserProfileViewModel
 import com.example.foodapp.ui.screen.home.tab.ChatTab
+import com.example.foodapp.ui.screen.home.tab.FoodDetailTab
 import com.example.foodapp.ui.screen.home.tab.HomeTab
 import com.example.foodapp.ui.screen.home.tab.ProfileTab
 import com.example.foodapp.ui.screen.home.tab.RestaurantDetailTab
@@ -178,7 +43,8 @@ import com.example.foodapp.ui.screen.home.tab.RestaurantDetailTab
 @Composable
 fun HomeNavGraph(
     navController: NavHostController,
-    parentNavController: NavHostController
+    parentNavController: NavHostController,
+    padding: PaddingValues
 ) {
 
     val sharedViewModel: SharedViewModel = hiltViewModel()
@@ -277,6 +143,22 @@ fun HomeNavGraph(
                 val currentRoute = navBackStackEntry?.destination?.route
                 Log.d("NavigationLog", "Current route: $currentRoute")
 
+
+                val restaurantState by foodViewModel.restaurantState.collectAsStateWithLifecycle()
+                val foodsState by foodViewModel.foodsState.collectAsStateWithLifecycle()
+                val foodState by foodViewModel.foodState.collectAsStateWithLifecycle()
+                val favoriteState by restaurantViewMode.favorites.collectAsStateWithLifecycle()
+                val userState by authViewModel.authStatus.collectAsStateWithLifecycle()
+//                val cartState by cartViewModel.cartState.collectAsStateWithLifecycle()
+                val cartState by cartViewModel.uiCartState.collectAsStateWithLifecycle()
+                val profileState by profileViewModel.uiState.collectAsStateWithLifecycle()
+//                val addToCartState by cartViewModel.addToCartState.collectAsStateWithLifecycle()
+//                val overallCartState by cartViewModel.cartState.collectAsStateWithLifecycle()
+//                val foodState by homeViewModel.foodByRestaurant.collectAsStateWithLifecycle()
+
+                Log.d("HomeNavGraph", "Restaurant state: $restaurantState")
+                Log.d("HomeNavGraph", "food state------: $foodsState")
+
                 // Lắng nghe các event từ FoodDetailViewModel (Add to cart trực tiếp hoặc Điều hướng), user click là effect tự động chạy
                 LaunchedEffect(Unit) {
                     foodViewModel.event.collect { action ->
@@ -289,24 +171,12 @@ fun HomeNavGraph(
                             is FoodAction.OpenDetail -> {
                                 showToast(context, "open nav")
                                 showToast(context, "this opened from")
+                                navController.navigate("food_detail_tab/${action.foodId}")
                             }
                             is FoodAction.ShowMessage -> {}
                         }
                     }
                 }
-                val restaurantState by foodViewModel.restaurantState.collectAsStateWithLifecycle()
-                val foodsState by foodViewModel.foodsState.collectAsStateWithLifecycle()
-                val favoriteState by restaurantViewMode.favorites.collectAsStateWithLifecycle()
-                val userState by authViewModel.authStatus.collectAsStateWithLifecycle()
-//                val cartState by cartViewModel.cartState.collectAsStateWithLifecycle()
-                val cartState by cartViewModel.uiCartState.collectAsStateWithLifecycle()
-                val profileState by profileViewModel.uiState.collectAsStateWithLifecycle()
-//                val addToCartState by cartViewModel.addToCartState.collectAsStateWithLifecycle()
-//                val overallCartState by cartViewModel.cartState.collectAsStateWithLifecycle()
-//                val foodState by homeViewModel.foodByRestaurant.collectAsStateWithLifecycle()
-
-                Log.d("HomeNavGraph", "Restaurant state: $restaurantState")
-                Log.d("HomeNavGraph", "food state------: $foodsState")
 //                val foods = when (foodsState) {
 //                    is UiState.Success -> {(foodsState as? UiState.Success)?.data ?: emptyList()
 //                     }
@@ -349,6 +219,8 @@ fun HomeNavGraph(
                             foodViewModel.selectedFood(food)
                         }
                     },
+
+
 //                    selectedFood = {},
                     onClickBackHome = {
 //                        navController.navigate(UserRoutes.HOME) {
@@ -374,6 +246,36 @@ fun HomeNavGraph(
 
             }
 
+            composable(route = "food_detail_tab/{foodId}") { backStackEntry ->
+                val foodViewModel: FoodDetailViewModel = hiltViewModel()
+                val cartViewModel: CartViewModel = hiltViewModel()
+                val foodState by foodViewModel.foodState.collectAsStateWithLifecycle()
+                val cartState by cartViewModel.uiCartState.collectAsStateWithLifecycle()
+                val currentItem = cartState.currentEditingItem
+
+                val foodId = backStackEntry.arguments?.getString("foodId") ?: ""
+                LaunchedEffect(foodId) {
+                    foodViewModel.loadDetailFood(foodId)
+
+                }
+                Log.d("FoodDetailTab", "food state: ${foodState}")
+                Log.d("FoodDetailTab", "cart state: ${cartState}")
+
+                UiStateHandler(foodState) { food ->
+                    FoodDetailTab(
+                        food = food,
+                        cartState = cartState,
+                        onSelectVariation = cartViewModel::selectVariation,
+                        onStartEditing = cartViewModel::startEditing,
+                        increaseQtyDetail = cartViewModel::increaseQtyDetail,
+                        decreaseQtyDetail = cartViewModel::decreaseQtyDetail,
+                        toAddCart = {
+                            cartViewModel.addEditingItem()
+                            navController.popBackStack()
+                        }
+                    )
+                }
+            }
 
 
             navigation(
@@ -401,9 +303,7 @@ fun HomeNavGraph(
                         }
                     )
                 }
-
-
             }
-        }
+         }
     }
 }

@@ -166,6 +166,57 @@ fun RoleRootScreen(roleName: String, onLogout: () -> Unit) {
         Button(onClick = onLogout) {
             Text("Logout")
         }
+
+        val items = listOf(
+            BottomNavItem(
+                "home",
+                Icons.Outlined.Home,
+                badgeCount = 1,
+                unselectedIcon = Icons.Default.Home),
+            BottomNavItem(
+                "Chat",
+                Icons.Outlined.Email,
+                badgeCount = 1,
+                unselectedIcon = Icons.Default.Email),
+            BottomNavItem(
+                "home",
+                Icons.Outlined.Settings,
+                badgeCount = 1,
+                unselectedIcon = Icons.Default.Settings)
+        )
+        Scaffold(
+            bottomBar = {
+                var selectedIdx by rememberSaveable { mutableStateOf(0) }
+                NavigationBar {
+                    items.forEachIndexed {index, item ->
+                        NavigationBarItem(
+                            selected =  selectedIdx == index,
+                            onClick = {selectedIdx = index},
+                            icon = {
+                                Icon(imageVector = if (selectedIdx == index) {
+                                    item.selectedIcon
+                                } else item.unselectedIcon,
+                                    contentDescription = null)
+                            },
+                            label =  {Text(item.title)}
+
+                        )
+                    }
+                }
+            }
+        ) { paddingValues ->
+
+            LazyColumn(
+                contentPadding = paddingValues,
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(50.dp)) {
+                var count = 0
+                items(20) { index ->
+                    Text(" $index")
+
+                }
+            }
+        }
     }
 }
 @Composable
@@ -242,6 +293,12 @@ class AuthViewModel: ViewModel() {
     }
 }
 
+data class BottomNavItem(
+    val title: String,
+    val selectedIcon: ImageVector,
+    val badgeCount: Int,
+    val unselectedIcon: ImageVector
+)
 
 
 

@@ -1,15 +1,17 @@
 package com.example.foodapp.ui.screen.home.tab
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -27,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.foodapp.core.UiState
 import com.example.foodapp.core.utils.UiStateHandler
-import com.example.foodapp.domain.model.Cart
 import com.example.foodapp.domain.model.Favorite
 import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.Restaurant
@@ -47,7 +48,7 @@ fun RestaurantDetailTab(
     foodsState: UiState<List<Food>?>,
     foodId: String? = null,
     cartState: CartUiState,
-    profileState: ProfileUiState,
+     profileState: ProfileUiState,
     favoriteState: UiState<Map<String, Favorite>>,
     onClickFavorite: (String) -> Unit,
     onClickBackHome: () -> Unit,
@@ -70,7 +71,7 @@ fun RestaurantDetailTab(
                 onClick = onClickViewCart
             )
         }
-    ) { _ ->
+    ) { paddingValue ->
 
         Column(
             modifier = Modifier
@@ -102,7 +103,7 @@ fun RestaurantDetailTab(
                         fontSize = 16.sp
                     )
 
-
+                    //nếu uistate có trạng thái nào, hàm handler này sẽ xử lý để hiển thị ảnh tương ứng
                     UiStateHandler(uiState = foodsState) { foodList ->
                         val displayList = if (isPreview) {
                             List(10) { PreviewDataFood.food }
@@ -117,12 +118,21 @@ fun RestaurantDetailTab(
                             columns = GridCells.Fixed(2),
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                             verticalArrangement = Arrangement.spacedBy(11.dp),
+                            contentPadding = PaddingValues(
+                                top = paddingValue  .calculateTopPadding() + 20.dp,
+                                bottom = paddingValue.calculateBottomPadding() + 20.dp
+                            )
 //                            contentPadding = PaddingValues(bottom = 0.dp)
                         ) {
                             val favorite =
                                 (favoriteState as? UiState.Success<Map<String, Favorite>>)?.data ?: emptyMap()
-                                    //true -> getData
-                            items(displayList) { item ->
+                            Log.d("CartState", "food: $displayList")
+                            Log.d("CartState", "size food: ${displayList.size}")
+                            //true -> getData
+                            itemsIndexed(displayList) { idx, item ->
+                                val isChange = cartState.cart?.cartItems?.any { it.foodId == item.foodId } ?: false
+                                 Log.d("CartState", "$idx food: $item")
+                                Log.d("CartState", "true of false: $isChange")
                                 FoodItemCard(
                                     item = item,
                                     onClickFavorite = onClickFavorite,
@@ -130,6 +140,7 @@ fun RestaurantDetailTab(
                                     onClickAddCart = onClickAddCart,
                                     profileState = profileState,
                                     cartState = cartState,
+                                    onChangeIcon = isChange
                                     )
                             }
                         }

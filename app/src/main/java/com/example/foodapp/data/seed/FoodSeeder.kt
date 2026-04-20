@@ -12,7 +12,7 @@ import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
 
 object FoodSeeder {
-    private const val SEED_VERSION = 9
+    private const val SEED_VERSION = 10
 
     suspend fun seedIfNeeded(context: Context) {
         val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
@@ -24,10 +24,10 @@ object FoodSeeder {
         }
         Log.d("Seeder", "Current: $currentVersion - Code: $SEED_VERSION")
     }
+
     suspend fun seedAllPizza() {
         val firebase = FirebaseFirestore.getInstance()
         val collection = firebase.collection(Constance.COLLECTION_FOOD)
-
 
 
         val foods = listOf(
@@ -59,10 +59,58 @@ object FoodSeeder {
             VariationOption("Size S", 35000, "sizeS", "", true),
             VariationOption("Size M", 45000, "sizeM", "", true),
             VariationOption("Size L", 55000, "sizeL", "", true),
-            )
+        )
 
         val variations = listOf(
-            Variation("Size", "size", "Chỉ được chọn một kích thước", Variation.VariationType.SINGLE, true, 1, 1, options   )
+            Variation(
+                "Size",
+                "size",
+                "Chỉ được chọn một kích thước",
+                Variation.VariationType.SINGLE,
+                true,
+                1,
+                1,
+                options
+            )
+        )
+
+        return variations
+    }
+
+    private fun setDefaultOption2(): List<Variation> {
+        val options1 = listOf(
+            VariationOption("Size S", 35000, "sizeS", "", true),
+            VariationOption("Size M", 45000, "sizeM", "", true),
+            VariationOption("Size L", 55000, "sizeL", "", true),
+        )
+        val options2 = listOf(
+            VariationOption("Tôm thêm", 35000, "tom", "", true),
+            VariationOption("Thịt thêm", 45000, "thit", "", true),
+            VariationOption("Mô mai thêm", 55000, "phomai", "", true),
+        )
+
+        val variations = listOf(
+            Variation(
+                "Size",
+                "size",
+                "Chỉ được chọn một kích thước",
+                Variation.VariationType.SINGLE,
+                true,
+                1,
+                1,
+                options1
+            ),
+            Variation(
+                "Size",
+                "size",
+                "nhiều lựa chọn ",
+                Variation.VariationType.MULTI,
+                true,
+                1,
+                20,
+                options2
+            )
+
         )
 
         return variations
@@ -139,7 +187,7 @@ object FoodSeeder {
         calories = 266,
         restaurantId = "pizza_hurt",
         categoryId = "pizza",
-        variations = setDefaultOption()
+        variations = setDefaultOption2()
     )
 
     private fun createPizzaBongCai() = Food(
@@ -179,6 +227,7 @@ object FoodSeeder {
         categoryId = "pizza",
         variations = setDefaultOption()
     )
+
     private fun createPizzaXucXich() = Food(
         name = "Pizza xúc xích",
         nameLower = "pizza xúc xích",
@@ -197,6 +246,7 @@ object FoodSeeder {
         categoryId = "pizza",
         variations = setDefaultOption()
     )
+
     private fun createPizzaTest() = Food(
         name = "Pizza xúc xích",
         nameLower = "pizza xúc xích",

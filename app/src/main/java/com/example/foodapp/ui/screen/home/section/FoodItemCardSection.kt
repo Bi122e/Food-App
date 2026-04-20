@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -49,7 +50,8 @@ fun FoodItemCard(
     isFavorite: Boolean,
     profileState: ProfileUiState,
     cartState: CartUiState,
-    onClickAddCart: (Food) -> Unit
+    onClickAddCart: (Food) -> Unit,
+    onChangeIcon: Boolean,
 ) {
     val isPreview = LocalInspectionMode.current
     val context = LocalContext.current
@@ -139,18 +141,29 @@ fun FoodItemCard(
                             .padding(vertical = 4.dp, horizontal = 8.dp)
                     )
 
-                    //add cart icon
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        tint = Color.White,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(24.dp)
-                            .background(Color(0xFF34c2c3), RoundedCornerShape(8.dp))
-                            .clickable{
-                                onClickAddCart(item)
-                             }
-                    )
+                    if (onChangeIcon) {
+                        Icon(
+                            imageVector = Icons.Rounded.Check,
+                            contentDescription = null,
+                            tint = Yellow0,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .background(Color.Black, RoundedCornerShape(8.dp))
+                        )
+                    } else {
+                        //add cart icon
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            tint = Color.White,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .background(Color(0xFF34c2c3), RoundedCornerShape(8.dp))
+                                .clickable{
+                                    onClickAddCart(item)
+                                }
+                        )
+                    }
                 }
             }
         }

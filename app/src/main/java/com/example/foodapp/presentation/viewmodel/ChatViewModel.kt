@@ -30,7 +30,14 @@ class ChatViewModel @Inject constructor(
         viewModelScope.launch {
             chatRepository.getConversationsByUserId(userId)
                 .collect { response ->
+                    if (response is ApiResponse.Conflict) {
+                        return@collect
+                    }
+                    val current = _uiState.value
+
                     _uiState.value = when (response) {
+
+
                         is ApiResponse.Loading -> {
                             _uiState.value.copy(isLoading = true)
                         }
@@ -52,6 +59,8 @@ class ChatViewModel @Inject constructor(
                         is ApiResponse.Empty -> {
                             _uiState.value.copy(isLoading = false)
                         }
+                        else -> current
+
                     }
                 }
         }
@@ -73,6 +82,10 @@ class ChatViewModel @Inject constructor(
             }
             chatRepository.getMessagesByConversationId(conversationId)
                 .collect { response ->
+                    if (response is ApiResponse.Conflict) {
+                        return@collect
+                    }
+                    val current = _uiState.value
                     when (response) {
                         is ApiResponse.Loading -> {
                             _uiState.value = _uiState.value.copy(isLoading = true)
@@ -94,6 +107,7 @@ class ChatViewModel @Inject constructor(
 
                         is ApiResponse.Empty -> {
                         }
+                        else -> current
                     }
                 }
         }
