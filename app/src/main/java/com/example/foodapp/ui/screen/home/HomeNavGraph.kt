@@ -34,6 +34,7 @@ import com.example.foodapp.presentation.viewmodel.RestaurantViewModel
 import com.example.foodapp.presentation.viewmodel.SharedViewModel
 import com.example.foodapp.presentation.viewmodel.UserProfileViewModel
 import com.example.foodapp.ui.screen.home.tab.ChatTab
+import com.example.foodapp.ui.screen.home.tab.CheckOutTab
 import com.example.foodapp.ui.screen.home.tab.FoodDetailTab
 import com.example.foodapp.ui.screen.home.tab.HomeTab
 import com.example.foodapp.ui.screen.home.tab.ProfileTab
@@ -276,16 +277,35 @@ fun HomeNavGraph(
                     )
                 }
             }
-
-
+            navigation(
+                startDestination = UserRoutes.CHECKOUT,
+                route = UserRoutes.CHECKOUT_ROOT
+            ){
+                composable(route = UserRoutes.CHECKOUT) {
+                    CheckOutTab()
+                }
+            }
             navigation(
                 startDestination = UserRoutes.CART,
                 route = UserRoutes.CART_ROOT
             ) {
-                composable(UserRoutes.CART) {
-                    CartTab()
+                 composable(UserRoutes.CART) {
+                     val cartViewModel: CartViewModel = hiltViewModel()
+                     val cartState by cartViewModel.uiCartState.collectAsStateWithLifecycle()
+                     CartTab(
+                         cartState = cartState,
+                         onClickClearCart = cartViewModel::clearCart,
+                         onClickGetBack = {
+                             navController.popBackStack()
+                         },
+                         onClickNavCheckOut = {
+                             navController.navigate(UserRoutes.CHECKOUT)
+                         }
+                     )
                 }
             }
+
+
 
             navigation(
                 startDestination = UserRoutes.PROFILE,

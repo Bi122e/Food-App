@@ -22,6 +22,8 @@ object UserRoutes {
     const val CART_ROOT = "cart_root"
     const val PROFILE = "user_profile"
     const val PROFILE_ROOT = "profile_root"
+    const val CHECKOUT_ROOT = "checkout_root"
+    const val CHECKOUT = "checkout_home"
 
     const val RESTAURANT = "user_restaurant"
     const val RESTAURANT_ROOT = "restaurant_root"

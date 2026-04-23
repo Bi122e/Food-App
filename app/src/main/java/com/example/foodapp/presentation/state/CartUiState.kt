@@ -10,6 +10,7 @@ data class CartUiState(
     val restaurant: Restaurant? = null,
     val loadingFoodIds: Set<String> = emptySet(), //luwu key (foodkey + optionkey) vì var.id có thể trùng với option cũ, ví dụ cùng op
     val currentEditingItem: ActiveCartItemUi? = null, //luu state option cua user, checkboxx, radio,..
+    val currentEditingCart: List<String>? = null,
     val error: String? = null,
 
     val showConfirmDialog: Boolean = false,

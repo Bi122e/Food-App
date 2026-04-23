@@ -120,7 +120,7 @@ fun HomeScreen(
     // Ưu tiên sử dụng logic linh hoạt và ổn định hơn cho việc hiển thị BottomBar
     val isShowBottomBar2 = isShowBottomBar && when (currentDestination?.route) {
         // Chỉ hiển thị ở các màn hình tab chính, không hiển thị ở màn hình chi tiết
-        UserRoutes.HOME, UserRoutes.CHAT, UserRoutes.CART, UserRoutes.PROFILE -> true
+        UserRoutes.HOME, UserRoutes.CHAT, UserRoutes.PROFILE -> true
 
         else -> false
     }

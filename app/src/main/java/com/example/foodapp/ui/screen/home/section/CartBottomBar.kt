@@ -11,6 +11,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddShoppingCart
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.foodapp.core.utils.toVND
 import com.example.foodapp.presentation.state.CartUiState
 import com.example.foodapp.ui.theme.Blue1
 
@@ -29,7 +33,7 @@ fun CartBottomBar(
     onClick: () -> Unit = {},
     cartState: CartUiState,
 ) {
-
+    val itemCount = cartState.cart?.getTotalItemCount() ?: 0
     Box(
         Modifier
             .fillMaxWidth()
@@ -41,40 +45,64 @@ fun CartBottomBar(
             tonalElevation = 6.dp,
             color = Blue1,
             modifier = Modifier.widthIn(max = 350.dp).padding(horizontal = 16.dp),
-            onClick = onClick
+            onClick = if (itemCount != 0) {
+                onClick
+            } else {
+                {}
+            }
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+//                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(45.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+
+                if (itemCount == 0) {
                     Text(
-                        text = "Xem giỏ hàng",
-                        fontWeight = FontWeight.SemiBold,
+                        text = "Hãy thêm món ăn",
                         fontSize = 14.sp,
-                        color = Color.White
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = "$",
-                        fontSize = 12.sp,
                         color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(Color.Black.copy(alpha = 0.3f))
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    Icon(
+                        imageVector = Icons.Default.AddShoppingCart,
+                        tint = Color.Black,
+                        contentDescription = null
+                    )
+                } else {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween)
+                    {
+                        Text(
+                            text = "Xem giỏ hàng",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 14.sp,
+                            color = Color.White
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = "${cartState.cart?.getTotalItemCount()}x",
+                            fontSize = 12.sp,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .clip(CircleShape)
+                                .background(Color.Black.copy(alpha = 0.3f))
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                    Text(
+                        text = cartState.cart?.calculateTotalPrice()?.toVND() ?: "0",
+                        fontSize = 16.sp,
+                        color = Color.White,
+                        fontWeight = FontWeight.ExtraBold
                     )
                 }
-                Text(
-                    text = "$ đ",
-                    fontSize = 16.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.ExtraBold
-                )
             }
         }
     }

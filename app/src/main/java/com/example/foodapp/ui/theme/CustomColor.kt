@@ -27,3 +27,6 @@ val Yellow0 = Color(0xFFf6d225)
 val Yellow1 = Color(0xFFf7df7e)
 val Yellow2 = Color(0xFFfdeaa8)
 val Yellow3 = Color(0xFFd2af1b)
+
+
+val Brow0 = Color(0xFFCD7F32)
