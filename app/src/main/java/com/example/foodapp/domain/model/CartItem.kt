@@ -1,5 +1,7 @@
 package com.example.foodapp.domain.model
 
+import com.example.foodapp.core.utils.buildCartItemKey
+
 
 /* cart chua item, item chua variation, variation chua cac option
 * cấu trúc cartItem(id = "1", name = "Bánh nếp", price = 10...
@@ -7,8 +9,7 @@ package com.example.foodapp.domain.model
 * mapOf("size" to "M, "do an them" to "...")
 *  */
 // variation (ten option vd: size, option(ten vd: M, S, L)
-data class CartItem(
-    val key: String = "", //luu key tranh 1 foodId bi trung voi nhieu op
+data class  CartItem(
     val foodId: String = "",
     val name: String = "",
     val basePrice: Int = 0,
@@ -17,18 +18,35 @@ data class CartItem(
     val restaurantId: String = "",
     val notes: String = "",
 //    val variation: Map<String, Set<String>> = emptyMap() //refactor kien truc moi
-    val variation: Map<String, List<VariationOption>> = emptyMap(),
+    val variation: Map<String, List<VariationOption>> = emptyMap(), //lst có thể bị trùng, Nên đổi sang: Map<String, Set<VariationOption>>
+    //["cheese", "cheese"] ≠ ["cheese"]
 ) {
+    //tao key,luu key tranh 1 foodId bi trung voi nhieu op
+    val key: String
+        //vì theo cơ chế nếu user chọn 1 var + nhiều op -> 1 item
+        // và ngược lại user chọn 1 var + 1 op -> 1 item,
+        get() = buildCartItemKey(foodId, normalizedVariation())
+    //foodId#group:optionIds|group:optionIds
+
+
+    // lst -> map
+    fun normalizedVariation(): Map<String, Set<VariationOption>> {
+        return variation.mapValues { it.value.toMutableSet() }
+    }
+
+
+
 
     //flattent la hàm làm phẳng vd: map.value -> [ Variation("M"),Variation("L"),Variation("cheese")]
 //    val totalPrice: Int
 //        get() = (basePrice + variation.values.flatten().sumOf { it.price }) * quantity
-    fun     validate(): Boolean {
+    fun validate(): Boolean {
         return foodId.isNotEmpty() &&
                 name.isNotEmpty() &&
                 basePrice >= 0 &&
                 quantity >= 1
     }
+
 
 
 //    fun getTotalPrice(): Int = basePrice * quantity
@@ -58,7 +76,7 @@ data class CartItem(
         return copy(quantity = quantity - 1)
     }
 
-    fun getTotalPrice(): Int {
+    fun getTotalPrice(): Long {
        val variationPrice =  variation.values.flatten().sumOf { it.price }
         return (variationPrice + basePrice) * quantity
     }

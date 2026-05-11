@@ -27,22 +27,28 @@ class CartRepositoryImpl @Inject constructor(
             .document(userId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    Log.d("CartState", "Api Error")
+                    Log.d("CartState_getCart", "Api Error")
                     trySend(ApiResponse.Error(error.message ?: "Unknow"))
+                    Log.d("CartState_getCart", error.message.toString())
+
                 }
                 val cart = snapshot?.toObject(Cart::class.java)
+                Log.d("CartState_getCart", "cart: $cart")
                 when {
-                    cart == null -> {
+                    cart == null || cart.cartItems.isEmpty() -> {
                         trySend(ApiResponse.Empty)
-                        Log.d("CartState", "empty:")
+
+                        Log.d("CartState_getCart", "empty:")
                     }
+
                     cart.checkValid() -> {
                         trySend(ApiResponse.Success(cart))
-                        Log.d("CartState", "check valid: ${cart.toString()}")
+                        Log.d("CartState_getCart", "check valid: ${cart.toString()}")
                     }
+
                     else -> {
                         trySend(ApiResponse.Error("Invalid cart"))
-                        Log.d("CartState", "error:")
+                        Log.d("CartState_getCart", "error:")
                     }
                 }
             }
@@ -71,7 +77,8 @@ class CartRepositoryImpl @Inject constructor(
                     )
                 } else { //có rồi thì kiểm tra tiếp có thuộc nhà hàng tồn tại đó ko, ngược lại kt tieeps có thuộc nhà hàng hiện tại ko, có thì thêm mới
                     if (currentCart.canAddFromRestaurant(restaurant.restaurantId)) {
-                        val mergedItems = mergeItem(currentCart.cartItems, item) //merge item cũ + mới
+                        val mergedItems =
+                            mergeItem(currentCart.cartItems, item) //merge item cũ + mới
                         currentCart.copy(
                             cartItems = mergedItems,
                             updatedAt = null
@@ -95,6 +102,7 @@ class CartRepositoryImpl @Inject constructor(
                         )
                     }
                 }
+
             val updateCart = cart.copy(
                 totalPrice = cart.calculateTotalPrice(),
                 price = cart.calculateSubTotalPrice()
@@ -203,6 +211,7 @@ fun mergeItem(
 }
         * */
     }
+
     // Merge item nếu đã tồn tại
     private fun mergeItem(
         current: List<CartItem>,
@@ -246,23 +255,37 @@ fun mergeItem(
 
             val cart = cartDoc?.toObject(Cart::class.java)
             if (cart != null && cart.checkValid()) {
-                val updatedItems = cart.cartItems.map { item ->
-                    if (item.key == key) {
-                        item.copy(
-                            quantity = quantity
-                        )
-                    } else item
+                val cartItems = cart.cartItems
+                    .map { item ->  if (item.key == key) item.copy(quantity = quantity) else item} //kt id items de doi qty
+                    .filter { it.quantity >= 1 } //xoa item neu cai nao co qty < 1
+                if (cartItems.isEmpty()) {
+                    // Không còn item → xóa luôn cart
+                    cartRef.document(userId).delete().await()
+                } else {
+                    val updatedCart = cart.copy(cartItems = cartItems)
+                    cartRef.document(userId).set(updatedCart).await()
                 }
-                val updatedCart = cart.copy(cartItems = updatedItems)
-                cartRef.document(userId).set(updatedCart).await()
                 ApiResponse.Success(Unit)
+//                    .find { it.key == key && quantity >= 1 }
+//                Log.d("CheckFlowVM", "repo is cartItems: $cartItems")
+//                if (cartItems != null) {
+//                    Log.d("CheckFlowVM", "repo is cartItems != null")
+//                    cartRef.document(userId).set(cartItems, SetOptions.merge())
+//                    ApiResponse.Success(Unit)
+//                } else {
+//                    Log.d("CheckFlowVM", "repo is remove item")
+//                    removeItem(userId, key)
+//                    if (cart.cartItems.isEmpty()) {
+//                        clearCart(userId)
+//                    }
+//                }
             } else {
                 ApiResponse.Error("Cart not found")
             }
+
         } catch (e: Exception) {
             ApiResponse.Error(e.message ?: "Failed to update quantity")
         }
-
     }
 
     override suspend fun removeItem(userId: String, key: String): ApiResponse<Unit> {

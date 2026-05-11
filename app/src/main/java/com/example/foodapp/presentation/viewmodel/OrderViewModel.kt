@@ -1,34 +1,51 @@
 package com.example.foodapp.presentation.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.core.UiState
 import com.example.foodapp.core.toUiState
+import com.example.foodapp.data.repository.AuthRepository
 import com.example.foodapp.data.repository.CartRepository
+import com.example.foodapp.data.repository.FoodRepository
 import com.example.foodapp.data.repository.OrderRepository
+import com.example.foodapp.data.repository.RestaurantRepository
 import com.example.foodapp.data.repository.UserRepository
+import com.example.foodapp.domain.mapper.toOrder
 import com.example.foodapp.domain.model.Order
 import com.example.foodapp.domain.model.OrderStatus
+import com.example.foodapp.domain.model.PaymentMethod
+import com.example.foodapp.presentation.state.OrderEvent
+import com.example.foodapp.presentation.state.OrderUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class OrderHistoryViewModel @Inject constructor(
+class OrderViewModel @Inject constructor(
     private val orderRepository: OrderRepository,
-    private val cart: CartRepository,
-    private val user: UserRepository
+    private val cartRepository: CartRepository,
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository,
+    private val foodRepository: FoodRepository,
+    private val restaurantRepository: RestaurantRepository,
 ) : ViewModel() {
 
     private val _orders = MutableStateFlow<UiState<List<Order>>>(UiState.Loading)
     val orders = _orders.asStateFlow()
+
 
     private val _selectOrder = MutableStateFlow<UiState<Order>>(UiState.Idle)
     val selectOrder = _selectOrder.asStateFlow()
@@ -43,6 +60,80 @@ class OrderHistoryViewModel @Inject constructor(
     val statistics = _statistics.asStateFlow()
     private var originalOrders: List<Order> = emptyList()
     private var loadOrdersJob: Job? = null
+
+    private val _orderUiState = MutableStateFlow(OrderUiState())
+    val orderUiState = _orderUiState.asStateFlow()
+
+    private val _event = MutableSharedFlow<OrderEvent>()
+    val event = _event.asSharedFlow()
+
+    init {
+        observeOrder()
+    }
+    private fun observeOrder() {
+        viewModelScope.launch {
+            val userId = authRepository.currentUserId() ?: return@launch
+            orderRepository.getOrderByUserId(userId).collectLatest { response ->
+                Log.d("OrderVM", "response = $response")
+                if (response is ApiResponse.Success) {
+                    Log.d("OrderVM", "response = $response")
+                    _orderUiState.update { it.copy(order = response.data) }
+                    Log.d("OrderVM", "state = ${_orderUiState.value.order}")
+
+                }
+            }
+        }
+    }
+
+    //toi thay the bằng thay vì truyền thẳng, thì khi gọi hàm này tự xử lý để lấy dữ liệu luôn, ui khỏi cần truyền
+//    fun placeOrder(cart: Cart, user: User, restaurant: Restaurant, paymentMethod: PaymentMethod) {
+    fun placeOrder(paymentMethod: PaymentMethod) {
+        viewModelScope.launch {
+            val userId = authRepository.currentUserId() ?: return@launch
+            val user = (userRepository.getUserById(userId) as? ApiResponse.Success)?.data ?: return@launch
+            val cart = (cartRepository.getCart(userId).first() as? ApiResponse.Success)?.data ?: return@launch
+            val restaurant = (restaurantRepository.getRestaurantById(cart.restaurantId).first() as? ApiResponse.Success)?.data ?: return@launch
+
+            val foods = cart.cartItems.mapNotNull {
+
+                (foodRepository.getFoodById(it.foodId) as? ApiResponse.Success)?.data
+            }
+
+            val foods1 = coroutineScope {
+                cart.cartItems.map { item ->
+                    async {
+                        (foodRepository.getFoodById(item.foodId) as? ApiResponse.Success)?.data
+                    }
+                }.awaitAll().filterNotNull()
+            }
+            val order = toOrder(
+                cart = cart,
+                user = user,
+                restaurant = restaurant,
+                foods = foods1,
+            )
+            val result = orderRepository.createOrder(order, paymentMethod)
+            if (result is ApiResponse.Success) {
+                _event.emit(OrderEvent.NavigationToDetail(result.data))
+                Log.d("place order", "success")
+            } else if (result is ApiResponse.Error) {
+                Log.d("place order", "failed ${result.message}")
+            }
+
+
+        }
+    }
+
+    private fun loadFood(foodId: String) {
+        viewModelScope.launch {
+            val result = foodRepository.getFoodById(foodId)
+            if (result is ApiResponse.Success) {
+                _orderUiState.update {
+                    it.copy(foods = it.foods + result.data)
+                }
+            }
+        }
+    }
 
     fun loadOrders(userId: String) {
         loadOrdersJob?.cancel()
@@ -68,7 +159,7 @@ class OrderHistoryViewModel @Inject constructor(
         }
     }
 
-//        fun filterOrders(status: OrderStatus?) {
+    //        fun filterOrders(status: OrderStatus?) {
 //        if (originalOrders.isEmpty()) return
 //
 //        val filtered = status?.let {
@@ -79,17 +170,16 @@ class OrderHistoryViewModel @Inject constructor(
 //
 //        _orders.value = UiState.Success(filtered)
 //    }
-fun filterOrders(status: OrderStatus?) {
-    if (originalOrders.isEmpty()) return
-    val filtered = status?.let {
-        originalOrders.filter { order ->
-            order.status == it
-        }
-    }?: originalOrders
+    fun filterOrders(status: OrderStatus?) {
+        if (originalOrders.isEmpty()) return
+        val filtered = status?.let {
+            originalOrders.filter { order ->
+                order.status == it
+            }
+        } ?: originalOrders
 
-    _orders.value = UiState.Success(filtered)
-}
-
+        _orders.value = UiState.Success(filtered)
+    }
 
 
     fun loadOrderDetail(orderId: String) {
@@ -147,6 +237,6 @@ fun filterOrders(status: OrderStatus?) {
 
 data class OrderStatistics(
     val totalOrders: Int,
-    val totalSpent: Int,
+    val totalSpent: Long,
 )
 

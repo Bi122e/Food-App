@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodapp.core.ApiResponse
+import com.example.foodapp.core.utils.buildCartItemKey
 import com.example.foodapp.data.repository.AuthRepository
 import com.example.foodapp.data.repository.CartRepository
 import com.example.foodapp.data.repository.RestaurantRepository
@@ -57,8 +58,10 @@ class CartViewModel @Inject constructor(
                     if (response is ApiResponse.Success) {
                         val cart = response.data
                         _uiCartState.update { it.copy(cart = cart) }
+                        Log.d("CartViewModel_cart", "res state = ${_uiCartState.value.cart}")
                         restaurantRepository.getRestaurantById(cart.restaurantId)
                     } else {
+                        Log.d("CartViewModel_cart", "empty = ${_uiCartState.value.restaurant}")
                         emptyFlow()
                     }
                 }
@@ -78,10 +81,12 @@ class CartViewModel @Inject constructor(
 //            startEditing(food)
 //            return
 //        }
-        val baseItem = ActiveCartItemUi(food)
-        val key = buildKey(baseItem)
 
-        if (key in _uiCartState.value.loadingFoodIds) return //chawn user bam nhieu lan
+        val baseItem = ActiveCartItemUi(food)
+//        val key = buildKey(baseItem)
+        val key = baseItem.key
+
+        if (key in _uiCartState.value.loadingItemKeys) return //chawn user bam nhieu lan
 
 //        viewModelScope.launch {
 //            setFoodLoading(food.foodId, true) //k su dung cai nay o editing item vi co the gay ra loi, api chưa kịp trả về mà người dùng back, loading kẹt mãi gây lỗi UI
@@ -214,9 +219,9 @@ class CartViewModel @Inject constructor(
     private fun setItemLoading(key: String, loading: Boolean) {
 //        val current = _uiCartState.value.currentEditingItem ?: return
         _uiCartState.update { state ->
-            val current = state.loadingFoodIds.toMutableSet()
+            val current = state.loadingItemKeys.toMutableSet()
             if (loading) current.add(key) else current.remove(key)
-            state.copy(loadingFoodIds = current)
+            state.copy(loadingItemKeys = current)
         }
     }
 
@@ -335,7 +340,7 @@ class CartViewModel @Inject constructor(
 
             Log.d("DEBUG_CART", "current variations pre-update: ${item.variations.keys}")
             val current = item.variations.toMutableMap()
-            val currentOptions = current[variation.id]?.toMutableList() ?: mutableListOf()
+            val currentOptions = current[variation.id]?.toMutableSet() ?: mutableSetOf()
             Log.d(
                 "DEBUG_CART",
                 "options for ${variation.id} before: ${currentOptions.map { it.id }}"
@@ -387,6 +392,8 @@ class CartViewModel @Inject constructor(
                 currentEditingItem = item.copy(variations = newVariations)
             )
         }
+        Log.d("DEBUG_CART", "final variations: ${_uiCartState.value.currentEditingItem?.variations}")
+
     }
 
     fun selectedMulti(
@@ -397,7 +404,7 @@ class CartViewModel @Inject constructor(
         _uiCartState.update { state ->
             val item = state.currentEditingItem
             val current = item?.variations?.toMutableMap() ?: return@update state
-            val currentOptions = current[variation.id]?.toMutableList() ?: return@update state
+            val currentOptions = current[variation.id]?.toMutableSet() ?: return@update state
             val option = variation.getOptionById(optionId) ?: return@update state
             if (!isSelected) {
                 currentOptions.removeAll { existing -> variation.options.any { it.id == existing.id } }
@@ -416,7 +423,7 @@ class CartViewModel @Inject constructor(
         _uiCartState.update { state ->
             val item = state.currentEditingItem
             val current = item?.variations?.toMutableMap() ?: return@update state
-            val currentOption = current[variation.id]?.toMutableList() ?: mutableListOf()
+            val currentOption = current[variation.id]?.toMutableSet() ?: mutableSetOf()
             val option = variation.getOptionById(optionId) ?: return@update state
             currentOption.removeAll { existing -> variation.options.any { it.id == existing.id } }
             currentOption.add(option)
@@ -486,7 +493,7 @@ class CartViewModel @Inject constructor(
 
 
     fun removeItem(key: String) {
-        if (key in _uiCartState.value.loadingFoodIds) return
+        if (key in _uiCartState.value.loadingItemKeys) return
         viewModelScope.launch {
 
             try {
@@ -507,8 +514,8 @@ class CartViewModel @Inject constructor(
     fun changeSimpleQuantity(food: Food, by: Int) {
         val restaurant = _uiCartState.value.restaurant ?: return
         val baseItem = ActiveCartItemUi(food)
-        val key = buildKey(baseItem)
-        if (key in _uiCartState.value.loadingFoodIds) return
+        val key = buildCartItemKey(food.foodId, baseItem.variations)
+        if (key in _uiCartState.value.loadingItemKeys) return
 
         viewModelScope.launch {
             try {
@@ -562,28 +569,29 @@ class CartViewModel @Inject constructor(
         }
     }
 
-    fun calculateWithVariation(): Int {
+    fun calculateWithVariation(): Long {
         val current = _uiCartState.value.currentEditingItem ?: return 0
         val variation = current.variations
         return current.food.getPriceWithVariation(variation)
     }
 
 
-    private fun buildKey(item: ActiveCartItemUi): String {
-        val variationKey = item.variations
-            .toSortedMap()
-            .map { (k, v) ->
-                val sortedIds = v.map { it.id }.sorted()
-                "$k:${sortedIds.joinToString()}"
-            }
-            .joinToString("|")
+//    private fun buildKey(item: ActiveCartItemUi): String {
+//        //foodId#group:optionIds|group:optionIds
+//        val variationKey = item.variations
+//            .toSortedMap()
+//            .map { (k, v) ->
+//                val sortedIds = v.map { it.id }.sorted()
+//                "$k:${sortedIds.joinToString()}"
+//            }
+//            .joinToString("|")
+//
+//        return "${item.food.foodId}#$variationKey"
+//    }
 
-        return "${item.food.foodId}#$variationKey"
-    }
 
-
-    fun getCartTotalPrice(): Double {
-        return _uiCartState.value.cart?.calculateTotalPrice() ?: 0.0
+    fun getCartTotalPrice(): Long {
+        return _uiCartState.value.cart?.calculateTotalPrice() ?: 0
     }
 
     fun clearCart() {

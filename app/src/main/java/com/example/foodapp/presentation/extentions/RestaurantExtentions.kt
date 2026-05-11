@@ -1,5 +1,6 @@
 package com.example.foodapp.presentation.extentions
 
+import com.example.foodapp.core.utils.toVND
 import com.example.foodapp.domain.model.Restaurant
 
 class RestaurantExtentions {

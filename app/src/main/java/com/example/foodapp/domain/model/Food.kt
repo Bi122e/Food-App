@@ -70,7 +70,7 @@ data class Food(
     //calculate price with variation
 
     //variation: Map<String, List<VariationOption>>
-    fun getPriceWithVariation(selectedVariation: Map<String, List<VariationOption>>): Int {
+    fun getPriceWithVariation(selectedVariation: Map<String, Set<VariationOption>>): Long {
         if (!valid || !available) return 0
 
         val basePrice = price
@@ -122,7 +122,7 @@ data class Food(
 
 fun Food.toCartItem(
     quantity: Int,
-    selectedVariations: Map<String, List<VariationOption>>,
+    selectedVariations: Map<String, Set<VariationOption>>,
     specialInstructions: String,
 ): CartItem {
     return CartItem(
@@ -134,6 +134,6 @@ fun Food.toCartItem(
         imgUrls = this.imgUrl,
         restaurantId = this.restaurantId,
         notes = specialInstructions,
-        variation = selectedVariations
+        variation = selectedVariations.mapValues { it.value.toList() }
     )
 }

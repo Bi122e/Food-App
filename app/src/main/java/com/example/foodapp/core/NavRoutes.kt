@@ -15,6 +15,8 @@ object Routes {
 
 object UserRoutes {
     const val CHAT = "user_chat"
+    const val PAYMENT = "user_payment"
+    const val ORDER = "user_order"
     const val CHAT_ROOT = "chat_root"
     const val HOME = "user_home"
     const val HOME_ROOT = "home_root"
@@ -29,8 +31,13 @@ object UserRoutes {
     const val RESTAURANT_ROOT = "restaurant_root"
     //RESTAURANTDETAIL RESTAURANT DETAIL
 
+    fun orderDetail(orderId: String): String {
+        return "$ORDER/$orderId"
+    }
 
 }
+
+
 
 fun UserRole.toRootRoute(): String = when (this) {
     UserRole.CUSTOMER -> Routes.UserRoot

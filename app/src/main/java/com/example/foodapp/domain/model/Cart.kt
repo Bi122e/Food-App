@@ -7,23 +7,30 @@ import java.util.Date
 data class Cart(
     val userId: String = "",
     val cartItems: List<CartItem> = emptyList(),
-    val totalPrice: Double = 0.0,
-    val price: Double = 0.0,
-    val deliveryFee: Int = 0,
+    val totalPrice: Long = 0,
+    val price: Long = 0,
+    val deliveryFee: Long = 0,
+    val discountAmount: Long = 0,
+    val voucher: Voucher? = null,
     val restaurantName: String = "",
     val restaurantId: String = "",
+//    val note
     @ServerTimestamp
     val createdAt: Date? = null,
     @ServerTimestamp
     val updatedAt: Date? = null,
 ) {
     @Exclude
-    fun calculateSubTotalPrice(): Double {
-        return cartItems.sumOf {it.getTotalPrice()}.toDouble()
+    fun calculateSubTotalPrice(): Long {
+        return cartItems.sumOf {it.getTotalPrice()}
     }
     @Exclude
-    fun calculateTotalPrice(): Double {
-        return calculateSubTotalPrice() + deliveryFee
+    fun calculateTotalPrice(): Long {
+//        return calculateSubTotalPrice() + deliveryFee - calculateDiscount()
+        return maxOf(
+            0,
+            calculateSubTotalPrice() + deliveryFee - calculateDiscount()
+        )
     }
     @Exclude
     fun getTotalItemCount(): Int {
@@ -39,7 +46,7 @@ data class Cart(
         return cartItems.isNotEmpty() &&
                 restaurantId.isNotEmpty() &&
                 deliveryFee >= 0 &&
-                cartItems.all {it.validate()}
+                cartItems.any {it.validate()} //nen thay = any
     }
     @Exclude
     fun Map<String, Set<String>>.toVariations(): List<Variation> {
@@ -54,6 +61,28 @@ data class Cart(
                 }
             )
         }
+    }
+
+    @Exclude
+    fun calculateDiscount(): Long {
+        val v = voucher ?: return 0
+        val subTotal = calculateSubTotalPrice()
+        if (subTotal < v.minOrderAmount) return 0
+
+        val rawDiscount = when (v.type) {
+            VoucherType.FIXED -> {
+                v.value
+            }
+            VoucherType.PERCENT -> {
+//                subTotal * (v.value / 100)
+                subTotal * v.value / 100
+            }
+        }
+
+        //max = 10
+        return if (v.maxDiscount != null) { //nếu ko có tối đa thì lấy số nhỏ nhất
+            minOf(rawDiscount, v.maxDiscount)
+        } else rawDiscount
     }
 
     @Exclude

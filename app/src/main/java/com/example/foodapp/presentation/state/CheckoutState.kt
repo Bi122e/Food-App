@@ -33,9 +33,9 @@ data class CheckoutState(
 
 //    fun getSubTotal(): Int = cart?.calculateSubTotalPrice()?: 0
 
-    fun getDeliveryFee(): Int = cart?.deliveryFee ?: 0
+    fun getDeliveryFee(): Long = cart?.deliveryFee ?: 0
 
-    fun getTotalAmount(): Int {
+    fun getTotalAmount(): Long {
         return (getTotalAmount() + getDeliveryFee() - discountAmount).coerceAtLeast(0)
     }
 

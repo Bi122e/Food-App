@@ -1,5 +1,6 @@
 package com.example.foodapp.presentation.state
 
+import com.example.foodapp.core.utils.buildCartItemKey
 import com.example.foodapp.domain.model.Cart
 import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.Restaurant
@@ -8,7 +9,7 @@ import com.example.foodapp.domain.model.VariationOption
 data class CartUiState(
     val cart: Cart? = null,
     val restaurant: Restaurant? = null,
-    val loadingFoodIds: Set<String> = emptySet(), //luwu key (foodkey + optionkey) vì var.id có thể trùng với option cũ, ví dụ cùng op
+    val loadingItemKeys: Set<String> = emptySet(), //luwu key (foodkey + optionkey) vì var.id có thể trùng với option cũ, ví dụ cùng op
     val currentEditingItem: ActiveCartItemUi? = null, //luu state option cua user, checkboxx, radio,..
     val currentEditingCart: List<String>? = null,
     val error: String? = null,
@@ -20,13 +21,17 @@ data class CartUiState(
 )
 
 data class ActiveCartItemUi(
+
     val food: Food,
 //    val price: Int = 0, k nen dung
     val quantity: Int = 1,
-    val variations: Map<String, List<VariationOption>> = emptyMap(),
+    val variations: Map<String, Set<VariationOption>> = emptyMap(),
 //    val selectedOption: Map<String, Set<String>> = emptyMap(),
     val note: String = ""
-)
+) {
+    val key: String
+        get() = buildCartItemKey(food.foodId, variations)
+}
 
 //flow này phức tạp nên tách ra layer riêng, tránh leak ra ui
 data class ConflictData(
@@ -34,7 +39,7 @@ data class ConflictData(
     val oldRestaurantName: String,
     val newRestaurantName: String,
 )
-fun ActiveCartItemUi.getTotalPrice(): Int{
+fun ActiveCartItemUi.getTotalPrice(): Long{
     return food.getPriceWithVariation(variations) * quantity
 }
 

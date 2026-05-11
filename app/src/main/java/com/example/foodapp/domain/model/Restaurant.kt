@@ -21,7 +21,7 @@ data class Restaurant(
     val estimatedDeliveryTime: Int = 30,
     val minOrderAmount: Double = 0.0,
     val coverImage: String = "",
-    val deliveryFee: Int = 30,
+    val deliveryFee: Long = 30,
     val openingHours: String = "",
     val closingHours: String = "",
     val categories: List<String> = emptyList(),
@@ -79,7 +79,7 @@ data class Restaurant(
     }
 
     fun isDeliveryFree(): Boolean {
-        return deliveryFee == 0;
+        return deliveryFee == 0L;
     }
 
     fun canOrder(orderAmount: Double): Boolean {

@@ -44,14 +44,14 @@ object PreviewCartState {
                     )
                 )
             ),
-            totalPrice = 31.3,
-            price = 13.3,
+            totalPrice = 31,
+            price = 13,
             deliveryFee = 12,
             restaurantId = "res1",
             restaurantName = "res",
         ),
         restaurant = Restaurant(),
-        loadingFoodIds = emptySet(),
+        loadingItemKeys = emptySet(),
         currentEditingItem = ActiveCartItemUi(
             food = Food(),
             quantity = 1,

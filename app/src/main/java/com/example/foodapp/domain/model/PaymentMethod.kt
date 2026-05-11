@@ -1,30 +1,37 @@
 package com.example.foodapp.domain.model
 
+import com.example.foodapp.R
+
 enum class PaymentMethod(
     val displayName: String,
     val description: String,
+    val iconRes: Int,
     val isOnlinePayment: Boolean
 ) {
     CASH(
-        "Tien mat",
+        "Tiền mặt",
         "Thanh toan khi nhap hang",
+        iconRes = R.drawable.ic_cash,
         false
     ),
      ZALO(
          "ZaloPay",
          "Vi dien tu ZaloPay",
+         R.drawable.ic_zalo_pay,
          true
      ),
 
     MOMO(
-        "Vi MoMo",
+        "Ví MoMo",
         "Thanh toan qua vi MoMo",
+        R.drawable.ic_momo_resize,
         true
     ),
 
     VNPAY(
         "VNPAY",
         "Thanh toan qua VNPAY",
+        R.drawable.ic_vnpay,
         true
     );
 

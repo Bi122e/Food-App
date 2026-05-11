@@ -6,16 +6,23 @@ import java.util.Date
 data class Order(
     val restaurantId: String = "",
     val restaurantName: String = "",
-    val subTotal: Int = 0,
-    val total: Int = 0,
-    val address: String = "",
-    val phone: String = "",
+    val subTotal: Long = 0,
+    val total: Long = 0,
+    val userAddress: String = "",
+    val restaurantAddress: String = "",
+    val userPhoneSnapshot: String = "",
+    val driverPhoneSnapshot: String = "",
     val userId: String = "",
+    val userName: String = "",
     val orderId: String = "",
-    val email: String = "",
+    val driverId: String? = null,
+    val driverName: String? = null,
+    val userEmail: String = "",
+    val restaurantEmail: String = "",
+    val driverEmail: String = "",
     val items: List<OrderItem> = emptyList(),
-    val deliveryFee: Int = 30,
-    val discountAmount: Int = 0,
+    val deliveryFee: Long = 30000,
+    val discountAmount: Long = 0,
     val estimatedDeliveryTime: Int = 30,
     val status: OrderStatus = OrderStatus.PENDING,
     val paymentStatus: PaymentStatus = PaymentStatus.UNPAID,
@@ -31,7 +38,10 @@ data class Order(
     ) {
     //calculate
 
-    fun calculateSubTotal(): Int {
+    fun getTotalPrice(): Long {
+        return total + deliveryFee + 4000L
+    }
+    fun calculateTotal(): Long {
         return items.sumOf { it.getTotalPrice() }
     }
 }

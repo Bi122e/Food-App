@@ -5,6 +5,7 @@ import com.example.foodapp.core.Constance
 import com.example.foodapp.data.repository.OrderRepository
 import com.example.foodapp.domain.model.Order
 import com.example.foodapp.domain.model.OrderStatus
+import com.example.foodapp.domain.model.PaymentMethod
 import com.example.foodapp.domain.model.PaymentStatus
 import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FieldValue
@@ -33,7 +34,7 @@ class OrderRepositoryImpl @Inject constructor(
             ApiResponse.Error(e.message ?: "")
         }
     }
-    override suspend fun createOrder(order: Order): ApiResponse<String> {
+    override suspend fun createOrder(order: Order, paymentMethod: PaymentMethod): ApiResponse<String> {
         return try {
             val snapshot = orderCollection.document()
             val orderId = snapshot.id
@@ -166,7 +167,7 @@ class OrderRepositoryImpl @Inject constructor(
     }
 
 
-    override suspend fun getTotalSpent(userId: String): ApiResponse<Int> {
+    override suspend fun getTotalSpent(userId: String): ApiResponse<Long> {
         return try {
             val snapshot = orderCollection
                 .whereEqualTo("userId", userId)

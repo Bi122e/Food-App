@@ -3,12 +3,13 @@ package com.example.foodapp.data.repository
 import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.domain.model.Order
 import com.example.foodapp.domain.model.OrderStatus
+import com.example.foodapp.domain.model.PaymentMethod
 import com.example.foodapp.domain.model.PaymentStatus
 import kotlinx.coroutines.flow.Flow
 
 interface OrderRepository {
 
-    suspend fun createOrder(order: Order): ApiResponse<String>
+    suspend fun createOrder(order: Order, paymentMethod: PaymentMethod): ApiResponse<String>
 
     suspend fun getOrderById(orderId: String): ApiResponse<Order>
     fun getOrderByUserId(userId: String): Flow<ApiResponse<List<Order>>>
@@ -29,7 +30,7 @@ interface OrderRepository {
 
     //statistics
     suspend fun getTotalOrdersCount(userId: String): ApiResponse<Int>
-    suspend fun getTotalSpent(userId: String): ApiResponse<Int>
+    suspend fun getTotalSpent(userId: String): ApiResponse<Long>
 
     suspend fun updatePaymentStatus(orderId: String, paymentStatus: PaymentStatus): ApiResponse<Unit>
 

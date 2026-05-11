@@ -2,7 +2,7 @@ package com.example.foodapp.domain.model
 
 data class VariationOption(
     val name: String = "",
-    val price: Int = 0,
+    val price: Long = 0L,
     val id: String = "",
     val description: String = "",
     val available: Boolean = true,

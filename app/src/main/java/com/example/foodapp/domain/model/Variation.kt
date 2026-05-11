@@ -48,7 +48,7 @@ data class Variation(
         }
     }
 
-    fun calculatePrice(selectedOptions: List<String>): Int {
+    fun calculatePrice(selectedOptions: List<String>): Long {
         return options
             .filter { option ->
                 option.valid &&

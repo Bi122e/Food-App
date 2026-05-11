@@ -1,14 +1,11 @@
+
 import android.annotation.SuppressLint
 import android.util.Log
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -23,37 +20,6 @@ import com.example.foodapp.presentation.viewmodel.UserProfileViewModel
 import com.example.foodapp.ui.components.HomeBottomBar
 import com.example.foodapp.ui.screen.home.HomeNavGraph
 
-
-//@Composable
-//fun HomeScreen() {
-//    val navController = rememberNavController()
-//    var selectedIndex by remember { mutableStateOf(0) }
-//
-//
-//    Scaffold(
-//        bottomBar = {
-//            HomeBottomBar(
-//                selectedIndex = selectedIndex,
-//                onItemSelected = { index ->
-//                    selectedIndex = index
-//                    navController.navigate(bottomRouteFromIndex(index)) {
-//                        launchSingleTop = true
-//                        restoreState = true
-//                        popUpTo(UserRoutes.HOME) { saveState = true }
-//                    }
-//                }
-//            )
-//        }
-//    ) { paddingValue ->
-//        HomeNavGraph(
-//            navController = navController,
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(paddingValue),
-//
-//        )
-//    }
-//}
 @SuppressLint("RestrictedApi")
 @Composable
 fun HomeScreen(
@@ -151,17 +117,17 @@ fun HomeScreen(
     ) { paddingValues ->
 
         //apply pading
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding()
-        ) {
+//        Box(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding()
+//        ) {
             HomeNavGraph(
                 navController = homeNavController,
                 parentNavController = parentNavController,
-                padding =paddingValues
+                padding = paddingValues
             )
         }
-    }
+//    }
 }
 
