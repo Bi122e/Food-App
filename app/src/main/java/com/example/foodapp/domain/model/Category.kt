@@ -5,7 +5,7 @@ import java.util.Date
 
 data class Category(
     val name: String = "",
-    val id: String = "",
+    val categoryId: String = "",
     val iconUrl: String = "",
     val slug: String = "",
     val order: Int = 0, //display order
@@ -16,7 +16,7 @@ data class Category(
 ) {
     fun isValid(): Boolean {
         return name.isNotEmpty() &&
-                id.isNotEmpty() &&
+                categoryId.isNotEmpty() &&
                 slug.isNotEmpty()
     }
 

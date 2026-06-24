@@ -5,6 +5,8 @@ object Constance {
     const val COLLECTION_USER = "users"
     const val COLLECTION_RESTAURANTS = "restaurants"
     const val COLLECTION_FOOD = "foods"
+    const val COLLECTION_NOTIFICATION = "notifications"
+    const val COLLECTION_PREVIEW = "previews"
     const val COLLECTION_CATEGORIES = "categories"
     const val COLLECTION_ORDERS = "orders"
     const val COLLECTION_CARTS = "carts"

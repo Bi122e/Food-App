@@ -1,6 +1,7 @@
-package com.example.foodapp.ui.screen.main.section
+package com.example.foodapp.ui.screen.main.restaurant.section
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -22,7 +23,9 @@ import com.example.foodapp.domain.model.Restaurant
 import com.example.foodapp.ui.theme.Yellow0
 
 @Composable
-fun RestaurantInfoSection(restaurant: Restaurant) {
+fun RestaurantInfoSection(
+    restaurant: Restaurant,
+    onNavigationToPreview: () -> Unit) {
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
 //        Text(text = restaurant.restaurantName, style = MaterialTheme.typography.titleMedium)
 
@@ -67,6 +70,7 @@ fun RestaurantInfoSection(restaurant: Restaurant) {
             Text(
                 text = "Đánh giá khác",
                 fontSize = 13.sp,
+
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier
                     .background(
@@ -74,6 +78,7 @@ fun RestaurantInfoSection(restaurant: Restaurant) {
                         shape = CircleShape
                     )
                     .padding(vertical = 4.dp, horizontal = 8.dp)
+                    .clickable(onClick = onNavigationToPreview)
             )
         }
     }

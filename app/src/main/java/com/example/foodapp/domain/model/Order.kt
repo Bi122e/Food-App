@@ -9,14 +9,23 @@ data class Order(
     val subTotal: Long = 0,
     val total: Long = 0,
     val userAddress: String = "",
+    val driverAvatar: String? = "",
     val restaurantAddress: String = "",
     val userPhoneSnapshot: String = "",
     val driverPhoneSnapshot: String = "",
     val userId: String = "",
+    val genderDriver: String = "",
+    val ratingDriver: Double = 0.0,
+    val licensePlate: String = "",
+    val vehicleName: String = "",
+    val vehicleColor: String = "",
     val userName: String = "",
     val orderId: String = "",
     val driverId: String? = null,
+    val hasRated: Boolean = false, //notifi ap
+    val ratingNotificationSent: Boolean = false, //snackbar
     val driverName: String? = null,
+    val active: Boolean = true,
     val userEmail: String = "",
     val restaurantEmail: String = "",
     val driverEmail: String = "",
@@ -32,16 +41,23 @@ data class Order(
     val cancelReason: String? = null,
     @ServerTimestamp
     val createdAt: Date? = null,
+    @ServerTimestamp
     val updatedAt: Date? = null,
+    @ServerTimestamp
     val deliveredAt: Date? = null,
 
     ) {
     //calculate
 
+    fun isFinished(): Boolean {
+        return status == OrderStatus.DELIVERED || status == OrderStatus.CANCELLED
+    }
+
     fun getTotalPrice(): Long {
-        return total + deliveryFee + 4000L
+        return total + 4000L
     }
-    fun calculateTotal(): Long {
-        return items.sumOf { it.getTotalPrice() }
-    }
+
+    val isDriverAssigned: Boolean
+        get() = driverId != null && driverName != null
+
 }

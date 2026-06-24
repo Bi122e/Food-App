@@ -1,4 +1,4 @@
-package com.example.foodapp.ui.screen.main.section
+package com.example.foodapp.ui.screen.main.cart.section
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -55,25 +55,25 @@ fun CartBottomBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp, vertical = 12.dp),
-//                horizontalArrangement = Arrangement.SpaceBetween,
+//                horizontalArrang ement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(45.dp)
             ) {
 
-                if (itemCount == 0) {
-                    Text(
-                        text = "Hãy thêm món ăn",
-                        fontSize = 14.sp,
-                        color = Color.White,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Spacer(Modifier.width(10.dp))
-                    Icon(
-                        imageVector = Icons.Default.AddShoppingCart,
-                        tint = Color.Black,
-                        contentDescription = null
-                    )
-                } else {
+//                if (itemCount == 0) {
+//                    Text(
+//                        text = "Hãy thêm món ăn",
+//                        fontSize = 14.sp,
+//                        color = Color.White,
+//                        fontWeight = FontWeight.SemiBold
+//                    )
+//                    Spacer(Modifier.width(10.dp))
+//                    Icon(
+//                        imageVector = Icons.Default.AddShoppingCart,
+//                        tint = Color.Black,
+//                        contentDescription = null
+//                    )
+//                } else {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween)
@@ -102,7 +102,7 @@ fun CartBottomBar(
                         color = Color.White,
                         fontWeight = FontWeight.ExtraBold
                     )
-                }
+//                }
             }
         }
     }

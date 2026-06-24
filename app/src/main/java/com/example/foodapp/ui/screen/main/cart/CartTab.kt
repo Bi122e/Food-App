@@ -1,6 +1,7 @@
 
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -431,11 +432,10 @@ fun CartTab(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Rounded.AddShoppingCart,
+                        Image(
+                            painter = painterResource(R.drawable.ic_empty_cart1),
                             contentDescription = null,
-                            tint = Gray65,
-                            modifier = Modifier.size(100.dp)
+                            modifier = Modifier.size(200.dp)
                         )
                         Spacer(Modifier.height(20.dp))
 

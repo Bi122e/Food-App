@@ -9,6 +9,7 @@ import com.example.foodapp.core.toUiState
 import com.example.foodapp.data.repository.AuthRepository
 import com.example.foodapp.data.repository.CartRepository
 import com.example.foodapp.data.repository.FoodRepository
+import com.example.foodapp.data.repository.NotificationRepository
 import com.example.foodapp.data.repository.OrderRepository
 import com.example.foodapp.data.repository.RestaurantRepository
 import com.example.foodapp.data.repository.UserRepository
@@ -16,6 +17,8 @@ import com.example.foodapp.domain.mapper.toOrder
 import com.example.foodapp.domain.model.Order
 import com.example.foodapp.domain.model.OrderStatus
 import com.example.foodapp.domain.model.PaymentMethod
+import com.example.foodapp.presentation.extentions.toAppNotification
+import com.example.foodapp.presentation.state.AppNotificationOrder
 import com.example.foodapp.presentation.state.OrderEvent
 import com.example.foodapp.presentation.state.OrderUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,6 +32,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.forEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -41,6 +45,7 @@ class OrderViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val foodRepository: FoodRepository,
     private val restaurantRepository: RestaurantRepository,
+    private val notificationRepository: NotificationRepository,
 ) : ViewModel() {
 
     private val _orders = MutableStateFlow<UiState<List<Order>>>(UiState.Loading)
@@ -56,6 +61,8 @@ class OrderViewModel @Inject constructor(
         MutableSharedFlow<UiState<Unit>>(replay = 0, extraBufferCapacity = 1)
     val cancelOrderEvent = _cancelOrderEvent.asSharedFlow()
 
+
+
     private val _statistics = MutableStateFlow<UiState<OrderStatistics>>(UiState.Loading)
     val statistics = _statistics.asStateFlow()
     private var originalOrders: List<Order> = emptyList()
@@ -67,8 +74,15 @@ class OrderViewModel @Inject constructor(
     private val _event = MutableSharedFlow<OrderEvent>()
     val event = _event.asSharedFlow()
 
+    private val handleOrderIds = mutableSetOf<String>()
+
+
     init {
         observeOrder()
+        observeOrderSuccess()
+        Log.d("OrderFlow", "VM HASH = ${hashCode()}")
+
+
     }
     private fun observeOrder() {
         viewModelScope.launch {
@@ -79,7 +93,6 @@ class OrderViewModel @Inject constructor(
                     Log.d("OrderVM", "response = $response")
                     _orderUiState.update { it.copy(order = response.data) }
                     Log.d("OrderVM", "state = ${_orderUiState.value.order}")
-
                 }
             }
         }
@@ -92,7 +105,7 @@ class OrderViewModel @Inject constructor(
             val userId = authRepository.currentUserId() ?: return@launch
             val user = (userRepository.getUserById(userId) as? ApiResponse.Success)?.data ?: return@launch
             val cart = (cartRepository.getCart(userId).first() as? ApiResponse.Success)?.data ?: return@launch
-            val restaurant = (restaurantRepository.getRestaurantById(cart.restaurantId).first() as? ApiResponse.Success)?.data ?: return@launch
+            val restaurant = (restaurantRepository.getRestaurantById(cart.restaurantId) as? ApiResponse.Success)?.data ?: return@launch
 
             val foods = cart.cartItems.mapNotNull {
 
@@ -119,8 +132,6 @@ class OrderViewModel @Inject constructor(
             } else if (result is ApiResponse.Error) {
                 Log.d("place order", "failed ${result.message}")
             }
-
-
         }
     }
 
@@ -131,6 +142,77 @@ class OrderViewModel @Inject constructor(
                 _orderUiState.update {
                     it.copy(foods = it.foods + result.data)
                 }
+            }
+        }
+    }
+
+
+    private fun observeOrderSuccess() {
+        Log.d("checkVM_observeOrderSuccess", " CALLED")
+
+        viewModelScope.launch {
+            Log.d("checkVM_observeOrderSuccess", "VM: observeOrderSuccess - run")
+
+            val userId = authRepository.currentUserId() ?: return@launch
+
+            orderRepository.getOrderNeedRating(userId).collectLatest { response ->
+                Log.d("checkVM_observeOrderSuccess", "VM: userId = $userId")
+                when (response) {
+                    is ApiResponse.Success -> {
+                        Log.d(
+                            "checkVM_observeOrderSuccess",
+                            "BEFORE FILTER handledIds = $handleOrderIds"
+                        )
+                       val handleOrders = response.data.filter {
+                           it.orderId !in handleOrderIds
+                        }
+
+                        Log.d(
+                            "checkVM_observeOrderSuccess",
+                            "AFTER FILTER handleOrders = ${handleOrders.map { it.orderId }}"
+                        )
+
+                        Log.d("checkVM_observeOrderSuccess", "VM: check is Empty ${response.data} == ${response.data.isNotEmpty()}")
+                        if (handleOrders.isNotEmpty()) {
+                            Log.d("checkVM_observeOrderSuccess", " uccess: ${response.data}")
+                            _orderUiState.update {
+                                it.copy(
+                                    appNotificationOrder = AppNotificationOrder(
+                                        orders = handleOrders,
+//                                    isRead = false,
+                                        ratingNotificationSent = true
+                                    )
+                                )
+                            }
+                            handleOrders.forEach { order ->
+                                val response = notificationRepository.createNotification(notification = order.toAppNotification())
+
+                                when (response) {
+                                    is ApiResponse.Success -> {
+                                        Log.d("check_VM_createNotification", "success")
+                                    }
+                                    is ApiResponse.Error -> {
+                                        Log.d("check_VM_createNotification", "error ${response.message}")
+                                    }
+                                    else -> {
+                                        Log.d("check_VM_createNotification", "else")
+                                    }
+                                }
+                            }
+
+                            handleOrders.forEach {
+                                handleOrderIds.add(it.orderId)
+                            }
+                        }
+                    }
+                    is ApiResponse.Error -> {
+                        Log.d("checkVM_observeOrderSuccess", " error: ${response.message}")
+                    }
+                    else -> {
+                        Log.d("checkVM_observeOrderSuccess", " else")
+                    }
+                }
+                Log.d("checkVM_observeOrderSuccess", " state: ${orderUiState.value.appNotificationOrder}")
             }
         }
     }
@@ -233,7 +315,27 @@ class OrderViewModel @Inject constructor(
             _cancelOrderEvent.emit(UiState.Idle)
         }
     }
+
+
+    fun resetNotification() {
+        viewModelScope.launch {
+            _orderUiState.value.appNotificationOrder?.orders?.forEach {
+                orderRepository.updateOrder(
+                    order = it.copy(
+                        ratingNotificationSent = true
+                    )
+                )
+            }
+
+            _orderUiState.update {
+                it.copy(
+                    appNotificationOrder = it.appNotificationOrder?.copy(ratingNotificationSent = false)
+                )
+            }
+        }
+    }
 }
+
 
 data class OrderStatistics(
     val totalOrders: Int,

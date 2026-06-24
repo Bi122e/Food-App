@@ -1,4 +1,4 @@
-package com.example.foodapp.ui.screen.main.section
+package com.example.foodapp.ui.screen.main.restaurant.section
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -36,10 +36,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.foodapp.R
+import com.example.foodapp.core.utils.showToast
 import com.example.foodapp.core.utils.toVND
 import com.example.foodapp.domain.model.Food
 import com.example.foodapp.presentation.state.CartUiState
 import com.example.foodapp.presentation.state.ProfileUiState
+import com.example.foodapp.ui.theme.Blue1
 import com.example.foodapp.ui.theme.Yellow0
 
 @Composable
@@ -61,9 +63,20 @@ fun FoodItemCard(
             .clip(RoundedCornerShape(24.dp))
             .background(Color.White)
     ) {
-        Column {
+        Column(
+            modifier = Modifier
+                .clickable {
+                    onClickAddCart(item)
+                    showToast(context, "click")
+                }
+        ) {
             // img food
-            Box(modifier = Modifier.fillMaxWidth().height(100.dp)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)
+
+            ) {
                 AsyncImage(
                     model = item.imgUrl,
                     contentDescription = null,
@@ -85,8 +98,11 @@ fun FoodItemCard(
                     contentDescription = null,
                     tint = Color.Red,
                     modifier = Modifier
-                        .padding(10.dp).align(Alignment.TopEnd).size(25.dp)
-                        .background(Color(0xFFf2eded), CircleShape).padding(3.dp)
+                        .padding(10.dp)
+                        .align(Alignment.TopEnd)
+                        .size(25.dp)
+                        .background(Color(0xFFf2eded), CircleShape)
+                        .padding(3.dp)
                         .clickable {
                             onClickFavorite(item.foodId)
 
@@ -97,7 +113,8 @@ fun FoodItemCard(
             // info food
             Column(
                 modifier = Modifier.padding(8.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 Text(
                     text = item.name,
                     fontSize = 14.sp,
@@ -132,7 +149,7 @@ fun FoodItemCard(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = item.price.toVND(),
+                        text = "${item.price.toVND()}đ",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White,
@@ -145,7 +162,7 @@ fun FoodItemCard(
                         Icon(
                             imageVector = Icons.Rounded.Check,
                             contentDescription = null,
-                            tint = Yellow0,
+                            tint = Color.Cyan,
                             modifier = Modifier
                                 .size(24.dp)
                                 .background(Color.Black, RoundedCornerShape(8.dp))
@@ -159,9 +176,6 @@ fun FoodItemCard(
                             modifier = Modifier
                                 .size(24.dp)
                                 .background(Color(0xFF34c2c3), RoundedCornerShape(8.dp))
-                                .clickable{
-                                    onClickAddCart(item)
-                                }
                         )
                     }
                 }

@@ -1,6 +1,11 @@
 package com.example.foodapp.ui.screen.register
 
+import android.annotation.SuppressLint
+import android.util.Log
 import android.util.Patterns
+import androidx.activity.ComponentActivity
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -24,6 +29,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -34,9 +40,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -44,58 +56,80 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.foodapp.core.AuthResult
-import com.example.foodapp.core.UiState
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.foodapp.R
 import com.example.foodapp.core.utils.showToast
+import coloredShadow
+import com.example.foodapp.presentation.state.AppState
+import com.example.foodapp.presentation.state.AuthUiState
+import com.example.foodapp.presentation.viewmodel.AuthViewModel
+import com.example.foodapp.ui.screen.splash.LoadingBtn
+import com.example.foodapp.ui.theme.Blue0
+import com.example.foodapp.ui.theme.Blue1
+import com.example.foodapp.ui.theme.Blue2
+import com.example.foodapp.ui.theme.Blue4
 import com.example.foodapp.ui.theme.BlueGreen
+import com.example.foodapp.ui.theme.Gray
+import com.example.foodapp.ui.theme.Gray100
+import com.example.foodapp.ui.theme.Gray65
 import com.example.foodapp.ui.theme.MediumGray
 import com.example.foodapp.ui.theme.PrimaryBlue
+import com.example.foodapp.ui.theme.Yellow3
 import com.example.foodapp.ui.theme.secondBlue
 
 
+@SuppressLint("ContextCastToActivity", "RestrictedApi", "StateFlowValueCalledInComposition")
 @Composable
 fun RegisterScreen(
-    uiState: UiState<AuthResult>,
+    appState: AppState,
     onRegisterClick: (String, String) -> Unit,
     onResetState: () -> Unit,
-    onBackToLogin: () -> Unit
+    onBackToLogin: () -> Unit,
 ) {
     val context = LocalContext.current
-//    when (uiState) {
-//        is UiState.Success -> {
-//            showToast(context, "Đăng ký thành công")
-//            onResetState()
-//            navController.navigate("home")
-//        }
-//        is UiState.Error -> showToast(context, uiState.message)
-//        else -> Unit
-//    }
-//    RegisterContent(
-//        onRegisterClick = { email, password ->
-//            onRegisterClick(email, password)
-//        },
-//        onClickLogin = {
-//            navController.popBackStack()
-//
-//        }
-//    )
+    val showLoading = appState is AppState.Loading
+    val activity = LocalContext.current as? ComponentActivity ?: return
 
-    LaunchedEffect(uiState) {
-        when (uiState) {
-            is UiState.Success -> {
+    val authViewModel: AuthViewModel = hiltViewModel(viewModelStoreOwner = activity)
+
+    //check loading btn register
+    val authUiState by authViewModel.authUiState.collectAsStateWithLifecycle()
+
+
+    if (showLoading) {
+        showToast(context, "loading")
+
+    }
+
+    LaunchedEffect(appState) {
+        when (appState) {
+            is AppState.LoggedIn -> {
                 showToast(context, "Đăng ký thành công")
                 onResetState()
             }
-            is UiState.Error -> {
-                showToast(context, uiState.message)
+
+            is AppState.Error -> {
+                showToast(context, appState.message)
+                Log.d("check_error_register", "error ${appState.message}")
+
             }
-            else -> Unit
+
+            is AppState.Loading -> {
+                showToast(context, "loading res")
+                Log.d("check_error_register", "loading")
+            }
+
+            else -> {
+                Log.d("check_error_register", "else")
+            }
         }
     }
 
     RegisterContent(
         onRegisterClick = onRegisterClick,
-        onClickLogin = onBackToLogin
+        onClickLogin = onBackToLogin,
+        authUiState = authUiState,
     )
 }
 
@@ -103,54 +137,72 @@ fun RegisterScreen(
 @Composable
 fun RegisterContent(
     onRegisterClick: (String, String) -> Unit,
-    onClickLogin: () -> Unit
+    onClickLogin: () -> Unit,
+    authUiState: AuthUiState,
 
-) {
+    ) {
+
+
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.horizontalGradient(
-                    listOf(
-                        secondBlue,
-                        Color.White
-                    )
-                )
-            ),
+        modifier = Modifier.fillMaxSize(),
+//            .background(
+//                brush = Brush.horizontalGradient(
+//                    listOf(
+//                        secondBlue,
+//                        Color.White
+//                    )
+//                )
+//            ),
         contentAlignment = Alignment.Center
     ) {
-        Card(
+
+        Image(
+            painter = painterResource(R.drawable.bg_sky9),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 12.dp)
+                .fillMaxWidth()
+                .height(602.dp)
+                .background(Color.White, RoundedCornerShape(22.dp))
+        )
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(15.dp),
-            shape = RoundedCornerShape(24.dp),
-            elevation = CardDefaults.cardElevation(12.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colorStops = arrayOf(
-                                0.0f to PrimaryBlue,
-                                0.15f to PrimaryBlue,
-                                0.25f to Color.White,
-                                1.5f to Color.White
-                            )
+                .padding(16.dp)
+                .coloredShadow(
+                    colors = listOf(Gray65), 1f, blurRadius = 5.dp, spread = 0.1.dp
+                )
+                .clip(RoundedCornerShape(20.dp))
+                .background(
+                    brush = Brush.verticalGradient(
+                        colorStops = arrayOf(
+                            0.0f to Color(0xFFc6f0fe),
+                            0.12f to Color(0xFFe4f8fc),
+                            0.25f to Color.White,
+                            1.5f to Color.White
                         )
-                    )
+                    ), RoundedCornerShape(20.dp)
+                )
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    modifier = Modifier
-                        .padding(20.dp)
-                        .fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    HeaderRegister()
-                    Spacer(Modifier.height(10.dp))
-                    RegisterForm(onClickRegister = onRegisterClick)
-                    Spacer(Modifier.height(20.dp))
-                    LoginHint(onClickLogin)
-                }
+                HeaderRegister()
+                Spacer(Modifier.height(30.dp))
+                RegisterForm(
+                    onClickRegister = onRegisterClick, authUiState = authUiState
+                )
+                Spacer(Modifier.height(20.dp))
+                LoginHint(onClickLogin)
+
+
             }
         }
     }
@@ -159,24 +211,26 @@ fun RegisterContent(
 
 @Composable
 fun HeaderRegister() {
+    val montserratExtraBold = FontFamily(Font(R.font.montserrat_extrabold))
+    val montserratMedium = FontFamily(Font(R.font.montserrat_semibold))
     Text(
         text = "Tạo tài khoản",
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 10.dp),
-        fontSize = 24.sp,
-        fontWeight = FontWeight.SemiBold,
+        fontSize = 22.sp,
+        fontWeight = FontWeight.ExtraBold,
 //        color = Color(0xff00A3A3),
         color = Color.Black,
         textAlign = TextAlign.Center
     )
     Text(
-        text = "Vui lòng nhập thông tin chi tiết của bạn",
+        text = "Vui lòng nhập thông tin của bạn",
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 20.dp),
         fontSize = 16.sp,
-        fontWeight = FontWeight.Normal,
+        fontWeight = FontWeight.Medium,
         color = Color.Gray,
         textAlign = TextAlign.Center
     )
@@ -187,12 +241,16 @@ fun HeaderRegister() {
 @Preview
 @Composable
 fun RegisterFormReview() {
-    RegisterContent({ _, _ -> Unit }, {})
+    RegisterContent(
+        { _, _ -> Unit }, {}, authUiState = AuthUiState(isLoadingRegister = false)
+    )
+
 }
 
 @Composable
 fun RegisterForm(
     onClickRegister: (String, String) -> Unit,
+    authUiState: AuthUiState,
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -207,13 +265,18 @@ fun RegisterForm(
 
     Text(
         text = "Email của bạn",
+        fontWeight = FontWeight.Medium,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 10.dp, start = 2.dp)
+            .padding(bottom = 20.dp, start = 2.dp)
     )
 
     //email field
-    val isEmailValid = Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    val isEmailValid =
+        Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches() && email.substringAfterLast(
+            ".",
+            ""
+        ).length > 2
     val emailError = hasSubmitted && (email.isBlank() || !isEmailValid)
     val passwordError = hasSubmitted && password.isNotBlank() && password.length < 8
     val confirmPasswordError =
@@ -227,7 +290,8 @@ fun RegisterForm(
         value = email,
         onValueChange = {
             hasSubmitted = false
-            email = it },
+            email = it
+        },
         placeholder = { Text("email", color = Color.Gray) },
         isError = emailError,
         leadingIcon = {
@@ -244,17 +308,20 @@ fun RegisterForm(
         colors = TextFieldDefaults.colors(
             focusedTextColor = Color.Black,
             unfocusedTextColor = Color.Black,
-
+            focusedIndicatorColor = Blue1.copy(0.3f),
             focusedContainerColor = MediumGray,
             unfocusedContainerColor = MediumGray,
             disabledContainerColor = MediumGray,
 
             disabledIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
+            unfocusedIndicatorColor = Color.Transparent,
+            errorContainerColor = Color.Transparent,
         ),
     )
     if (emailError) Text(
-        "Địa chỉ email không hợp lệ", color = Color.Red, modifier = Modifier
+        "Địa chỉ email không hợp lệ",
+        color = Color.Red,
+        modifier = Modifier
             .padding(top = 6.dp, bottom = 6.dp)
             .fillMaxWidth()
             .padding(10.dp),
@@ -265,6 +332,7 @@ fun RegisterForm(
 
     Text(
         "Mật khẩu của bạn",
+        fontWeight = FontWeight.Medium,
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 2.dp, bottom = 10.dp)
@@ -276,26 +344,24 @@ fun RegisterForm(
         isError = passwordError,
         onValueChange = {
             hasSubmitted = false
-            password = it },
-        visualTransformation =
-            if (showPassword) VisualTransformation.None
-            else PasswordVisualTransformation(),
+            password = it
+        },
+        visualTransformation = if (showPassword) VisualTransformation.None
+        else PasswordVisualTransformation(),
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 10.dp),
         shape = RoundedCornerShape(20.dp),
         leadingIcon = {
             Icon(
-                Icons.Default.Lock,
-                contentDescription = null,
-                tint = Color.Gray
+                Icons.Default.Lock, contentDescription = null, tint = Color.Gray
             )
         },
         placeholder = {
             Text(
                 text = "Mật khẩu",
-                color = Color.Gray,
-                modifier = Modifier
+
+                color = Color.Gray, modifier = Modifier
             )
         },
         colors = TextFieldDefaults.colors(
@@ -314,12 +380,8 @@ fun RegisterForm(
             IconButton(
                 onClick = { showPassword = !showPassword }) {
                 Icon(
-                    imageVector =
-                        if (showPassword)
-                            Icons.Default.Visibility
-                        else
-                            Icons.Default.VisibilityOff,
-                    contentDescription = null,
+                    imageVector = if (showPassword) Icons.Default.Visibility
+                    else Icons.Default.VisibilityOff, contentDescription = null,
 //                    tint = if (password.isNotBlank() && !isEmailValid)
 //                        Color.Red
 //                    else
@@ -327,11 +389,11 @@ fun RegisterForm(
                     tint = Color.Gray
                 )
             }
-        }
-    )
+        })
     if (passwordError) {
         Text(
-            text = "Mật khẩu phải 8 ký tự trở lên", modifier = Modifier
+            text = "Mật khẩu phải 8 ký tự trở lên",
+            modifier = Modifier
                 .padding(top = 6.dp, bottom = 6.dp)
                 .fillMaxWidth()
                 .padding(10.dp),
@@ -341,6 +403,7 @@ fun RegisterForm(
     }
     Text(
         "Xác nhận mật khẩu",
+        fontWeight = FontWeight.Medium,
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 2.dp, bottom = 10.dp)
@@ -351,26 +414,21 @@ fun RegisterForm(
         value = confirmPassword,
         onValueChange = {
             hasSubmitted = false
-            confirmPassword = it },
+            confirmPassword = it
+        },
         isError = confirmPasswordError,
-        modifier = Modifier
-            .fillMaxWidth(),
-        visualTransformation =
-            if (showConfirmPassword) VisualTransformation.None
-            else PasswordVisualTransformation(),
+        modifier = Modifier.fillMaxWidth(),
+        visualTransformation = if (showConfirmPassword) VisualTransformation.None
+        else PasswordVisualTransformation(),
         shape = RoundedCornerShape(20.dp),
         leadingIcon = {
             Icon(
-                Icons.Default.Lock,
-                contentDescription = null,
-                tint = Color.Gray
+                Icons.Default.Lock, contentDescription = null, tint = Color.Gray
             )
         },
         placeholder = {
             Text(
-                text = "Nhập lại mật khẩu",
-                color = Color.Gray,
-                modifier = Modifier
+                text = "Nhập lại mật khẩu", color = Color.Gray, modifier = Modifier
             )
         },
         colors = TextFieldDefaults.colors(
@@ -382,27 +440,29 @@ fun RegisterForm(
             disabledContainerColor = MediumGray,
 
             disabledIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
-        ),
+            unfocusedIndicatorColor = Color.Transparent,
+            errorContainerColor = Color.Transparent,
+
+            ),
         trailingIcon = {
             IconButton(
-                onClick = { showConfirmPassword = !showConfirmPassword }
-            ) {
+                onClick = { showConfirmPassword = !showConfirmPassword }) {
                 Icon(
-                    imageVector =
-                        if (showConfirmPassword) Icons.Default.Visibility
-                        else Icons.Default.VisibilityOff,
+                    imageVector = if (showConfirmPassword) Icons.Default.Visibility
+                    else Icons.Default.VisibilityOff,
                     contentDescription = null,
                     modifier = Modifier,
                     tint = Color.Gray
                 )
             }
 
-        }
-    )
+        })
+    val context = LocalContext.current
     if (confirmPasswordError) {
         Text(
-            "Mật khẩu nhập lại không khớp", color = Color.Red, modifier = Modifier
+            "Mật khẩu nhập lại không khớp",
+            color = Color.Red,
+            modifier = Modifier
                 .padding(top = 6.dp, bottom = 6.dp)
                 .fillMaxWidth()
                 .padding(10.dp),
@@ -410,32 +470,43 @@ fun RegisterForm(
         )
     }
 
-    Spacer(Modifier.height(50.dp))
+    Spacer(Modifier.height(70.dp))
     //button register
     //email = isEmail (false), email (false) -> false
     //true ||
+    Log.d("check_can_click_btn", "can click${canClick}")
+    Log.d("check_can_click_btn", "iaLoading${!authUiState.isLoadingLogin}")
+
+    Log.d("check_can_click_btn", "sum = ${canClick && !authUiState.isLoadingLogin}")
     Button(
-        enabled = canClick,
-        onClick = {
+        enabled = canClick && !authUiState.isLoadingRegister, onClick = {
             hasSubmitted = true
+            Log.d("check_error_register", "dk: $isFormValid")
             if (isFormValid) {
-                onClickRegister(email, password)
+                showToast(context = context, "click regis")
+                onClickRegister(email.trim(), password)
             }
-        },
-        modifier = Modifier
+        }, modifier = Modifier
             .fillMaxWidth()
-            .height(52.dp),
-        shape = RoundedCornerShape(14.dp),
+            .height(52.dp), shape = RoundedCornerShape(10.dp),
 //        colors = ButtonDefaults.buttonColors(BlueGreen),
-        colors = ButtonDefaults.buttonColors(Color.Black)
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Blue1,
+            disabledContainerColor = Blue1.copy(0.2f),
+
+            )
     ) {
 
-        Text(
-            text = "Đăng ký",
-            fontSize = 16.sp
-        )
-    }
+        if (authUiState.isLoadingRegister) {
 
+            LoadingBtn()
+        } else {
+            Text(
+                text = "Đăng ký", fontSize = 16.sp, color = Color.White
+            )
+        }
+
+    }
 }
 
 @Composable
@@ -444,25 +515,18 @@ fun LoginHint(
 ) {
 
     Row(
-        modifier = Modifier,
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier, verticalAlignment = Alignment.CenterVertically
     ) {
 
         Text(
-            text = "Bạn đã có tài khoản?",
-            modifier = Modifier
+            text = "Bạn đã có tài khoản?", modifier = Modifier
         )
         Text(
-            text = "Đăng nhập",
-            modifier = Modifier
+            text = "Đăng nhập", modifier = Modifier
                 .padding(5.dp)
                 .clickable {
                     onClickLogin()
-                }
-
-            ,
-            color = BlueGreen,
-            fontWeight = FontWeight.Bold
+                }, color = BlueGreen, fontWeight = FontWeight.Bold
         )
     }
 }

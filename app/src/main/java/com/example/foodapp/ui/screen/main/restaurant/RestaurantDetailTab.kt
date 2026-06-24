@@ -1,7 +1,6 @@
-package com.example.foodapp.ui.screen.main.tab
+package com.example.foodapp.ui.screen.main.restaurant
 
 import android.util.Log
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -29,6 +28,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.foodapp.core.UiState
 import com.example.foodapp.core.utils.UiStateHandler
+import com.example.foodapp.domain.model.Cart
+import com.example.foodapp.domain.model.CartItem
 import com.example.foodapp.domain.model.Favorite
 import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.Restaurant
@@ -36,11 +37,12 @@ import com.example.foodapp.presentation.state.CartUiState
 import com.example.foodapp.presentation.state.ProfileUiState
 import com.example.foodapp.ui.preview.PreviewDataFood
 import com.example.foodapp.ui.preview.PreviewDataRestaurant
-import com.example.foodapp.ui.screen.main.section.CartBottomBar
-import com.example.foodapp.ui.screen.main.section.FoodItemCard
-import com.example.foodapp.ui.screen.main.section.RestaurantHeaderSection
-import com.example.foodapp.ui.screen.main.section.RestaurantTabRow
-import com.example.foodapp.ui.theme.Pink0
+import com.example.foodapp.ui.screen.main.cart.section.CartBottomBar
+import com.example.foodapp.ui.screen.main.restaurant.section.ConflictDialog
+import com.example.foodapp.ui.screen.main.restaurant.section.FoodItemCard
+import com.example.foodapp.ui.screen.main.restaurant.section.RestaurantHeaderSection
+import com.example.foodapp.ui.screen.main.restaurant.section.RestaurantTabRow
+import com.example.foodapp.ui.theme.White
 
 @Composable
 fun RestaurantDetailTab(
@@ -48,29 +50,39 @@ fun RestaurantDetailTab(
     foodsState: UiState<List<Food>?>,
     foodId: String? = null,
     cartState: CartUiState,
-     profileState: ProfileUiState,
+    profileState: ProfileUiState,
     favoriteState: UiState<Map<String, Favorite>>,
     onClickFavorite: (String) -> Unit,
     onClickBackHome: () -> Unit,
     onClickAddCart: (Food) -> Unit,
+    onDialogChange: () -> Unit,
+    onForceAddItem: () -> Unit,
     onClickViewCart: () -> Unit = {},
+    onNavigationToPreview: () -> Unit,
 ) {
     val context = LocalContext.current
     val isPreview = LocalInspectionMode.current
     val gribState = rememberLazyGridState()
 
 
+
     Scaffold(
         modifier = Modifier
-            .fillMaxSize()
-            .background(Pink0),
+            .fillMaxSize(),
         bottomBar = {
-//            val cart = (overallCartState as? UiState.Success)?.data
-            CartBottomBar(
-                cartState = cartState,
-                onClick = onClickViewCart
-            )
-        }
+            val currentRestaurant = (restaurantState as? UiState.Success)?.data
+            val cartRestaurantId = cartState.restaurant?.restaurantId
+            val isSameRestaurant = currentRestaurant?.restaurantId == cartRestaurantId
+
+            if (isSameRestaurant) {
+                CartBottomBar(
+                    cartState = cartState,
+                    onClick = onClickViewCart
+                )
+            }
+
+        },
+        containerColor = White
     ) { paddingValue ->
 
         Column(
@@ -81,7 +93,10 @@ fun RestaurantDetailTab(
             //hEADER (COVER + AVATAR + INFO)
             UiStateHandler(uiState = restaurantState) { resData ->
                 resData?.let { data ->
-                    RestaurantHeaderSection(restaurant = data, onClickBackHome = onClickBackHome)
+                    RestaurantHeaderSection(
+                        restaurant = data,
+                        onClickBackHome = onClickBackHome,
+                        onNavigationToPreview = onNavigationToPreview)
                 }
             }
 
@@ -119,19 +134,22 @@ fun RestaurantDetailTab(
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                             verticalArrangement = Arrangement.spacedBy(11.dp),
                             contentPadding = PaddingValues(
-                                top = paddingValue  .calculateTopPadding() + 20.dp,
+                                top = paddingValue.calculateTopPadding() + 20.dp,
                                 bottom = paddingValue.calculateBottomPadding() + 20.dp
                             )
 //                            contentPadding = PaddingValues(bottom = 0.dp)
                         ) {
                             val favorite =
-                                (favoriteState as? UiState.Success<Map<String, Favorite>>)?.data ?: emptyMap()
+                                (favoriteState as? UiState.Success<Map<String, Favorite>>)?.data
+                                    ?: emptyMap()
                             Log.d("CartState", "food: $displayList")
                             Log.d("CartState", "size food: ${displayList.size}")
                             //true -> getData
                             itemsIndexed(displayList) { idx, item ->
-                                val isChange = cartState.cart?.cartItems?.any { it.foodId == item.foodId } ?: false
-                                 Log.d("CartState", "$idx food: $item")
+                                val isChange =
+                                    cartState.cart?.cartItems?.any { it.foodId == item.foodId }
+                                        ?: false
+                                Log.d("CartState", "$idx food: $item")
                                 Log.d("CartState", "true of false: $isChange")
                                 FoodItemCard(
                                     item = item,
@@ -141,16 +159,36 @@ fun RestaurantDetailTab(
                                     profileState = profileState,
                                     cartState = cartState,
                                     onChangeIcon = isChange
-                                    )
+                                )
                             }
                         }
                     }
                 }
-                1 -> { /* Popular Items logic */ }
-                2 -> { /* Exclusive logic */ }
+
+                1 -> {
+                    RestaurantTabSecond()
+                }
+
+                2 -> {
+                    RestaurantTabThird()
+                }
             }
         }
     }
+
+
+
+    ConflictDialog(
+        showDialog = cartState.showConfirmDialog,
+        onDialogToClose = {
+            onDialogChange()
+        },
+        title = "Thay thế giỏ hàng?",
+        message = cartState.conflictData?.message ?: "...",
+        onForceAddItem = onForceAddItem,
+    )
+
+
 }
 
 
@@ -159,15 +197,32 @@ fun RestaurantDetailTab(
 fun RestaurantTabPreview() {
     RestaurantDetailTab(
         foodsState = PreviewDataFood.foodState,
-        restaurantState = PreviewDataRestaurant.restaurantState.data.let { UiState.Success(it.firstOrNull()) },
+        restaurantState = PreviewDataRestaurant
+            .restaurant
+            .let {
+                UiState.Success(it)
+            }
+        ,
         foodId = "",
         onClickFavorite = {},
         favoriteState = UiState.Loading,
         onClickBackHome = {},
         profileState = ProfileUiState(),
         onClickAddCart = {},
-        cartState = CartUiState(),
-        onClickViewCart = {}
+        cartState = CartUiState(
+            cart = Cart(
+                cartItems = listOf(
+                    CartItem(quantity = 1)
+                ),
+                restaurantId = "resId"
+            ),
+            restaurant = Restaurant(restaurantId = "resId" ),
+            showConfirmDialog = false
+        ),
+        onClickViewCart = {},
+        onDialogChange = {},
+        onForceAddItem = {},
+        onNavigationToPreview = {}
     )
 }
 

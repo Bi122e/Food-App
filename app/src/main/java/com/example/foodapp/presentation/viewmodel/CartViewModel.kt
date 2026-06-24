@@ -19,7 +19,9 @@ import com.example.foodapp.presentation.state.ConflictData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.emptyFlow
@@ -40,6 +42,9 @@ class CartViewModel @Inject constructor(
     private val _uiCartState = MutableStateFlow(CartUiState())
     val uiCartState = _uiCartState.asStateFlow()
 
+    private val _eventGetBack = MutableSharedFlow<Unit>()
+    val eventGetBack = _eventGetBack.asSharedFlow()
+
     init {
         observeCart()
     }
@@ -54,33 +59,65 @@ class CartViewModel @Inject constructor(
                 return@launch
             }
             cartRepository.getCart(userId)
-                .flatMapLatest { response ->
-                    if (response is ApiResponse.Success) {
-                        val cart = response.data
-                        _uiCartState.update { it.copy(cart = cart) }
-                        Log.d("CartViewModel_cart", "res state = ${_uiCartState.value.cart}")
-                        restaurantRepository.getRestaurantById(cart.restaurantId)
-                    } else {
-                        Log.d("CartViewModel_cart", "empty = ${_uiCartState.value.restaurant}")
-                        emptyFlow()
+//                .flatMapLatest { response ->
+                .collectLatest { response ->
+                    when (response) {
+                        is ApiResponse.Success -> {
+                            val cart = response.data
+                            _uiCartState.update { it.copy(cart = cart) }
+                            Log.d("checkVM_observeCart", "res state = ${_uiCartState.value.cart}")
+                            val restaurantResponse =
+                                restaurantRepository.getRestaurantById(cart.restaurantId)
+                            when (restaurantResponse) {
+                                is ApiResponse.Success -> {
+                                    _uiCartState.update { it.copy(restaurant = restaurantResponse.data) }
+                                    Log.d(
+                                        "checkVM_observeCart_getRestaurantById",
+                                        "success restaurantResponse = ${_uiCartState.value.restaurant}"
+                                    )
+                                }
+
+                                is ApiResponse.Error -> {
+                                    Log.d(
+                                        "checkVM_observeCart_getRestaurantById",
+                                        "error restaurantResponse = ${restaurantResponse.message}"
+                                    )
+                                }
+
+                                else -> {
+                                    Log.d(
+                                        "checkVM_observeCart_getRestaurantById",
+                                        "restaurantResponse -> else"
+                                    )
+                                }
+                            }
+                            Log.d("checkVM_observeCart_getRestaurantById", "STATE = ${_uiCartState.value.restaurant}")
+
+                        }
+
+                        is ApiResponse.Error -> {
+                            Log.d("checkVM_observeCart", "error = ${response.message}")
+                        }
+
+                        else -> {
+                            Log.d("checkVM_observeCart", "empty = ${_uiCartState.value.restaurant}")
+                        }
                     }
+                    Log.d("checkVM_observeCart", "STATE = ${_uiCartState.value}")
                 }
-                .collectLatest { restaurant ->
-                    if (restaurant is ApiResponse.Success) {
-                        _uiCartState.update { it.copy(restaurant = restaurant.data) }
-                        Log.d("CartViewModel_cart", "res state = ${_uiCartState.value.restaurant}")
-                    }
-                }
+//                .collectLatest { restaurant ->
+//                    if (restaurant is ApiResponse.Success) {
+//                        _uiCartState.update { it.copy(restaurant = restaurant.data) }
+//                        Log.d("CartViewModel_cart", "res state = ${_uiCartState.value.restaurant}")
+//                    }
+//                }
         }
     }
 
     //food ko co variation
     fun addSimpleItem(food: Food, restaurant: Restaurant) {
         Log.d("Check Food", food.toString())
-//        if (food.variations.isNotEmpty()) { //flow đoạn này nên tạo 1 hàm để kt food có var opttion ko, rồi mới nên gọi addSimpleItem hay addEditingItem, khi user click item hàm trung gian đó chỉ cần gọi ra thôi
-//            startEditing(food)
-//            return
-//        }
+
 
         val baseItem = ActiveCartItemUi(food)
 //        val key = buildKey(baseItem)
@@ -88,26 +125,27 @@ class CartViewModel @Inject constructor(
 
         if (key in _uiCartState.value.loadingItemKeys) return //chawn user bam nhieu lan
 
-//        viewModelScope.launch {
-//            setFoodLoading(food.foodId, true) //k su dung cai nay o editing item vi co the gay ra loi, api chưa kịp trả về mà người dùng back, loading kẹt mãi gây lỗi UI
-//            val userId = authRepository.currentUserId() ?: return@launch
-//            val item = ActiveCartItemUi(food, 1 )
-//            handleCartResult(cartRepository.addItem(userId, CartMapper.toDomain(item), restaurant))
-//            setFoodLoading(food.foodId, false)
-//        }
+
         viewModelScope.launch {
             try {
                 setItemLoading(key, true)
                 val userId = authRepository.currentUserId() ?: return@launch
                 val currentQty = _uiCartState.value.cart?.getQuantityOf(key) ?: 0
                 val item = ActiveCartItemUi(food, (currentQty + 1).coerceIn(1, 20))
+                Log.d(
+                    "ADDCART",
+                    "cartRestaurant=${_uiCartState.value.cart?.restaurantId}, " +
+                            "selectedRestaurant=${restaurant.restaurantId}"
+                )
                 handleCartResult(
-                    cartRepository.addItem(
+                    result = cartRepository.addItem(
                         userId,
                         CartMapper.toDomain(item),
                         restaurant,
                         false
-                    )
+                    ),
+                    item = item,
+                    restaurant = restaurant
                 )
             } finally {
                 setItemLoading(key = key, false)
@@ -115,104 +153,43 @@ class CartViewModel @Inject constructor(
         }
     }
 
-    //fun addSimpleItem(food: Food, restaurant: Restaurant) {
-    //    if (food.foodId in _uiCartState.value.loadingFoodIds) return
-    //
-    //    viewModelScope.launch {
-    //        try {
-    //            setFoodLoading(food.foodId, true)
-    //            val userId = authRepository.currentUserId() ?: return@launch
-    //            val currentQty = _uiCartState.value.cart?.getQuantityOf(food.foodId) ?: 0
-    //            val item = ActiveCartItemUi(food, (currentQty + 1).coerceIn(1, 20))
-    //            handleCartResult(cartRepository.addItem(userId, CartMapper.toDomain(item), restaurant))
-    //        } finally {
-    //            setFoodLoading(food.foodId, false) // luôn được gọi dù có lỗi hay return
-    //        }
-    //    }
-
-    //food co variation
-//    fun addEditingItem(restaurant: Restaurant) {
-//        val missing = getInvalidVariation()
-//        if (missing.isNotEmpty()) {
-//            _uiCartState.update {
-//                it.copy(error = "Vui lòng chọn: ${missing.joinToString(", ")}")
-//            }
-//            return
-//        }
-//
-//        viewModelScope.launch {
-//            val userId = authRepository.currentUserId() ?: return@launch
-//            val item = _uiCartState.value.currentEditingItem ?: return@launch
-//
-//
-//        }
-//
-//    }
 
     //food co variation
     fun addEditingItem() {
+
         val missing = getInvalidVariation()
         if (missing.isNotEmpty()) {
             _uiCartState.update { it.copy(error = "Vui lòng chọn: ${missing.joinToString(", ")}") }
+            return
         }
         viewModelScope.launch {
             val restaurant = _uiCartState.value.restaurant ?: return@launch
             val userId = authRepository.currentUserId() ?: return@launch
             val item = _uiCartState.value.currentEditingItem ?: return@launch
+            Log.d(
+                "ADDCART",
+                "cartRestaurant=${_uiCartState.value.cart?.restaurantId}, " +
+                        "selectedRestaurant=${restaurant.restaurantId}"
+            )
             handleCartResult(
-                cartRepository.addItem(
+                result = cartRepository.addItem(
                     userId,
                     CartMapper.toDomain(item),
                     restaurant,
                     forceClear = false
+                ),
+                item = item,
+                restaurant = restaurant,
+
                 )
-            )
-            _uiCartState.update { it.copy(currentEditingItem = null) }
+            if (!_uiCartState.value.showConfirmDialog) {
+                _eventGetBack.emit(Unit)
+            }
+            Log.d("emmit___emit", "kiem tra${_uiCartState.value.currentEditingItem}")
+
         }
     }
 
-
-//    val cartSummary: StateFlow<CartSummary> = _uiCartState
-//        .map { state ->
-//            val cartQty = state.cart?.getTotalItemCount() ?: 0
-//            val cartPrice = state.cart?.calculateTotalPrice() ?: 0.0
-//
-//            val editingQty = state.currentEditingItem?.quantity ?: 0
-//            val editingPrice = state.currentEditingItem?.calculatePrice() ?: 0.0
-//
-//            CartSummary(
-//                totalQuantity = cartQty + editingQty,
-//                totalPrice = cartPrice + editingPrice
-//            )
-//    }
-//        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), CartSummary())
-
-
-    //thoong bao cho UI biet co required ko
-//    fun getMissingRequiredVariations(): List<String> {
-//        val item = _uiCartState.value.currentEditingItem ?: return emptyList()
-//        return item.food.variations
-//            .filter { variation ->
-//                variation.required &&
-//                        item.variations[variation.id].isNullOrEmpty()
-//            }
-//            .map { it.name }
-//    }
-//    private fun validateCurrentItem(): Boolean {
-//        val item = _uiCartState.value.currentEditingItem ?: return false
-//
-//        return item.food.variations.all { variation ->
-//            val selected = item.variations[variation.id].orEmpty()
-//
-//            if (!variation.required && selected.isEmpty()) return@all true //kt required co bat buoc k
-//            if (variation.required && selected.isEmpty()) return@all false
-//
-//            when (variation.type) {
-//                Variation.VariationType.SINGLE -> selected.size == 1
-//                Variation.VariationType.MULTI -> selected.isNotEmpty()
-//            }
-//        }
-//    }
 
     //dựa vào id food để loading trạng thái, để tránh user spam
     //flow dựa vào true hay false để add hay remove, khi sử dụng gọi loading state có chứa key ko, nếu có (true) thì dừng hàm, để lệnh loading trước đó chạy xong
@@ -255,34 +232,50 @@ class CartViewModel @Inject constructor(
     }
 
     //clear item cu neu user bam dong y xoa nha hang khi them mon an
-    fun forceAddItem(restaurant: Restaurant) {
-        val pending = _uiCartState.value.pending ?: return
-
+    fun forceAddItem() {
+        val conflict = _uiCartState.value.conflictData ?: return
         viewModelScope.launch {
             val userId = authRepository.currentUserId() ?: return@launch
 
             handleCartResult(
                 cartRepository.addItem(
                     userId,
-                    CartMapper.toDomain(pending),
-                    restaurant,
+                    CartMapper.toDomain(conflict.item),
+                    conflict.restaurant,
                     forceClear = true
                 )
-            )
+            ) {
+                Log.d("emmit___emit", "success")
+                _uiCartState.update {
+                    it.copy(currentEditingItem = null)
+                }
+                viewModelScope.launch {
+                    _eventGetBack.emit(Unit)
+                    Log.d("emmit___emit", "VM unit")
+
+                }
+            }
 
             _uiCartState.update {
                 it.copy(
                     showConfirmDialog = false,
                     conflictData = null,
-                    pending = null,
-                    currentEditingItem = null
+                    currentEditingItem = null,
                 )
             }
+            Log.d("test_final__conf", "VM ${_uiCartState.value.toString()}")
+
         }
     }
 
     //wrapper api
-    private fun handleCartResult(result: ApiResponse<Cart>, onSuccess: (() -> Unit)? = null) {
+    //khi nhận tham số onsucc vì sẽ trả về on { hành động tiếp theo } đỡ phải viết is Api Sucess...
+    private fun handleCartResult(
+        result: ApiResponse<Cart>,
+        item: ActiveCartItemUi? = null,
+        restaurant: Restaurant? = null,
+        onSuccess: (() -> Unit)? = null
+    ) {
         when (result) {
             is ApiResponse.Success -> {
                 //snapshot se tu ban (emit) lai nen ko can set
@@ -292,15 +285,20 @@ class CartViewModel @Inject constructor(
             is ApiResponse.Error -> _uiCartState.update { it.copy(error = result.message) }
             is ApiResponse.Loading -> {}
             is ApiResponse.Conflict -> _uiCartState.update {
+                Log.d(
+                    "test_final__conf",
+                    "VM conflict true:${_uiCartState.value.showConfirmDialog}"
+                )
                 it.copy(
                     showConfirmDialog = true,
                     conflictData = ConflictData(
-                        message = result.message,
                         oldRestaurantName = result.oldRestaurantName,
-                        newRestaurantName = result.newRestaurantName
+                        newRestaurantName = result.newRestaurantName,
+                        item = item!!,
+                        restaurant = restaurant!!,
                     ),
-                    pending = it.currentEditingItem //tai sao lai can cai nay trong khi da co current edit truoc do roi, tao 2 cai current ?
                 )
+
             }
 
             is ApiResponse.Empty -> {
@@ -313,14 +311,26 @@ class CartViewModel @Inject constructor(
     //set state co variation
     fun startEditing(food: Food) {
         viewModelScope.launch {
-            restaurantRepository.getRestaurantById(food.restaurantId).collectLatest { response ->
-                if (response is ApiResponse.Success)
+            val response = restaurantRepository.getRestaurantById(food.restaurantId)
+            when (response) {
+                is ApiResponse.Success -> {
                     _uiCartState.update {
                         it.copy(
                             restaurant = response.data,
                             currentEditingItem = ActiveCartItemUi(food = food)
                         )
                     }
+                    Log.d("check_VM_startEditing", "success ${response.data}")
+                }
+
+                is ApiResponse.Error -> {
+                    Log.d("check_VM_startEditing", "error ${response.message}")
+                }
+
+                else -> {
+                    Log.d("check_VM_startEditing", "else")
+                }
+
             }
         }
 
@@ -392,7 +402,10 @@ class CartViewModel @Inject constructor(
                 currentEditingItem = item.copy(variations = newVariations)
             )
         }
-        Log.d("DEBUG_CART", "final variations: ${_uiCartState.value.currentEditingItem?.variations}")
+        Log.d(
+            "DEBUG_CART",
+            "final variations: ${_uiCartState.value.currentEditingItem?.variations}"
+        )
 
     }
 
@@ -603,14 +616,21 @@ class CartViewModel @Inject constructor(
                     _uiCartState.update { it.copy(error = response.message) }
                     Log.d("Cart ViewModel Clear Cart", "Failed")
                 }
+
                 is ApiResponse.Success -> {
                     _uiCartState.update { it.copy(cart = null) }
                     Log.d("Cart ViewModel Clear Cart", "Success")
                 }
+
                 else -> {}
             }
         }
     }
+
+    fun changeValueDialog() {
+        _uiCartState.update { it.copy(showConfirmDialog = false) }
+    }
+
+
 }
 
-//lưu bằng variation.id

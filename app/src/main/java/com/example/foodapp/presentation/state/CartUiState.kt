@@ -16,10 +16,12 @@ data class CartUiState(
 
     val showConfirmDialog: Boolean = false,
     val conflictData: ConflictData? = null,
-    val pending: ActiveCartItemUi? = null,
+     // thì cần active để lưu dữ liệu mới
 
 )
 
+
+//item đang edit
 data class ActiveCartItemUi(
 
     val food: Food,
@@ -33,12 +35,18 @@ data class ActiveCartItemUi(
         get() = buildCartItemKey(food.foodId, variations)
 }
 
-//flow này phức tạp nên tách ra layer riêng, tránh leak ra ui
+//data cũ và mới
 data class ConflictData(
-    val message: String,
     val oldRestaurantName: String,
     val newRestaurantName: String,
-)
+    val item: ActiveCartItemUi,
+    val restaurant: Restaurant,
+) {
+
+    val message: String
+        get() = "Giỏ hàng hiện đang chứa món từ $oldRestaurantName. " +
+                "Nếu tiếp tục, toàn bộ món hiện tại sẽ bị xóa và thay bằng món từ $newRestaurantName."
+}
 fun ActiveCartItemUi.getTotalPrice(): Long{
     return food.getPriceWithVariation(variations) * quantity
 }

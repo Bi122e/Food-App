@@ -32,8 +32,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.foodapp.presentation.state.HomeUiState
-import com.example.foodapp.presentation.viewmodel.HomeViewModel
 
 
 data class BottomNavItem(

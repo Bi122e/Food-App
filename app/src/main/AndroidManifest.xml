@@ -30,16 +30,30 @@
             android:name=".ui.activity.HomeActivity"
             android:exported="false" />
 
+
+        <service
+            android:name=".service.MyFirebaseMessagingService"
+            android:exported="false">
+
+            <intent-filter>
+                <action
+                    android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+
+        </service>
+
+
         <activity
             android:name=".ui.activity.MainActivity"
-            android:theme="@style/Theme.App.Starting"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.App.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <!--        android:theme="@style/Theme.App.Starting"-->
+
 
     </application>
 

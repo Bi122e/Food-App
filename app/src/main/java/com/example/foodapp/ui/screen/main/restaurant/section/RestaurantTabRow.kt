@@ -1,4 +1,4 @@
-package com.example.foodapp.ui.screen.main.section
+package com.example.foodapp.ui.screen.main.restaurant.section
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

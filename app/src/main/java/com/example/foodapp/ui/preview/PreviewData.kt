@@ -47,7 +47,7 @@ object PreviewData {
         description = "Pizza bông cải xanh, ít chất béo và nhiều chất xơ.",
         price = 54000,
         imgUrl = "https://res.cloudinary.com/dgbz1qem7/image/upload/v1751530024/pizza0_tysmwq.jpg",
-        categoryId = "pizza",
+        categoriesId = listOf("pizza") ,
         restaurantId = "pizza_hurt",
         averageRating = 4.2,
         reviewCount = 3,
@@ -68,7 +68,7 @@ object PreviewData {
 
 
     val cakeCategory = Category(
-        id = "banh-cake",
+        categoryId = "banh-cake",
         name = "Bánh cake",
         slug = "banh-cake",
         iconUrl = "https://res.cloudinary.com/dgbz1qem7/image/upload/v1751443004/cake_rfwgzb.png",

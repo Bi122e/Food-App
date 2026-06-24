@@ -1,4 +1,4 @@
-package com.example.foodapp.ui.screen.main.section
+package com.example.foodapp.ui.screen.main.restaurant.section
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -24,7 +24,11 @@ import com.example.foodapp.R
 import com.example.foodapp.domain.model.Restaurant
 
 @Composable
-fun RestaurantHeaderSection(restaurant: Restaurant, onClickBackHome: () -> Unit) {
+fun RestaurantHeaderSection(
+    restaurant: Restaurant,
+    onClickBackHome: () -> Unit,
+    onNavigationToPreview: () -> Unit,
+    ) {
     Column {
         Box(modifier = Modifier.fillMaxWidth().height(180.dp)) {
             // Cover Image
@@ -54,6 +58,7 @@ fun RestaurantHeaderSection(restaurant: Restaurant, onClickBackHome: () -> Unit)
                     model = restaurant.imageUrl,
                     contentDescription = null,
                     placeholder = painterResource(R.drawable.ic_loading),
+                    error = painterResource(R.drawable.ic_restaurant1),
                     modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(15.dp))
                 )
             }
@@ -62,6 +67,6 @@ fun RestaurantHeaderSection(restaurant: Restaurant, onClickBackHome: () -> Unit)
         Spacer(Modifier.height(8.dp))
 
         // Info
-        RestaurantInfoSection(restaurant)
+        RestaurantInfoSection(restaurant, onNavigationToPreview = onNavigationToPreview)
     }
 }

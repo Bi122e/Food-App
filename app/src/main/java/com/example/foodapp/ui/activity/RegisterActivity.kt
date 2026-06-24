@@ -23,6 +23,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.foodapp.R
 import com.example.foodapp.core.UiState
 import com.example.foodapp.databinding.ActivityRegisterBinding
+import com.example.foodapp.presentation.state.AppState
 import com.example.foodapp.presentation.viewmodel.AuthViewModel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -96,25 +97,23 @@ class RegisterActivity : AppCompatActivity() {
 
     private fun observeAuthState() {
         lifecycleScope.launch {
-            viewModel.uiState.collect { state ->
+            viewModel.appState.collect { state ->
                 when (state) {
-                    UiState.Idle -> Unit
 
-                    UiState.Loading -> {
+                    AppState.Loading -> {
                         // show loading
                     }
 
-                    is UiState.Success -> {
+                    is AppState.LoggedIn -> {
                         Toast.makeText(this@RegisterActivity, "Đăng ký thành công", Toast.LENGTH_SHORT).show()
                         startActivity(Intent(this@RegisterActivity, LoadingActivity::class.java))
                         finish()
                     }
 
-                    is UiState.Error -> {
+                    is AppState.Error -> {
                         Toast.makeText(this@RegisterActivity, state.message, Toast.LENGTH_SHORT).show()
                     }
-
-                    is UiState.Empty -> Unit
+                    else -> {}
                 }
             }
         }

@@ -66,6 +66,8 @@ class CartRepositoryImpl @Inject constructor(
             val currentCart = doc.toObject(Cart::class.java)
             val cart =
                 if (currentCart == null) { //nếu chưa có thì tạo mới
+                    Log.d("emmit___emit", "FB: current null")
+
                     Cart(
                         userId = userId,
                         cartItems = listOf(item),
@@ -75,8 +77,11 @@ class CartRepositoryImpl @Inject constructor(
                         createdAt = null,
                         updatedAt = null,
                     )
+
                 } else { //có rồi thì kiểm tra tiếp có thuộc nhà hàng tồn tại đó ko, ngược lại kt tieeps có thuộc nhà hàng hiện tại ko, có thì thêm mới
                     if (currentCart.canAddFromRestaurant(restaurant.restaurantId)) {
+                        Log.d("emmit___emit", "FB: == res")
+
                         val mergedItems =
                             mergeItem(currentCart.cartItems, item) //merge item cũ + mới
                         currentCart.copy(
@@ -84,13 +89,19 @@ class CartRepositoryImpl @Inject constructor(
                             updatedAt = null
                         )
                     } else {
-                        if (!forceClear) {
+
+                        Log.d("test_final__conf", "fb conflict, $forceClear - ")
+
+                        if (!forceClear) { //thông báo conflict, nếu user true mới force clear
+                            Log.d("emmit___emit", "FB: == !forceClear")
+
+                            Log.d("ADDCART", "CONFLICT")
                             return ApiResponse.Conflict(
-                                message = "Giỏ hàng hiện tại thuộc nhà hàng khác",
-                                oldRestaurantName = currentCart.restaurantName,
-                                newRestaurantName = restaurant.restaurantName
+                                 oldRestaurantName = currentCart.restaurantName,
+                                newRestaurantName = restaurant.restaurantName,
                             )
                         }
+                        Log.d("emmit___emit", "FB: == forceClear")
                         Cart(
                             userId = userId,
                             cartItems = listOf(item),
@@ -100,7 +111,7 @@ class CartRepositoryImpl @Inject constructor(
                             createdAt = null,
                             updatedAt = null
                         )
-                    }
+                     }
                 }
 
             val updateCart = cart.copy(

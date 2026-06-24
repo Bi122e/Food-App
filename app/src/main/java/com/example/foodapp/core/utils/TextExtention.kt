@@ -35,8 +35,8 @@ fun Date?.toFormattedTime(): String {
     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
     val dateFormat = SimpleDateFormat("d/M/yyyy", Locale.getDefault())
 
-    val time = timeFormat.format(date)
-    val day = dateFormat.format(date)
+    val time = timeFormat.format(this)
+    val day = dateFormat.format(this)
 
     return "$time • $day"
 

@@ -1,6 +1,5 @@
-package com.example.foodapp.ui.screen.home
+package com.example.foodapp.ui.screen.main
 
-import android.R.attr.padding
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -15,18 +14,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.foodapp.core.UiState
 import com.example.foodapp.core.UserRoutes
 import com.example.foodapp.core.bottomRouteFromIndex
 import com.example.foodapp.domain.model.ProfileCompleteness
-import com.example.foodapp.domain.model.User
 import com.example.foodapp.presentation.extentions.homeDataOrNull
 import com.example.foodapp.presentation.extentions.isLoading
 import com.example.foodapp.presentation.viewmodel.HomeViewModel
 import com.example.foodapp.presentation.viewmodel.UserProfileViewModel
 import com.example.foodapp.ui.components.HomeBottomBar
-import com.example.foodapp.ui.screen.bottomBar.HomeTopBar
-import com.example.foodapp.ui.screen.home.tab.LoadingHomeTab
+import com.example.foodapp.ui.screen.shared.HomeTopBar
+import com.example.foodapp.ui.screen.main.home.section.LoadingHomeTab
 
 @SuppressLint("RestrictedApi")
 @Composable
@@ -103,7 +100,9 @@ fun HomeScreen(
                             collapsed = collapsed,
                             onNavigationToSearchTab = {
                                 homeNavController.navigate(UserRoutes.EXPLORE_ROOT)
-                            }
+                            },
+                            badgeCount = homeUiState.badgeCount,
+                            onNavigationToNotification = { homeNavController.navigate(UserRoutes.NOTIFICATION) }
                         )
                     }
                 },
@@ -147,10 +146,8 @@ fun HomeScreen(
         }
 
         else -> {
-            // ← FIX: thêm branch này
             Log.e("HomeScreen", "State: EMPTY/ERROR — homeUiState=$homeUiState")
-            // Tạm thời hiện loading để debug, sau đổi thành error UI
-            LoadingHomeTab()
+             LoadingHomeTab()
         }
 
         }

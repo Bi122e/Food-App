@@ -16,6 +16,8 @@ interface OrderRepository {
     fun getOrderByRestaurantId(restaurantId: String): Flow<ApiResponse<List<Order>>>
     fun getAllOrder(): Flow<ApiResponse<List<Order>>>
 
+    fun getOrderIncomplete(userId: String): Flow<ApiResponse<List<Order>>>
+
     //update
     suspend fun updateOrderStatus(orderId: String, status: OrderStatus): ApiResponse<Unit>
     suspend fun updateOrder(order: Order): ApiResponse<Unit>
@@ -34,4 +36,5 @@ interface OrderRepository {
 
     suspend fun updatePaymentStatus(orderId: String, paymentStatus: PaymentStatus): ApiResponse<Unit>
 
+    fun getOrderNeedRating(userId: String): Flow<ApiResponse<List<Order>>>
 }

@@ -15,6 +15,9 @@ class AuthRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
 ) : AuthRepository {
     private val userCollection = firestore.collection("users")
+
+    //---------------------
+
     override suspend fun login(email: String, password: String): ApiResponse<String> {
        return try {
            val result = auth.signInWithEmailAndPassword(email, password).await()
@@ -31,6 +34,7 @@ class AuthRepositoryImpl @Inject constructor(
         email: String,
         password: String
     ): ApiResponse<String> {
+
         return try {
             val result = auth.createUserWithEmailAndPassword(email, password).await()
             val uid = result.user?.uid ?: return ApiResponse.Error("User null")

@@ -26,7 +26,7 @@ class CategoryRepositoryImpl @Inject constructor(
             val categoryRef = categoriesCollection.document()
             val categoryId = categoryRef.id
             val categoryWithId = category.copy(
-                id = categoryId,
+                categoryId = categoryId,
                 createdAt = Date(),
                 updatedAt = Date(),
             )
@@ -130,7 +130,7 @@ class CategoryRepositoryImpl @Inject constructor(
                 updatedAt = Date()
             )
             categoriesCollection
-                .document(category.id)
+                .document(category.categoryId)
                 .set(updatedCategory)
                 .await()
             ApiResponse.Success(Unit)

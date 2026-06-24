@@ -1,5 +1,9 @@
 package com.example.foodapp.ui.screen.main.profile
 
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.app.Application
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -53,15 +57,28 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.foodapp.R
 import com.example.foodapp.core.utils.showToast
 import com.example.foodapp.domain.model.Restaurant
-import com.example.foodapp.presentation.extentions.coloredShadow
 import com.example.foodapp.presentation.state.EditProfileState
 import com.example.foodapp.presentation.state.ProfileUiState
+import com.example.foodapp.presentation.viewmodel.AuthViewModel
 import com.example.foodapp.presentation.viewmodel.UserProfileViewModel
-import com.example.foodapp.ui.screen.main.section.FavoriteBottomSheet
+import com.example.foodapp.ui.activity.MainActivity
+import com.example.foodapp.ui.screen.main.profile.section.AddressProfileSection
+import com.example.foodapp.ui.screen.main.profile.section.EvaluateProfileSection
+import com.example.foodapp.ui.screen.main.profile.section.FavoriteProfileSection
+import com.example.foodapp.ui.screen.main.profile.section.HeaderProfileSection
+ import com.example.foodapp.ui.screen.main.profile.section.LogoutProfileSection
+import com.example.foodapp.ui.screen.main.profile.section.NavBottomBarProfileSection
+import com.example.foodapp.ui.screen.main.profile.section.PaymentProfileSection
+import com.example.foodapp.ui.screen.main.profile.section.SettingProfileSection
+import com.example.foodapp.ui.screen.main.profile.section.StatisticalProfileSection
+import com.example.foodapp.ui.screen.main.profile.section.SupportSettingProfileSection
+import com.example.foodapp.ui.screen.main.shared.FavoriteBottomSheet
+import com.example.foodapp.ui.screen.shared.SnackBarSuccessOrder
 import com.example.foodapp.ui.theme.Blue1
 import com.example.foodapp.ui.theme.DefaultBg1
 import com.example.foodapp.ui.theme.Gray100
@@ -69,23 +86,27 @@ import com.example.foodapp.ui.theme.Gray65
 import com.example.foodapp.ui.theme.Yellow3
 
 
+@SuppressLint("ContextCastToActivity")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileTabRoute(
     onClickBack: () -> Unit,
-    onProfileCompleted: () -> Unit = {},
-    paddingValues: PaddingValues,
-    onUpdateProfile: () -> Unit,
+     paddingValues: PaddingValues,
+     onNavigationToInfoTab: () -> Unit,
 ) {
     val profileViewModel: UserProfileViewModel = hiltViewModel()
     val profileState by profileViewModel.uiStateProfile.collectAsStateWithLifecycle()
-
+    val activity = LocalContext.current as ComponentActivity
+    val authViewModel: AuthViewModel = hiltViewModel(activity)
 
 
     ProfileTab(
         onClickBack = onClickBack,
         paddingValues = paddingValues,
         profileUiState = profileState,
+        onLogout = { authViewModel.logout() },
+        onNavigationToInfoTab = onNavigationToInfoTab,
+
     )
 }
 
@@ -94,10 +115,13 @@ fun ProfileTabRoute(
 fun ProfileTab(
     paddingValues: PaddingValues,
     onClickBack: () -> Unit,
-     profileUiState: ProfileUiState,
+    profileUiState: ProfileUiState,
+    onLogout: () -> Unit,
+    onNavigationToInfoTab: () -> Unit,
 ) {
     val screenH = LocalConfiguration.current.screenHeightDp
     val screenW = LocalConfiguration.current.screenWidthDp
+    var showSnackBar by remember { mutableStateOf(false) }
 
 
 
@@ -113,6 +137,7 @@ fun ProfileTab(
             ),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+
 
 
         //back
@@ -145,230 +170,21 @@ fun ProfileTab(
             ),
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(35.dp),
-//            horizontalAlignment = Alignment.CenterHorizontally
 
-        ) {
+            ) {
             item {
-                HeaderProfileUser(
+                HeaderProfileSection(
                     uiState = profileUiState,
-
+                    onNavigationToInfoTab = onNavigationToInfoTab,
                 )
             }
 
-            //card
+            //statistical box
             item {
-
-                //card
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(15.dp))
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(
-                                    Yellow3.copy(alpha = 0.2f), Blue1.copy(alpha = 0.5f)
-                                )
-                            )
-                        )
-                        .fillMaxWidth()
-                ) {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-
-                        Row {
-                            Box {
-                                Image(
-                                    painter = painterResource(R.drawable.bg_rec_card),
-                                    contentDescription = null,
-                                    modifier = Modifier.width(200.dp)
-                                )
-
-                                Text(
-                                    text = "GOLDEN FLAVOR",
-                                    modifier = Modifier.padding(
-                                        vertical = 10.dp,
-                                        horizontal = 16.dp
-                                    ),
-                                    fontSize = 16.sp,
-                                    color = Color(0xFF306345).copy(alpha = 0.6f),
-                                    fontWeight = FontWeight.ExtraBold
-                                )
-                            }
-
-                            Spacer(Modifier.weight(1f))
-
-                            Box(
-                                modifier = Modifier
-                                    .padding(
-                                        vertical = 10.dp, horizontal = 10.dp
-                                    )
-                                    .background(
-                                        Color(0xFFECFFFE), RoundedCornerShape(10.dp)
-                                    ), contentAlignment = Alignment.Center
-                            ) {
-
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(5.dp),
-                                    modifier = Modifier.padding(
-                                        vertical = 7.dp,
-                                        horizontal = 10.dp
-                                    ),
-
-                                    ) {
-                                    Text(
-                                        text = "Xem tiến trình", color = Color(0xFF119DC4)
-                                    )
-                                    Icon(
-                                        imageVector = Icons.Rounded.ArrowForwardIos,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(14.dp),
-                                        tint = Color(0xFF119DC4)
-                                    )
-                                }
-                            }
-
-                        }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 10.dp)
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(start = 10.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(5.dp)
-                            ) {
-                                Image(
-                                    painter = painterResource(R.drawable.bg_cutlery),
-                                    contentDescription = null
-                                )
-                                Text(
-                                    text = "Bậc thầy gọi món",
-                                    color = Color.White,
-                                    modifier = Modifier
-                                        .background(
-                                            color = Color(0xFF8DB28A), RoundedCornerShape(30.dp)
-                                        )
-                                        .padding(vertical = 5.dp, horizontal = 10.dp)
-                                )
-                            }
-
-                            Spacer(Modifier.weight(1f))
-
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(10.dp),
-                                horizontalAlignment = Alignment.End
-                            ) {
-                                Text(
-                                    text = "Điểm tích lũy",
-                                    color = Color(0xFF0E6A84),
-                                    fontWeight = FontWeight.SemiBold
-                                )
-
-                                Box(
-                                    modifier = Modifier
-                                        .width(100.dp)
-                                        .height(30.dp)
-                                        .clip(RoundedCornerShape(50))
-                                        .background(
-                                            brush = Brush.linearGradient(
-                                                colors = listOf(
-                                                    Color(0xFFF6D98B),
-                                                    Color(0xFFFFF0C9),
-                                                    Color(0xFFF3D27B)
-                                                ),
-//                                    start = Offset.Zero,
-//                                    end = Offset.Infinite
-                                            )
-                                        ), contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "0",
-                                        fontSize = 22.sp,
-                                        textAlign = TextAlign.Center,
-                                        color = Color(0xFFB07D30)
-                                    )
-                                }
-                            }
-                        }
-
-                        Box(
-                            Modifier
-                                .height(1.dp)
-                                .padding(horizontal = 20.dp)
-                                .fillMaxWidth()
-                                .background(Color.White)
-                        )
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(20.dp),
-                            modifier = Modifier
-                                .padding(start = 20.dp, end = 20.dp, bottom = 10.dp)
-                        ) {
-
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(5.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Text(
-                                    text = "Tổng số xu\nđã tích lũy",
-                                    textAlign = TextAlign.Center,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = Color.Black.copy(alpha = 0.7f)
-                                )
-                                Text(
-                                    textAlign = TextAlign.Center,
-                                    text = "1",
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 18.sp,
-                                    color = Color(0xFF1A5302)
-                                )
-                            }
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(5.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(
-                                    textAlign = TextAlign.Center,
-                                    text = "Tổng món\nđã đặt",
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = Color.Black.copy(alpha = 0.7f)
-                                )
-                                Text(
-                                    textAlign = TextAlign.Center,
-                                    text = "100.000",
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 18.sp,
-                                    color = Color(0xFF1A5302)
-                                )
-                            }
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(5.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(
-                                    text = "Món tích lũy\nnăm 2026",
-                                    textAlign = TextAlign.Center,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = Color.Black.copy(alpha = 0.7f)
-                                )
-                                Text(
-                                    textAlign = TextAlign.Center,
-                                    text = "100.000",
-                                    fontWeight = FontWeight.ExtraBold,
-                                    fontSize = 18.sp,
-                                    color = Color(0xFF1A5302)
-                                )
-                            }
-                        }
-                    }
-                }
+                StatisticalProfileSection()
             }
 
-            //favor
+            //favor - pay - add -> row
             item {
                 //favorite
                 var isShowFavorite by remember { mutableStateOf(false) }
@@ -380,136 +196,27 @@ fun ProfileTab(
                     modifier = Modifier.fillMaxWidth()
                 ) {
 
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .size(90.dp)
-                            .clickable(
-                                onClick = {
-                                    isShowFavorite = true
-                                }
-                            )
-                            .coloredShadow(
-                                color = Gray65,
-                                alpha = 0.5f,
-                                borderRadius = 20.dp,
-                                blurRadius = 3.dp
-                            )
-                            .background(
-                                Color.White,
-                                RoundedCornerShape(20.dp)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(5.dp),
-                            modifier = Modifier
-                                .padding(6.dp)
-                        ) {
-
-                            Icon(
-                                imageVector = Icons.Rounded.Favorite,
-                                contentDescription = null,
-                                tint = Color.Red.copy(0.4f),
-                                modifier = Modifier
-                                    .size(32.dp)
-                            )
-
-                            Text(
-                                text = "Yêu thích",
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.Black.copy(0.7f)
-                            )
-                        }
-                    }
+                    //favorite
+                    FavoriteProfileSection(
+                        onClickFavorite = {
+                            isShowFavorite = true
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
 
                     //thanh toan
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .size(90.dp)
-                            .coloredShadow(
-                                color = Gray65,
-                                alpha = 0.5f,
-                                borderRadius = 20.dp,
-                                blurRadius = 3.dp
-                            )
-                            .background(
-                                Color.White,
-                                RoundedCornerShape(20.dp)
-                            ),
-                        contentAlignment = Alignment.Center
-
-                    ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(
-                                5.dp,
-                                Alignment.CenterVertically
-                            ),
-                            modifier = Modifier
-                                .padding(6.dp)
-                                .fillMaxHeight(),
-
-                            ) {
-
-                            Icon(
-                                imageVector = Icons.Rounded.Wallet,
-                                contentDescription = null,
-                                tint = Color.Blue.copy(0.5f),
-                                modifier = Modifier
-                                    .size(32.dp)
-                            )
-
-                            Text(
-                                text = "Thanh toán",
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.Black.copy(0.7f)
-                            )
+                    PaymentProfileSection(
+                        modifier = Modifier.weight(1f),
+                        showSnackBar = {
+                            showSnackBar = true
                         }
-                    }
+                    )
 
-                    //dia chi
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .size(90.dp)
-                            .coloredShadow(
-                                color = Gray65,
-                                alpha = 0.5f,
-                                borderRadius = 20.dp,
-                                blurRadius = 3.dp
-                            )
-                            .background(
-                                Color.White,
-                                RoundedCornerShape(20.dp)
-                            ),
+                    //addres
+                    AddressProfileSection(
+                        modifier = Modifier.weight(1f)
+                    )
 
-                        ) {
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(
-                                5.dp,
-                                Alignment.CenterVertically
-                            ),
-                            modifier = Modifier
-                                .padding(start = 25.dp)
-                                .fillMaxHeight()
-                        ) {
-
-                            Icon(
-                                imageVector = Icons.Rounded.LocationOn,
-                                contentDescription = null,
-                                tint = Color.Magenta.copy(0.5f),
-                                modifier = Modifier
-                                    .size(32.dp)
-                            )
-
-                            Text(
-                                text = "Địa chỉ",
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color.Black.copy(0.7f)
-                            )
-                        }
-                    }
 
                     var isShowFavorite by remember { mutableStateOf(false) }
 
@@ -525,202 +232,28 @@ fun ProfileTab(
             }
 
 
-            //bar
+            //option field
             item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Color(0xFFfbf9ed),
-                            RoundedCornerShape(15.dp)
-                        )
-                ) {
 
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(5.dp),
-                        modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp)
-                    ) {
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Info,
-                                contentDescription = null,
-                                tint = Color(0xFFd5a82d),
-                                modifier = Modifier
-                                    .size(28.dp)
-                            )
-
-                            Text(
-                                text = "Thanh điều hướng",
-                                color = Color(0xFFd5a82d),
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 14.sp
-                            )
-                        }
-
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Text(
-                                text = "Bạn có thể thay đổi tùy chọn giao diện thanh điều hướng",
-                                color = Color.Black,
-                                modifier = Modifier.weight(1f),
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 14.sp,
-                            )
-
-                            Icon(
-                                Icons.Rounded.ArrowForwardIos,
-                                contentDescription = null,
-                                tint = Color.Black,
-                            )
-                        }
-
-                    }
-                }
+                NavBottomBarProfileSection()
             }
 
             //hổ trợ trung tâm hổ trợ
             item {
                 Spacer(Modifier.height(20.dp))
-                Text(
-                    text = "Hổ trợ",
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp
-                )
-
-                Spacer(Modifier.height(5.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.padding(start = 16.dp)
-                ) {
-
-                    Icon(
-                        painterResource(R.drawable.ic_call_center),
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Text(
-                        text = "Trung tâm hổ trợ",
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 14.sp
-                    )
-
-                    Spacer(Modifier.weight(1f))
-
-                    Icon(
-                        Icons.Rounded.ArrowForwardIos,
-                        contentDescription = null
-                    )
-                }
+                SupportSettingProfileSection()
             }
 
             //setting
             item {
                 Spacer(Modifier.height(20.dp))
-                Text(
-                    text = "Cài đặt chung",
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp
-                )
-
-                Spacer(Modifier.height(5.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.padding(start = 16.dp)
-                ) {
-
-                    Icon(
-                        painterResource(R.drawable.ic_language),
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Text(
-                        text = "Ngôn ngữ",
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 14.sp
-                    )
-
-                    Spacer(Modifier.weight(1f))
-
-                    Icon(
-                        Icons.Rounded.ArrowForwardIos,
-                        contentDescription = null
-                    )
-                }
+                SettingProfileSection()
             }
 
             //ban co hai long
             item {
                 Spacer(Modifier.height(20.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            Color.White.copy(0.6f),
-                            RoundedCornerShape(20.dp)
-                        )
-                ) {
-
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Icon(
-                            Icons.Rounded.Favorite,
-                            contentDescription = null,
-                            tint = Color.Red.copy(0.6f),
-                            modifier = Modifier.size(32.dp)
-                        )
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(5.dp)
-                        ) {
-
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(5.dp),
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(
-                                    text = "Bạn có hài lòng ứng dụng chứ",
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 14.sp
-                                )
-                                Text(
-                                    text = "Phản hồi của bạn giúp chúng tôi ngày hoàng thiện hơn",
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = Color.Black.copy(0.5f),
-                                    fontSize = 14.sp
-                                )
-                            }
-
-                            Icon(
-                                Icons.Rounded.ArrowForwardIos,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .coloredShadow(
-                                        Gray65,
-                                        0.5f,
-                                        10.dp,
-                                        4.dp,
-                                    )
-                                    .size(34.dp)
-                                    .background(
-                                        Color.White,
-                                        RoundedCornerShape(10.dp)
-                                    )
-                                    .padding(8.dp)
-                            )
-
-                        }
-                    }
-                }
+                EvaluateProfileSection() //danh gia
             }
 
 
@@ -728,135 +261,28 @@ fun ProfileTab(
             item {
                 Spacer(Modifier.height(20.dp))
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(
-                        10.dp,
-                        Alignment.CenterHorizontally
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            onLogOut()
-                        }
-                        .padding(start = 16.dp)
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.ic_logout2),
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-//                        tint = Color.Unspecified
-                    )
-                    Text(
-                        text = "Đăng xuất",
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.Black,
-                        fontSize = 16.sp
-                    )
-
-                }
+                LogoutProfileSection(
+                    onLogout = onLogout
+                )
             }
         }
     }
 
-//
-//    TabRow(
-//        selectedTabIndex = 0
-//    ) { }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun HeaderProfileUser(
-    uiState: ProfileUiState,
-
-    ) {
-
-    val context = LocalContext.current
-
-
-    Spacer(Modifier.height(20.dp))
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(elevation = 3.dp, RoundedCornerShape(30.dp))
-            .background(
-                Color.White,
-                RoundedCornerShape(30.dp),
-            )
-            .padding(horizontal = 10.dp, vertical = 15.dp)
+            .height(200.dp)
+//            .background(Color.Red)
     ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-
-        ) {
-            Box {
-                Image(
-                    painter = painterResource(R.drawable.ic_avatar1),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(60.dp)
-                        .clickable {
-                            showToast(
-                                context = context,
-                                message = "Chưa hổ trợ tính năng đổi avatar"
-                            )
-                        }
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop,
-                )
-
-                Icon(
-                    imageVector = Icons.Outlined.CameraAlt,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(32.dp)
-                        .offset { IntOffset(x = 100, y = 100) }
-                        .shadow(
-                            elevation = 2.dp, CircleShape
-                        )
-                        .background(Color.White, CircleShape)
-                        .padding(5.dp)
-                )
+        SnackBarSuccessOrder(
+            showSnackBar = showSnackBar,
+            onValueChange = {
+                showSnackBar = false
             }
-
-            Column(
-                verticalArrangement = Arrangement.spacedBy(5.dp)
-            ) {
-                Text(
-                    text = "Tran Binh",
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp
-                )
-                Text(
-                    text = "+09078778",
-                    color = Color.Gray.copy(alpha = 0.7f)
-                )
-            }
-
-            Spacer(Modifier.weight(1f))
-
-
-            Box(
-                modifier = Modifier
-                    .shadow(0.5.dp, RoundedCornerShape(8.dp))
-                    .background(Gray100, RoundedCornerShape(8.dp))
-                    .padding(vertical = 5.dp, horizontal = 10.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Hồ sơ",
-                )
-
-
-            }
-
-
-        }
+        )
     }
+
 }
 
 
@@ -877,6 +303,8 @@ fun PreviewProfileScreen() {
                 phone = "0123456789"
             )
         ),
-        paddingValues = PaddingValues()
+        paddingValues = PaddingValues(),
+        onLogout = {},
+        onNavigationToInfoTab = {},
     )
 }

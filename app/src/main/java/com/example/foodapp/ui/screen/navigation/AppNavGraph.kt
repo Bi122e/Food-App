@@ -1,52 +1,76 @@
 package com.example.foodapp.ui.screen.navigation
 
-import HomeScreen
+import com.example.foodapp.ui.screen.main.HomeScreen
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.util.Log
-import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
+import androidx.compose.material3.ExperimentalMaterial3Api
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.NavHostController
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.foodapp.core.AuthResult
 import com.example.foodapp.core.Routes
-import com.example.foodapp.core.UiState
-import com.example.foodapp.core.toRootRoute
+import com.example.foodapp.core.UserRoutes
+import com.example.foodapp.core.utils.showToast
+import com.example.foodapp.domain.model.User
 import com.example.foodapp.presentation.state.AppState
+import com.example.foodapp.presentation.viewmodel.OrderViewModel
+import com.example.foodapp.presentation.viewmodel.UserProfileViewModel
+import com.example.foodapp.ui.screen.initializationInfo.CompleteProfileScreen
+import com.example.foodapp.ui.screen.initializationInfo.DialogProgress
 import com.example.foodapp.ui.screen.login.LoginScreen
 import com.example.foodapp.ui.screen.register.RegisterScreen
+import com.example.foodapp.ui.screen.shared.SnackBarSuccessOrder
 import com.example.foodapp.ui.screen.splash.SplashScreen
 
-@SuppressLint("RestrictedApi")
+@OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("RestrictedApi", "ContextCastToActivity")
 @Composable
 fun AppNavGraph(
     startDestination: String,
     appState: AppState,
-    uiState: UiState<AuthResult>,
+//    uiState: UiState<AuthResult>,
     onLoginClick: (String, String) -> Unit,
     onRegisterClick: (String, String) -> Unit,
     onGoogleLogin: () -> Unit,
     onLogout: () -> Unit,
-    onResetState: () -> Unit
-) {
+    onResetState: () -> Unit,
+    onLoggedIn: (updateUser: User) -> Unit,
+
+    ) {
+
+    Log.d("AppNavGraph", "START DES: $startDestination")
+
+    val activity = LocalActivity.current as ComponentActivity
     val navController = rememberNavController()
+    val orderViewModel: OrderViewModel = hiltViewModel(activity)
+    val orderState = orderViewModel.orderUiState.collectAsStateWithLifecycle()
+
 
     LaunchedEffect(navController) {
         navController.currentBackStackEntryFlow.collect { entry ->
             try {
-                val routes = navController.currentBackStack.value.mapNotNull { it.destination.route }
+                val routes =
+                    navController.currentBackStack.value.mapNotNull { it.destination.route }
                 Log.d("NavigationLog", "App BackStack: ${routes.joinToString(" -> ")}")
             } catch (e: Exception) {
                 Log.d("NavigationLog", "App Current destination: ${entry.destination.route}")
@@ -58,20 +82,38 @@ fun AppNavGraph(
     LaunchedEffect(appState) {
         when (appState) {
             is AppState.Loading -> {
-                navController.navigate(Routes.Splash)
+                navController.navigate(Routes.SPLASH)
+                Log.d("AppNavGraph", "Loading")
             }
-            is AppState.LoggedIn -> {
-                val route = appState.user.role.toRootRoute()
-                navController.navigate(route) {
-                    popUpTo(0) { inclusive = true }
-                }
-            }
+
             is AppState.Guest -> {
-                navController.navigate(Routes.Login) {
+                navController.navigate(Routes.LOGIN) {
                     popUpTo(0) { inclusive = true }
                 }
+                Log.d("AppNavGraph", "LOGIN")
+
             }
-            else -> {}
+
+            is AppState.LoggedIn -> {
+                navController.navigate(Routes.HOME) {
+                    popUpTo(0) { inclusive = true }
+                }
+                Log.d("AppNavGraph", "HOME")
+
+            }
+
+            is AppState.NeedCompleteProfile -> {
+                navController.navigate(Routes.COMPLETE_PROFILE) {
+                    popUpTo(0) { inclusive = true }
+                }
+                Log.d("AppNavGraph", "COMPLETE")
+
+            }
+
+            else -> {
+                Log.d("AppNavGraph", "ELSE BRANCH")
+
+            }
         }
     }
 
@@ -80,29 +122,32 @@ fun AppNavGraph(
             .fillMaxSize()
             .systemBarsPadding()
     ) {
-        NavHost(
+
+
+
+         NavHost(
             navController = navController,
             startDestination = startDestination
         ) {
-            composable(Routes.Splash) {
+            composable(Routes.SPLASH) {
                 SplashScreen()
             }
 
-            composable(Routes.Login) {
+            composable(Routes.LOGIN) {
                 LoginScreen(
-                    uiState = uiState,
+                    appState = appState,
                     onLoginClick = onLoginClick,
                     onGoogleLogin = onGoogleLogin,
                     onRegisterClick = {
                         onResetState()
-                        navController.navigate(Routes.Register)
+                        navController.navigate(Routes.RESISTER)
                     }
                 )
             }
 
-            composable(Routes.Register) {
+            composable(Routes.RESISTER) {
                 RegisterScreen(
-                    uiState = uiState,
+                    appState = appState,
                     onRegisterClick = onRegisterClick,
                     onResetState = onResetState,
                     onBackToLogin = {
@@ -111,61 +156,80 @@ fun AppNavGraph(
                 )
             }
 
+            composable(Routes.COMPLETE_PROFILE) {
+                val userProfileViewModel: UserProfileViewModel = hiltViewModel()
+                val profileUiState by userProfileViewModel.uiStateProfile.collectAsState()
 
-//            composable(Routes.UserRoot) {
-//                RoleRootScreen(roleName = "User", onLogout = {
-//                    onLogout()
-//                }
-//                )
-//                HomeScreen()
-//            }
-            composable(Routes.UserRoot) {
-                HomeScreen(parentNavController = navController)
+
+                CompleteProfileScreen(
+                    onLoggedIn = onLoggedIn,
+                    updateUserProfile = {
+                        Log.d("ApiResponse Run", "dc goi")
+                        userProfileViewModel.updateUserProfile()
+                    },
+                    onFieldEditProfileChange = { field, value ->
+                        Log.d("ApiResponse Run", "onFIeld, $field $value")
+                        userProfileViewModel.onFieldEditProfileChange(field, value)
+                    },
+                    profileUiState = profileUiState,
+                    onNextStep = {
+                        userProfileViewModel.nextStep()
+                    },
+                    onPrevious = {
+                        userProfileViewModel.previousStep()
+                    },
+                    validatePhone = userProfileViewModel::validatePhone,
+                    validateName = userProfileViewModel::validateName,
+                    resetClickedUpdate = userProfileViewModel::resetClickedUpdate,
+                    setClickedUpdate = userProfileViewModel::setClickedUpdate,
+                    setGender = {
+                        userProfileViewModel.setGender(it)
+                    }
+                )
             }
 
-            composable(Routes.RestaurantRoot) {
-                RoleRootScreen(roleName = "Restaurant", onLogout = {
-                    onLogout()
-                })
+            composable(route = Routes.HOME) {
+                HomeScreen()
             }
+        }
 
-            composable(Routes.DriverRoot) {
-                RoleRootScreen(roleName = "Driver", onLogout = {
-                    onLogout()
-                })
-            }
+        val activity = (LocalContext.current as Activity) //finished de exit chuong trinh`
+        var showExitDialog by remember { mutableStateOf(false) }
 
-            composable(Routes.AdminRoot) {
-                RoleRootScreen(roleName = "Admin/Manager", onLogout = {
-                    onLogout()
-                })
+
+        //handle lai back
+        BackHandler() {
+            /* hoac cach viet 2,
+
+          * if (!navController.getBackStack())
+          *   showDialog = true
+          *
+          * */
+
+            val currentRoute = navController.currentDestination?.route
+            when {
+                currentRoute == Routes.COMPLETE_PROFILE -> {
+                    showExitDialog = true
+                }
+
+                else -> navController.popBackStack()
             }
+        }
+
+        if (showExitDialog) {
+            DialogProgress(
+                onCloseDialog = {
+                    showExitDialog = false
+                },
+                onExitProgram = {
+                    activity.finish()
+                }
+            )
         }
     }
 }
 
-private fun performLogout(navController: NavHostController, onLogout: () -> Unit) {
-    onLogout()
-    navController.navigate(Routes.Login) {
-        popUpTo(0) { inclusive = true }
-    }
-}
 
-@Composable
-fun RoleRootScreen(roleName: String, onLogout: () -> Unit) {
-    val context = LocalContext.current
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Welcome to $roleName Root ")
-        Button(onClick = {
-            Log.d("Navigation", "Logging out from $roleName")
-            Toast.makeText(context, "Logging out...", Toast.LENGTH_SHORT).show()
-            onLogout()
-        }) {
-            Text("Logout")
-        }
-    }
-}
+
+
+

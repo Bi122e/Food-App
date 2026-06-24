@@ -1,4 +1,4 @@
-package com.example.foodapp.ui.screen.main.tab
+package com.example.foodapp.ui.screen.main.checkout
 
 import android.util.Log
 import androidx.compose.foundation.BorderStroke

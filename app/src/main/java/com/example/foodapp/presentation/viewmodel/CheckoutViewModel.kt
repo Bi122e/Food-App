@@ -34,11 +34,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CheckoutViewModel @Inject constructor(
-    private val orderRepository: OrderRepository,
-    private val cartRepository: CartRepository,
+     private val cartRepository: CartRepository,
     private val userRepository: UserRepository,
-    private val profileRepository: ProfileRepository,
-    private val authRepository: AuthRepository,
+     private val authRepository: AuthRepository,
     private val restaurantRepository: RestaurantRepository,
 ) : ViewModel() {
 
@@ -88,7 +86,7 @@ class CheckoutViewModel @Inject constructor(
                         }
 
                         val restaurantId = cart.restaurantId
-                        observeRestaurant(restaurantId = restaurantId)
+                        getRestaurant(restaurantId = restaurantId)
                     }
 
                     is ApiResponse.Error -> {
@@ -122,10 +120,10 @@ class CheckoutViewModel @Inject constructor(
         }
     }
 
-    private fun observeRestaurant(restaurantId: String) {
+    private fun getRestaurant(restaurantId: String) {
         viewModelScope.launch {
 
-            restaurantRepository.getRestaurantById(restaurantId).collectLatest { response ->
+            val response = restaurantRepository.getRestaurantById(restaurantId)
                 when (response) {
                     is ApiResponse.Error -> {
                         _checkoutUiState.update {
@@ -145,8 +143,7 @@ class CheckoutViewModel @Inject constructor(
 
                     else -> {}
                 }
-            }
-        }
+         }
     }
 
     private fun observeUser() {
@@ -292,26 +289,7 @@ class CheckoutViewModel @Inject constructor(
         }
     }
 
-    fun loadUser(userId: String) {
-        job?.cancel()
-        job = viewModelScope.launch {
-            userRepository.getCurrentUser(userId).collect { response ->
-                _user.value = response.toUiState()
 
-                if (response is ApiResponse.Success) {
-                    val profile = response.data.profile?.customer
-                    if (profile != null) {
-                        _checkoutState.update {
-                            it.copy(
-                                address = profile.address,
-                                phoneNumber = profile.phone
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     // UPDATE UI STATE
 
@@ -341,83 +319,5 @@ class CheckoutViewModel @Inject constructor(
         return null
     }
 
-//    fun placeOrder(userId: String) {
-//        viewModelScope.launch {
-//            val userId = authRepository.currentUserId()
-//            orderRepository.createOrder()
-//        }
-//    }
 
-    // PLACE ORDER
-
-
-//    fun placeOrder(userId: String) {
-//        viewModelScope.launch {
-//
-//            val cartData = (_cart.value as? UiState.Success)?.data
-//            val userData = (_user.value as? UiState.Success)?.data
-//
-//            if (cartData == null || userData == null) {
-//                _checkoutState.update { it.copy(error = "Thiếu dữ liệu") }
-//                return@launch
-//            }
-//
-//            validate()?.let {
-//                _checkoutState.update { state -> state.copy(error = it) }
-//                return@launch
-//            }
-//
-//            _checkoutState.update { it.copy(isProcessingOrder = true, error = null) }
-//
-//            val order = Order(
-//                restaurantId = cartData.restaurantId,
-//                restaurantName = cartData.restaurantName,
-//                subTotal = cartData.calculateSubTotalPrice().toInt(),
-//                total = (cartData.calculateTotalPrice() + cartData.deliveryFee).toInt(),
-//                address = _checkoutState.value.address,
-//                phone = _checkoutState.value.phoneNumber,
-//                userId = cartData.userId,
-//                email = userData.email,
-//                paymentMethod = selectedPaymentMethod.value,
-//                paymentStatus = if (selectedPaymentMethod.value.isOnlinePayment)
-//                    PaymentStatus.PENDING else PaymentStatus.UNPAID,
-//                items = cartData.cartItems.map { item ->
-//                    OrderItem(
-//                        foodId = item.foodId,
-//                        foodName = item.name,
-//                        //sua 2 cai nay
-////                        variations = item.variation.toVariations(),
-////                        selectedOptions = item.variation.mapValues { it.value.toList() },
-//                        imgUrl = item.imgUrls,
-//                        notes = item.notes,
-//                        price = item.basePrice,
-//                        quantity = item.quantity
-//                    )
-//                }
-//            )
-//
-//            when (val res = orderRepository.createOrder(order)) {
-//                is ApiResponse.Success -> {
-//                    cartRepository.clearCart(userId)
-//
-//                    _orderResult.emit(UiState.Success(order.copy(orderId = res.data)))
-//
-//                    _checkoutState.update {
-//                        it.copy(isProcessingOrder = false)
-//                    }
-//                }
-//
-//                is ApiResponse.Error -> {
-//                    _checkoutState.update {
-//                        it.copy(
-//                            isProcessingOrder = false,
-//                            error = res.message
-//                        )
-//                    }
-//                }
-//
-//                else -> Unit
-//            }
-//        }
-//    }
 }

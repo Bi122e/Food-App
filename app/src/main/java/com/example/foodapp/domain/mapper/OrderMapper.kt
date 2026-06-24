@@ -21,12 +21,14 @@ fun toOrder(cart: Cart, user: User, restaurant: Restaurant, foods: List<Food>): 
         restaurantName = cart.restaurantName,
         subTotal = cart.price,
         total = cart.totalPrice,
-        userAddress = user.profile?.customer?.address ?: "Lỗi không tìm thấy",
+        userAddress = user.address,
         restaurantAddress = restaurant.address,
-        userPhoneSnapshot = user.profile?.customer?.phone ?: "Lỗi không tìm thấy",
+        userPhoneSnapshot = user.phone,
         userId = user.uid,
         orderId = "",
-        driverPhoneSnapshot = user.profile?.driver?.phone ?: "Lỗi không tìm thấy",
+        userName = user.name,
+        active = true,
+        driverPhoneSnapshot = "",
         items = toOrderItem(cartItem = cart.cartItems, foods = foods),
         userEmail = user.email,
         restaurantEmail = restaurant.email,
@@ -45,8 +47,7 @@ fun toOrder(cart: Cart, user: User, restaurant: Restaurant, foods: List<Food>): 
     )
 }
 
-//public constructor SelectedOption(
-//public final val optionId: String = "",
+//public constructor SelectedOption//public final val optionId: String = "",
 //public final val optionName: String = "",
 //public final val variationId: String = "",
 //public final val variationName: String = "",

@@ -17,7 +17,7 @@ data class Food(
     val ingredient: String = "",
     val calories: Int = 0,
     val restaurantId: String = "",
-    val categoryId: String = "",
+    val categoriesId: List<String> = emptyList(),
     val variations: List<Variation> = emptyList(),
     val averageRating: Double = 0.0,
     val minPrice: Int = 0,
@@ -34,7 +34,7 @@ data class Food(
                 name.isNotEmpty() &&
                 price >= 0 &&
                 variations.all { it.isValidVariation() } &&
-                categoryId.isNotEmpty() &&
+                categoriesId.isNotEmpty() &&
                 restaurantId.isNotEmpty()
     }
     fun getVariationSize(): Int {

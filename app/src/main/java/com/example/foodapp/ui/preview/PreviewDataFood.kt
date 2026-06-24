@@ -60,7 +60,7 @@ object PreviewDataFood {
         ingredient = "Phô mai Mozzarella, Cheddar, Parmesan và phô mai xanh Blue ",
         calories = 255,
         restaurantId = "pizza_hurt",
-        categoryId = "pizza",
+        categoriesId = listOf("pizza") ,
         variations = setDefaultOption()
     )
 

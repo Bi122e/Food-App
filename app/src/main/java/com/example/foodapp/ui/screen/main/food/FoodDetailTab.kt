@@ -1,4 +1,4 @@
-package com.example.foodapp.ui.screen.main.tab
+package com.example.foodapp.ui.screen.main.food
 
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
@@ -30,6 +30,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -37,6 +38,9 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,10 +64,12 @@ import com.example.foodapp.core.utils.showToast
 import com.example.foodapp.core.utils.toVND
 import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.Variation
+import com.example.foodapp.domain.model.Variation.VariationType
 import com.example.foodapp.presentation.state.CartUiState
 import com.example.foodapp.presentation.state.getTotalPrice
 import com.example.foodapp.ui.preview.PreviewCartState
 import com.example.foodapp.ui.preview.PreviewDataFood
+import com.example.foodapp.ui.screen.main.restaurant.section.ConflictDialog
 import com.example.foodapp.ui.theme.Blue0
 import com.example.foodapp.ui.theme.Blue1
 import com.example.foodapp.ui.theme.Blue2
@@ -81,9 +87,12 @@ fun FoodDetailTab(
     decreaseQtyDetail: () -> Unit,
     increaseQtyDetail: () -> Unit,
     toAddCart: () -> Unit,
+    onDialogToClose: () -> Unit,
+    onForceAddItem: () -> Unit,
 
     ) {
     //DEBUG_CART, DEBUG_TAB
+
 
     LaunchedEffect(food.foodId) {
         Log.d(
@@ -95,6 +104,7 @@ fun FoodDetailTab(
         }
     }
     val currentItem = cartState.currentEditingItem
+    Log.d("check_cart_state_editing", "food detail: $currentItem")
     Scaffold(
         bottomBar = {
             BottomBar(
@@ -164,6 +174,7 @@ fun FoodDetailTab(
                         onError = {
                             Log.e("COIL_ERROR", "coil: ${it.result.throwable.message}")
                         },
+                        modifier = Modifier.align(Alignment.Center),
                         contentDescription = null
                     )
 
@@ -173,7 +184,7 @@ fun FoodDetailTab(
                             .padding(horizontal = 15.dp, vertical = 15.dp)
                             .background(MediumOrange, RoundedCornerShape(30.dp))
                             .padding(horizontal = 10.dp, vertical = 5.dp),
-                        text = food.price.toVND(),
+                        text = "${food.price.toVND()}đ",
                         color = Color.White,
                         fontWeight = FontWeight.Bold,
                         fontSize = 22.sp
@@ -191,7 +202,7 @@ fun FoodDetailTab(
                 ) {
                     //food name
                     Text(
-                        text = "Cheese Pizza",
+                        text = food.name,
                         fontSize = 26.sp,
                         fontWeight = FontWeight.ExtraBold,
                     )
@@ -238,8 +249,20 @@ fun FoodDetailTab(
                 Spacer(Modifier.height(10.dp))
             }
 
+
+
             Log.d("SIZE VAR", "${food.variations.size}")
             food.variations.forEach { variation ->
+
+                val isRequired = if (variation.required) {
+                    "Bắt buộc"
+                } else
+                    "Tùy chọn"
+                val variationType = if (variation.type == VariationType.SINGLE)
+                    "chỉ chọn một"
+                else
+                    "có thể chọn nhiều"
+
                 //variation
                 item() {
                     Surface(
@@ -277,7 +300,7 @@ fun FoodDetailTab(
 
                                 //text
                                 Text(
-                                    text = variation.description,
+                                    text = "$isRequired - $variationType",
                                     fontSize = 12.sp,
                                     modifier = Modifier
                                         .background(
@@ -288,11 +311,6 @@ fun FoodDetailTab(
                                 )
                             }
 
-                            val items = listOf(
-                                "Size M" to "18.000.000 d",
-                                "Size S" to "19.000.000 d",
-                                "Size L" to "19.000.000 d"
-                            )
                             variation.options.forEachIndexed { index, option ->
 
                                 val isChecked = currentItem
@@ -323,9 +341,9 @@ fun FoodDetailTab(
                                                 onSelectVariation(option.id, variation, checked)
                                             },
                                             colors = CheckboxDefaults.colors(
-                                                checkedColor = Color.Green,
+                                                checkedColor = Blue1,
                                                 uncheckedColor = Gray65,
-                                                checkmarkColor = Color.Red
+                                                checkmarkColor = Color.White
                                             )
                                         )
                                     } else {
@@ -338,7 +356,11 @@ fun FoodDetailTab(
                                                     "RadioButton click: opt=${option.id}, currentChecked=$isChecked"
                                                 ) //
                                                 onSelectVariation(option.id, variation, !isChecked)
-                                            }
+                                            },
+                                            colors = RadioButtonDefaults.colors(
+                                                selectedColor = Color.Cyan,
+
+                                            )
                                         )
                                     }
 
@@ -443,6 +465,17 @@ fun FoodDetailTab(
         }
 
     }
+
+    Log.d("test_final__conf", "UI :${cartState.showConfirmDialog}")
+
+    ConflictDialog(
+        showDialog = cartState.showConfirmDialog,
+        onDialogToClose = onDialogToClose,
+        onForceAddItem = onForceAddItem,
+        title = "Thay thế giỏ hàng?",
+        message = cartState.conflictData?.message ?: "..."
+
+    )
 }
 
 
@@ -450,7 +483,7 @@ fun FoodDetailTab(
 fun BottomBar(
     cartState: CartUiState,
     food: Food,
-     decreaseQtyDetail: () -> Unit,
+    decreaseQtyDetail: () -> Unit,
     increaseQtyDetail: () -> Unit,
     toAddCart: () -> Unit,
 ) {
@@ -505,12 +538,22 @@ fun BottomBar(
                     Icon(
                         imageVector = Icons.Default.Remove,
                         contentDescription = null,
-                        tint = Color.Black,
+                        tint = if (isClickable)
+                            Color.Black
+                        else
+                            Color.Black.copy(0.3f),
                         modifier = Modifier
-                            .clickable {
+                            .clickable(
+                                enabled = isClickable
+                            ) {
                                 decreaseQtyDetail()
                             }
-                            .background(Blue2.copy(alpha = 0.5f), CircleShape)
+                            .background(
+                                if (isClickable)
+                                    Blue0.copy(alpha = 0.3f)
+                                else
+                                    Blue2.copy(0.3f),
+                                CircleShape)
                             .padding(3.dp)
                             .size(30.dp)
                     )
@@ -527,10 +570,18 @@ fun BottomBar(
                         contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier
-                            .clickable {
+                            .clickable(
+                                enabled = isClickable
+                            ) {
                                 increaseQtyDetail()
                             }
-                            .background(Blue1, CircleShape)
+                            .background(
+                                if (isClickable)
+                                    Blue1
+                                else
+                                    Blue1.copy(0.3f),
+                                CircleShape
+                            )
                             .padding(3.dp)
                             .size(30.dp)
                     )
@@ -540,17 +591,16 @@ fun BottomBar(
             //add btn
             Box(
                 modifier = Modifier
-                    .clickable(enabled = true, onClick = {
-                        showToast(context, "clicked !")
+                    .clickable(enabled = isClickable, onClick = {
                         toAddCart()
 
                     })
                     .fillMaxWidth()
                     .background(
-                        if (true) {
+                        if (isClickable) {
                             Blue0
                         } else {
-                            Blue2
+                            Blue0.copy(0.3f)
                         },
                         shape = RoundedCornerShape(30.dp)
                     )
@@ -602,6 +652,8 @@ fun Preview() {
         onStartEditing = {},
         decreaseQtyDetail = {},
         increaseQtyDetail = {},
-        toAddCart = {}
+        toAddCart = {},
+        onDialogToClose = {},
+        onForceAddItem = {},
     )
 }

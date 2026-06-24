@@ -15,6 +15,15 @@ interface AuthRepository {
 
     suspend fun logOut()
     fun currentUserId(): String?
-}
+
+
+//     fun onNewToken(
+//        token: String
+//    )
+//    - cài lại app
+//    - clear data
+//    - đổi thiết bị
+//    - Firebase refresh token, để luôn đồng bộ token mới.
+ }
 
 

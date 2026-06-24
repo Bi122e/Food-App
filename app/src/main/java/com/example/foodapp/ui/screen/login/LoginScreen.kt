@@ -1,12 +1,16 @@
 package com.example.foodapp.ui.screen.login
 
 
+import android.annotation.SuppressLint
+import android.util.Log
 import android.util.Patterns
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,6 +27,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.rounded.Login
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -44,9 +49,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -56,17 +63,30 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coloredShadow
 import com.example.foodapp.R
 import com.example.foodapp.core.AuthResult
 import com.example.foodapp.core.UiState
 import com.example.foodapp.core.utils.showToast
+ import com.example.foodapp.presentation.state.AppState
+import com.example.foodapp.presentation.state.AuthUiState
+import com.example.foodapp.presentation.viewmodel.AuthViewModel
+import com.example.foodapp.ui.theme.Blue0
+import com.example.foodapp.ui.theme.Blue1
+import com.example.foodapp.ui.theme.Gray100
+import com.example.foodapp.ui.theme.Gray65
+import com.example.foodapp.ui.theme.Gray85
 import com.example.foodapp.ui.theme.MediumGray
 import com.example.foodapp.ui.theme.PrimaryBlue
+import com.example.foodapp.ui.theme.White
 import com.example.foodapp.ui.theme.secondBlue
 
+@SuppressLint("ContextCastToActivity")
 @Composable
 fun LoginScreen(
-    uiState: UiState<AuthResult>,
+    appState: AppState,
     onLoginClick: (String, String) -> Unit,
     onGoogleLogin: () -> Unit,
     onRegisterClick: () -> Unit,
@@ -83,26 +103,36 @@ fun LoginScreen(
 //            else -> Unit
 //        }
 //    }
+    val activity = (LocalContext.current as? ComponentActivity) ?: return
+    val authViewModel: AuthViewModel = hiltViewModel(activity)
+    val authUiState by authViewModel.authUiState.collectAsStateWithLifecycle()
+
     val context = LocalContext.current
-    LaunchedEffect(uiState) {
-        when (uiState) {
-            is UiState.Success -> {
+    LaunchedEffect(appState) {
+        when (appState) {
+            is AppState.LoggedIn -> {
                 showToast(context, "Đăng nhập thành công")
             }
-            is UiState.Error -> {
-                showToast(context, uiState.message)
+
+            is AppState.Error -> {
+                showToast(context, appState.message)
             }
-            else -> Unit
+
+            else -> {
+                Log.d("LoginScreenLogic", "...")
+            }
         }
     }
 
     LoginContent(
-        uiState = uiState,
+        appState = appState,
         onLoginClick = onLoginClick,
         onGoogleLogin = onGoogleLogin,
         onRegisterClick = {
 
-            onRegisterClick()}
+            onRegisterClick()
+        },
+        authUiState = authUiState,
     )
 }
 
@@ -110,33 +140,32 @@ fun LoginScreen(
 fun LoginHeader(
     onRegisterClick: () -> Unit
 ) {
-    Surface(
-        shape = CircleShape,
-        tonalElevation = 8.dp,
-        onClick = onRegisterClick
+
+    Box(
+        modifier = Modifier
+            .coloredShadow(
+                colors = listOf(Blue1, Color.Red),
+                borderRadius = 20.dp,
+                blurRadius = 10.dp,
+                spread = 0.1.dp
+            )
+            .background(Color.White, RoundedCornerShape(20.dp))
+            .clickable(
+                onClick = onRegisterClick
+            )
+
     ) {
         Icon(
-            painter = painterResource(R.drawable.ic_registration),
+            imageVector = Icons.Rounded.Login,
             contentDescription = null,
             modifier = Modifier
-                .size(58.dp)
-                .shadow(
-                    elevation = 18.dp,
-                    shape = CircleShape,
-                    clip = false
-                )
-                .background(
-                    Color.White,
-                    RoundedCornerShape(12.dp)
-                )
-//            .clickable(
-//                indication = ripple(bounded = false),
-//                interactionSource = remember { MutableInteractionSource() }
-//            ) {onRegisterClick()}
+                .padding(6.dp)
+                .size(48.dp)
                 .padding(6.dp),
-            tint = MaterialTheme.colorScheme.onPrimaryContainer
+            tint = Color.Black
         )
     }
+
 
 
     Spacer(Modifier.height(14.dp))
@@ -162,8 +191,9 @@ fun LoginHeader(
 
 @Composable
 fun LoginForm(
-    uiState: UiState<AuthResult>,
+    appState: AppState,
     onLoginClick: (String, String) -> Unit,
+    authUiState: AuthUiState,
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -173,8 +203,10 @@ fun LoginForm(
     val isEmailValid = Patterns.EMAIL_ADDRESS.matcher(email).matches()
     val errorEmail = hasSubmitted && (!isEmailValid)
     val passwordError = hasSubmitted && (password.length < 8)
-    val isValidForm = (isEmailValid && email.isNotBlank()) && (password.length >= 8 && password.isNotBlank())
+    val isValidForm =
+        (isEmailValid && email.isNotBlank()) && (password.length >= 8 && password.isNotBlank())
 
+    Log.d("check_login_valid","valid = ${isValidForm.toString() }")
     Text(
         text = "Email của bạn",
         modifier = Modifier
@@ -187,7 +219,8 @@ fun LoginForm(
         isError = errorEmail,
         onValueChange = {
             hasSubmitted = false
-            email = it },
+            email = it
+        },
         placeholder = { Text("Email", color = Color.Gray) },
         leadingIcon = {
             Icon(
@@ -209,13 +242,17 @@ fun LoginForm(
 
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
+
+            errorContainerColor = Color.Transparent
         )
     )
-    if (errorEmail) {
-        Text("Email không hợp lệ",  modifier = Modifier
-            .padding(top = 6.dp, bottom = 6.dp)
-            .fillMaxWidth()
-            .padding(10.dp),
+    if (errorEmail || authUiState.errorLogin != null) {
+        Text(
+            "Email không hợp lệ",
+            modifier = Modifier
+                .padding(top = 6.dp, bottom = 6.dp)
+                .fillMaxWidth()
+                .padding(10.dp),
             color = Color.Red,
             textAlign = TextAlign.Start,
         )
@@ -235,7 +272,8 @@ fun LoginForm(
         isError = passwordError,
         onValueChange = {
             hasSubmitted = false
-            password = it },
+            password = it
+        },
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         leadingIcon = {
@@ -275,17 +313,21 @@ fun LoginForm(
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
 
+            errorContainerColor = Color.Transparent
+
             )
     )
     if (passwordError) {
-        Text("Mật khẩu không hợp lệ",  modifier = Modifier
-            .padding(top = 6.dp, bottom = 6.dp)
-            .fillMaxWidth()
-            .padding(10.dp),
+        Text(
+            "Mật khẩu không hợp lệ",
+            modifier = Modifier
+                .padding(top = 6.dp, bottom = 6.dp)
+                .fillMaxWidth()
+                .padding(10.dp),
             color = Color.Red,
             textAlign = TextAlign.Start,
 
-        )
+            )
     }
 
     Spacer(Modifier.height(14.dp))
@@ -301,16 +343,11 @@ fun LoginForm(
 
     Spacer(Modifier.height(14.dp))
 
-//    Button(
-//        onClick = { onLoginClick(email, password) },
-//        enabled = uiState !is UiState.Loading,
-//    ) {
-//        Text("Đăng nhập")
-//    }
 
 
     //error
-    if (uiState is UiState.Error) {
+    if (!authUiState.errorLogin.isNullOrEmpty() && hasSubmitted ) {
+        Log.d("check_error_auth", "login ")
 
         Row(
             modifier = Modifier.padding(7.dp),
@@ -324,36 +361,43 @@ fun LoginForm(
             Spacer(Modifier.width(5.dp))
 
             Text(
-            text = "Email hoặc mật khẩu không đúng",
-            color = Color.Red,
-
-        ) }
+                text = "Email hoặc mật khẩu không đúng",
+                color = Color.Red,
+                )
+        }
 
     }
 
     Button(
         onClick = {
-            hasSubmitted = true
-            if (isValidForm) {
-                onLoginClick(email, password)
+                 hasSubmitted = true
+                if (isValidForm) {
+                    onLoginClick(email, password)
             }
-                  },
+        },
         modifier = Modifier
             .fillMaxWidth()
             .height(52.dp),
 
-        enabled = uiState !is UiState.Loading,
-        colors = ButtonDefaults.buttonColors(Color(0xff222222)),
+        enabled = appState !is AppState.Loading && email.isNotEmpty() && password.isNotEmpty(),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Blue1,
+            disabledContainerColor = Blue1.copy(0.2f),
+
+            ),
         shape = RoundedCornerShape(14.dp)
 
     ) {
-        if (uiState is UiState.Loading) {
+        if (authUiState.isLoadingLogin) {
             CircularProgressIndicator(
                 strokeWidth = 2.dp,
                 modifier = Modifier.size(20.dp)
             )
         } else {
-            Text("Đăng nhập")
+            Text(
+                "Đăng nhập",
+                color = Color.White
+            )
         }
     }
 
@@ -366,53 +410,64 @@ fun LoginFormPreview(
 
 ) {
     LoginContent(
-        uiState = UiState.Idle,
+        appState = AppState.Loading,
         onLoginClick = { _, _ -> },
         onRegisterClick = {},
-        onGoogleLogin = {})
+        onGoogleLogin = {},
+        authUiState = AuthUiState(),
+    )
 }
 
 
 //review
 @Composable
 fun LoginContent(
-    uiState: UiState<AuthResult>,
+    appState: AppState,
     onLoginClick: (String, String) -> Unit,
     onRegisterClick: () -> Unit,
-    onGoogleLogin: () -> Unit
+    onGoogleLogin: () -> Unit,
+    authUiState: AuthUiState,
 ) {
     Box(
         modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.horizontalGradient(
-                    listOf(
-                        secondBlue,
-                        Color.White
-                    )
-                )
-            ),
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Card(
-            modifier = Modifier
-                .padding(24.dp),
-            shape = RoundedCornerShape(28.dp),
-            elevation = CardDefaults.cardElevation(20.dp),
+        Image(
+            painter = painterResource(R.drawable.bg_sky9),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
 
-            ) {
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 12.dp)
+                .fillMaxWidth()
+                 .background(Color.White, RoundedCornerShape(22.dp))
+        ) {
             Box(
                 modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp)
+                    .coloredShadow(
+                        colors = listOf(Gray65),
+                        1f,
+                        blurRadius = 5.dp,
+                        spread = 0.1.dp
+                    )
+                    .clip(RoundedCornerShape(20.dp))
                     .background(
-                        Brush.verticalGradient(
+                        brush = Brush.verticalGradient(
                             colorStops = arrayOf(
-                                0.0f to PrimaryBlue,
-                                0.15f to PrimaryBlue,
+                                0.0f to Color(0xFFc6f0fe),
+                                0.12f to Color(0xFFe4f8fc),
                                 0.25f to Color.White,
                                 1.5f to Color.White
                             )
-                        )
-                    ),
+                        ),
+                        RoundedCornerShape(20.dp)
+                    )
             ) {
                 Column(
                     modifier = Modifier
@@ -423,8 +478,9 @@ fun LoginContent(
                     LoginHeader(onRegisterClick = onRegisterClick)
                     Spacer(Modifier.height(24.dp))
                     LoginForm(
-                        uiState = uiState,
-                        onLoginClick = onLoginClick
+                        appState = appState,
+                        onLoginClick = onLoginClick,
+                        authUiState = authUiState,
                     )
 //                        LoginForm(
 //                            uiState = uiState,
@@ -439,12 +495,14 @@ fun LoginContent(
                     Spacer(Modifier.height(24.dp))
 
                     LoginSocial(
-                        uiState = uiState,
+                        appState = appState,
                         onGoogleLogin = onGoogleLogin
                     )
+
                 }
             }
         }
+
     }
 }
 
@@ -467,20 +525,35 @@ fun OrDivider(text: String) {
 
 @Composable
 fun LoginSocial(
-    uiState: UiState<AuthResult>,
+    appState: AppState,
     onGoogleLogin: () -> Unit
 ) {
     IconButton(
         onClick = onGoogleLogin,
-        enabled = uiState !is UiState.Loading,
+        enabled = appState !is AppState.Loading,
         modifier = Modifier
+//            .padding(horizontal = 50.dp)
             .fillMaxWidth()
+            .coloredShadow(
+                colors = listOf(Color.Red, Blue0),
+                borderRadius = 20.dp,
+                blurRadius = 5.dp,
+                offsetY = 0.5.dp
+            )
+            .background(Color.White, RoundedCornerShape(20.dp))
     ) {
+//        .coloredShadow(
+//        colors = listOf(Color.Black, Color.Red),
+//        borderRadius = 20.dp,
+//        blurRadius = 5.dp,
+//        offsetY = 0.5.dp
+//    )
         Image(
-            painter = painterResource(R.drawable.ic_gg),
+            painter = painterResource(R.drawable.ic_google2),
             modifier = Modifier
                 .fillMaxWidth()
-                .size(56.dp),
+                .size(56.dp)
+                .padding(10.dp),
             contentDescription = null,
             alignment = Alignment.Center,
         )

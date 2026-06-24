@@ -59,6 +59,12 @@ fun SelectPayment(paymentMethod: PaymentMethod) {
     }
 }
 
+//  PENDING("Pending", "Chờ xác nhận"),
+//    CONFIRMED("Confirmed", "Đã xác nhận"),
+//    PREPARING("Preparing", "Đang làm món"),
+//    DELIVERING("Delivering", "Đang giao"),
+//    DELIVERED("Delivered", "Đã giao"),
+//    CANCELLED("Cancelled", "Đã hủy");
 fun getTextFromOrderStatus(orderStatus: OrderStatus): String {
     return when (orderStatus) {
         OrderStatus.PENDING -> {

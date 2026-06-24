@@ -1,15 +1,15 @@
 package com.example.foodapp.core
 
-sealed class  UiState<out T> {
+sealed class  UiState<out T>(emptyList: List<T>) {
 
-    data object Idle: UiState<Nothing>()
-    data object Loading: UiState<Nothing>()
-    data class Success<T>(val data: T): UiState<T>()
+    data object Idle: UiState<Nothing>(emptyList())
+    data object Loading: UiState<Nothing>(emptyList())
+    data class Success<T>(val data: T): UiState<T>(emptyList())
     data class Error(
         val message: String,
         val type: UiErrorType = UiErrorType.GENERAL
-    ): UiState<Nothing>()
-    data class Empty(val message: String = "Have no any data"): UiState<Nothing>()
+    ): UiState<Nothing>(emptyList())
+    data class Empty(val message: String = "Have no any data"): UiState<Nothing>(emptyList())
 
 
     fun isIdle(): Boolean = this is Idle

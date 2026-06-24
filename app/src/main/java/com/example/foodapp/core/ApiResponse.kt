@@ -10,10 +10,11 @@ sealed class ApiResponse<out T> {
         val throwable: Throwable? = null
     ): ApiResponse<Nothing>()
     data class Conflict(
-        val message: String,
-        val oldRestaurantName: String,
+         val oldRestaurantName: String,
         val newRestaurantName: String,
     ): ApiResponse<Nothing>()
+
+
     fun isSuccess(): Boolean = this is Success
     fun isEmpty(): Boolean = this is Empty
     fun isError(): Boolean = this is Error
@@ -42,7 +43,7 @@ inline fun <T, R> ApiResponse<T>.map(transform: (T) -> R): ApiResponse<R> {
         is ApiResponse.Loading -> ApiResponse.Loading
         is ApiResponse.Empty -> ApiResponse.Empty
         is ApiResponse.Error -> ApiResponse.Error(message, code, throwable)
-        is ApiResponse.Conflict -> ApiResponse.Conflict(message, oldRestaurantName, newRestaurantName)
+        is ApiResponse.Conflict -> ApiResponse.Conflict(  oldRestaurantName, newRestaurantName)
     }
 }
 
@@ -50,14 +51,21 @@ inline fun <T> ApiResponse<T>.onError(action: (String) -> Unit): ApiResponse<T> 
     if (this is ApiResponse.Error) action(message)
     return this
 }
+/*
+thay vì viết, 2 when xử lý lồng nhau cho result api
+when (api result) {
+is ApiSuccess -> {
+    gọi tiếp api result khác, tốn 2 bước
 
+thay vào đó api result.flat { result -> api khác (result)
+ */
 inline fun <T, R> ApiResponse<T>.flatMap(transform: (T) -> ApiResponse<R>): ApiResponse<R> {
     return when (this) {
         is ApiResponse.Success -> transform(data)
         is ApiResponse.Error -> ApiResponse.Error(message, code, throwable)
         is ApiResponse.Loading -> ApiResponse.Loading
         is ApiResponse.Empty -> ApiResponse.Empty
-        is ApiResponse.Conflict -> ApiResponse.Conflict(message, oldRestaurantName, newRestaurantName)
+        is ApiResponse.Conflict -> ApiResponse.Conflict(  oldRestaurantName, newRestaurantName)
     }
 }
 

@@ -4,12 +4,12 @@ enum class OrderStatus (
     val label: String,
     val vietnameseLabel: String
 ) {
-    PENDING("Pending", "Chờ xác nhận"),
-    CONFIRMED("Confirmed", "Đã xác nhận"),
-    PREPARING("Preparing", "Đang chế biến"),
-    DELIVERING("Delivering", "Đang giao"),
-    DELIVERED("Delivered", "Đã giao"),
-    CANCELLED("Cancelled", "Đã hủy");
+    PENDING("Pending", "Chờ xác nhận đơn hàng"),
+    CONFIRMED("Confirmed", "Đã xác nhận đơn hàng"),
+    PREPARING("Preparing", "Đang làm món"),
+    DELIVERING("Delivering", "Đang giao món"),
+    DELIVERED("Delivered", "Đã giao món"),
+    CANCELLED("Cancelled", "Đã hủy món");
 
 
     fun getNextStatus(): OrderStatus? {

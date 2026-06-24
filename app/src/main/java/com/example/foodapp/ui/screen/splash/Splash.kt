@@ -55,3 +55,22 @@ fun SplashScreen() {
         )
     }
 }
+
+
+@Composable
+fun LoadingBtn() {
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec.Asset("loading1.json")
+    )
+    val progress by animateLottieCompositionAsState(composition)
+
+    Box(
+         contentAlignment = Alignment.Center
+    ) {
+        LottieAnimation(
+            composition = composition,
+            progress = progress,
+            modifier = Modifier.size(120.dp)
+        )
+    }
+}

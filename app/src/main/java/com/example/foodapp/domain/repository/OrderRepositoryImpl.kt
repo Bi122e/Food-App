@@ -1,5 +1,6 @@
 package com.example.foodapp.domain.repository
 
+import android.util.Log
 import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.core.Constance
 import com.example.foodapp.data.repository.OrderRepository
@@ -20,11 +21,12 @@ import javax.inject.Inject
 
 class OrderRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore
-): OrderRepository {
+) : OrderRepository {
 
     private val orderCollection = firestore.collection(Constance.COLLECTION_ORDERS)
 
     override suspend fun getOrderById(orderId: String): ApiResponse<Order> {
+        Log.d("check_getOrderById", "orderId: $orderId")
         return try {
             val orderRef = orderCollection.document(orderId).get().await()
             val order = orderRef.toObject(Order::class.java)
@@ -34,14 +36,19 @@ class OrderRepositoryImpl @Inject constructor(
             ApiResponse.Error(e.message ?: "")
         }
     }
-    override suspend fun createOrder(order: Order, paymentMethod: PaymentMethod): ApiResponse<String> {
+
+    override suspend fun createOrder(
+        order: Order,
+        paymentMethod: PaymentMethod
+    ): ApiResponse<String> {
         return try {
             val snapshot = orderCollection.document()
             val orderId = snapshot.id
             val orderWithId = order.copy(
                 orderId = orderId,
                 createdAt = Date(),
-                updatedAt = Date())
+                updatedAt = Date()
+            )
             snapshot.set(orderWithId).await()
             ApiResponse.Success(orderId)
         } catch (e: Exception) {
@@ -60,14 +67,16 @@ class OrderRepositoryImpl @Inject constructor(
                 .update(
                     mapOf(
                         "paymentStatus" to paymentStatus,
-                        "updatedAt" to Date()))
+                        "updatedAt" to Date()
+                    )
+                )
             return ApiResponse.Success(Unit)
         } catch (e: Exception) {
             ApiResponse.Error(e.message ?: "Update failed")
         }
     }
 
-    override fun getAllOrder(): Flow<ApiResponse<List<Order>>> = callbackFlow{
+    override fun getAllOrder(): Flow<ApiResponse<List<Order>>> = callbackFlow {
         val listener = orderCollection.addSnapshotListener { snapshot, error ->
             if (error != null) {
                 trySend(ApiResponse.Error(error.message ?: "Failed to get order"))
@@ -88,40 +97,131 @@ class OrderRepositoryImpl @Inject constructor(
         awaitClose { listener.remove() }
     }
 
+    override fun getOrderIncomplete(userId: String): Flow<ApiResponse<List<Order>>> = callbackFlow {
+        val listener = orderCollection
+            .whereEqualTo(
+                "userId",
+                userId
+            )
+            .whereEqualTo(
+                "active",
+                true
+            )
+            .addSnapshotListener { snapshots, exception ->
+                if (exception != null) {
+                    Log.d("getOrderIncomplete_______", "error $exception")
+
+                    trySend(
+                        ApiResponse.Error(
+                            exception.message ?: "Failed to get order incomplete"
+                        )
+                    )
+                    return@addSnapshotListener
+                }
+//                val order = snapshots?.documents?.mapNotNull {
+//                    it.toObject(Order::class.java)
+//                } ?: emptyList()
+                val orders = snapshots?.documents?.mapNotNull { doc ->
+                    try {
+                        doc.toObject(Order::class.java)
+                    } catch (e: Exception) {
+                        Log.e(
+                            "error_ORDER_PARSE__",
+                            "docId=${doc.id}",
+                            e
+                        )
+                        null
+                    }
+                } ?: emptyList()
+                Log.d("getOrderIncomplete", "success $orders")
+                trySend(ApiResponse.Success(orders))
+            }
+
+        awaitClose { listener.remove() }
+    }
+
+    override fun getOrderNeedRating(userId: String): Flow<ApiResponse<List<Order>>> = callbackFlow {
+
+        val listener = orderCollection
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("hasRated", false)
+            .whereEqualTo("ratingNotificationSent", false)
+            .whereEqualTo("status", "DELIVERED")
+            .addSnapshotListener { snapshots, exception ->
+                if (exception != null) {
+                    Log.d("OrderFlow", "getOrderNeedRating", exception)
+                    trySend(ApiResponse.Error(exception.message ?: "error order"))
+
+                }
+
+                Log.d(
+                    "OrderFlow",
+                    "exception = $exception"
+                )
+
+                Log.d(
+                    "OrderFlow",
+                    "projectId = ${FirebaseFirestore.getInstance().app.options.projectId}"
+                )
+
+                Log.d("OrderFlow", "collection = ${Constance.COLLECTION_ORDERS}")
+                Log.d(
+                    "OrderFlow",
+                    "TOTAL DOCS = ${snapshots?.size()}"
+                )
+                Log.d("OrderFlow", "snapshot = ${snapshots?.documents}")
+                val orders = snapshots?.documents?.mapNotNull {
+                    it.toObject(Order::class.java)
+                } ?: emptyList()
+                Log.d("OrderFlow", "getOrderNeedRating: success: $orders")
+                trySend(ApiResponse.Success(orders))
+            }
+        awaitClose { listener.remove() }
+    }
+
+
+
     override fun getOrderByUserId(userId: String): Flow<ApiResponse<List<Order>>> = callbackFlow {
         val listener = orderCollection
             .whereEqualTo("userId", userId)
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
-                if(error != null) {
-                    trySend(ApiResponse.Error(error.message ?: "Failed to get order by user id"))
-                return@addSnapshotListener
-                }
-                val orders = snapshot?.documents?.mapNotNull {
-                    it.toObject(Order::class.java)
-                } ?: emptyList()
-                trySend(ApiResponse.Success(orders))
-            }
-        awaitClose { listener.remove() }
-    }
-
-    override fun getOrderByRestaurantId(restaurantId: String): Flow<ApiResponse<List<Order>>> = callbackFlow {
-        val listener = orderCollection
-            .whereEqualTo("restaurantId", restaurantId)
-            .orderBy("createAt", Query.Direction.DESCENDING)
-            .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    trySend(ApiResponse.Error(error.message ?: "Failed to get order by restaurantId"))
+                    Log.d("getOrderByUserId", error.message ?: "sdf")
+                    trySend(ApiResponse.Error(error.message ?: "Failed to get order by user id"))
                     return@addSnapshotListener
                 }
                 val orders = snapshot?.documents?.mapNotNull {
                     it.toObject(Order::class.java)
                 } ?: emptyList()
-
+                Log.d("getOrderByUserId", orders.toString())
                 trySend(ApiResponse.Success(orders))
             }
         awaitClose { listener.remove() }
     }
+
+    override fun getOrderByRestaurantId(restaurantId: String): Flow<ApiResponse<List<Order>>> =
+        callbackFlow {
+            val listener = orderCollection
+                .whereEqualTo("restaurantId", restaurantId)
+                .orderBy("createAt", Query.Direction.DESCENDING)
+                .addSnapshotListener { snapshot, error ->
+                    if (error != null) {
+                        trySend(
+                            ApiResponse.Error(
+                                error.message ?: "Failed to get order by restaurantId"
+                            )
+                        )
+                        return@addSnapshotListener
+                    }
+                    val orders = snapshot?.documents?.mapNotNull {
+                        it.toObject(Order::class.java)
+                    } ?: emptyList()
+
+                    trySend(ApiResponse.Success(orders))
+                }
+            awaitClose { listener.remove() }
+        }
 
     override suspend fun cancelOrder(orderId: String): ApiResponse<Unit> {
         updateOrderStatus(orderId, OrderStatus.CANCELLED)
@@ -229,7 +329,8 @@ class OrderRepositoryImpl @Inject constructor(
                 "status" to status.name,
                 "updatedAt" to FieldValue.serverTimestamp()
             )
-            if (status == OrderStatus.DELIVERING) {
+            if (status == OrderStatus.DELIVERED) {
+                updates["active"] = false
                 updates["deliveredAt"] = FieldValue.serverTimestamp()
             }
             orderCollection.document(orderId).update(updates).await()

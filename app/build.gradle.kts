@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.google.gms.google.services)
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.compose)
-    id("kotlin-kapt")
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -58,7 +58,8 @@ dependencies {
     // Firebase (DÙNG BOM – KHÔNG SET VERSION)
     // ========================
     implementation(platform("com.google.firebase:firebase-bom:32.7.4"))
-    implementation("com.google.firebase:firebase-auth-ktx")
+//    implementation("androidx.compose.animation:animation:1.11.2")
+      implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-messaging-ktx")
 
@@ -74,7 +75,9 @@ dependencies {
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
 //    implementation(libs.firebase.messaging.ktx)
-    kapt(libs.hilt.compiler)
+//    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
+
 
     // =========================
     // Jetpack Compose (BOM)
@@ -84,6 +87,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     debugImplementation(libs.androidx.compose.ui.tooling)
+    implementation("androidx.compose.animation:animation")
     implementation("androidx.compose.material:material-icons-extended")
 
     // Activity Compose
@@ -115,7 +119,8 @@ dependencies {
     //coil
     implementation("io.coil-kt:coil-compose:2.5.0")
 
-    //
+    //map
+    implementation("com.google.android.gms:play-services-location:21.2.0")
 
 }
 

@@ -1,6 +1,8 @@
-package com.example.foodapp.ui.screen.main.tab
+package com.example.foodapp.ui.screen.main.home
 
 
+import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -63,6 +65,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.core.content.ContextCompat
 import coil.compose.SubcomposeAsyncImage
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -70,19 +73,22 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.foodapp.R
+import com.example.foodapp.core.NotificationHelper
 import com.example.foodapp.core.UiState
-import com.example.foodapp.core.utils.showToast
-import com.example.foodapp.domain.model.Category
+ import com.example.foodapp.domain.model.Category
 import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.Promotion
 import com.example.foodapp.domain.model.Restaurant
 import com.example.foodapp.presentation.state.HomeData
 import com.example.foodapp.presentation.state.HomeUiState
 import com.example.foodapp.presentation.state.OrderUiState
+import com.example.foodapp.service.MyFirebaseMessagingService
+import com.example.foodapp.ui.activity.MainActivity
 import com.example.foodapp.ui.components.HomeBottomBar
 import com.example.foodapp.ui.preview.PreviewData
 import com.example.foodapp.ui.preview.PreviewDataOrderState
 import com.example.foodapp.ui.preview.PreviewDataRestaurant
+import com.example.foodapp.ui.screen.shared.SnackBarSuccessOrder
 import com.example.foodapp.ui.theme.Blue0
 import com.example.foodapp.ui.theme.Blue1
 import com.example.foodapp.ui.theme.Blue2
@@ -95,6 +101,8 @@ import com.example.foodapp.ui.theme.Gray100
 import com.example.foodapp.ui.theme.MediumGray
 import com.example.foodapp.ui.theme.Yellow1
 import com.google.android.gms.common.util.CollectionUtils.listOf
+import com.google.firebase.messaging.FirebaseMessagingService
+import java.util.jar.Manifest
 
 @Composable
 fun HomeTab(
@@ -124,28 +132,21 @@ fun HomeTab(
 
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
-    var showProgress by remember { mutableStateOf(true) }
-    var showExtendedProgress by remember { mutableStateOf(false) }
+     var showExtendedProgress by remember { mutableStateOf(false) }
     val order = homeUiState.oder
     val screenH = LocalConfiguration.current.screenHeightDp
     val screenW = LocalConfiguration.current.screenWidthDp
 
-    showToast(context, " home sc")
-    Box(
+     Box(
         modifier = Modifier
             .fillMaxSize()
-//            .padding(paddingValues)
-            .background(
-//                brush = Brush.verticalGradient(
-//                    0.0f to Color(0xff32c4e1),
-//                    0.10f to PrimaryBlue,
-//
-//                    0.3f to Color(0xffebecee),
-//                    0.7f to Color.White,
-//                )
+             .background(
                 color = Color.White
-            )
+            ),
+         contentAlignment = Alignment.BottomCenter
     ) {
+
+
 
 
         val composition by rememberLottieComposition(
@@ -215,7 +216,7 @@ fun HomeTab(
                         screenW = screenW,
                         onLoadResRandomMore = {},
                         onClickResRandom = onClickResRandom,
-                    )
+                     )
                 }
 
             }
@@ -349,11 +350,15 @@ fun HomeTab(
 
         }
 
+        var showProgress by remember { mutableStateOf(true) }
 
         //circle order
         //order.any { !it.isFinished() } &&
         Log.d("CHECK_ORDER_state", "home ui state: ${homeUiState.oder.toString()}")
         Log.d("CHECK_ORDER_state", "order ui state: ${orderUiState.order.toString()}")
+        Log.d("check_show_progress_flow", "home order ui state: ${homeUiState.oder.size}")
+        Log.d("check_show_progress_flow", "check dk: ${showProgress}")
+
         if (showProgress && order.isNotEmpty()) {
             Box(
                 modifier = Modifier
@@ -367,8 +372,7 @@ fun HomeTab(
                                 showExtendedProgress = true
                             } else {
                                 onNavOrder(order[0].orderId)
-                                showToast(context, "clicked 1 item")
-                            }
+                             }
                         }
                     )
                     .background(
@@ -461,10 +465,7 @@ fun HomeTab(
                                     .clickable(
                                         onClick = {
                                             onNavOrder(item.orderId)
-                                            showToast(
-                                                context,
-                                                "clicked item ${item.orderId}"
-                                            )
+
                                             Log.d("Order_click", item.orderId)
                                         }
                                     )
@@ -526,8 +527,7 @@ fun HomeTab(
                         .background(Color.White.copy(0.5f), CircleShape)
                         .clickable(
                             onClick = {
-                                showToast(context = context, "clicked!")
-                                showProgress = true
+                                 showProgress = true
                                 showExtendedProgress = false
                             }
                         )
@@ -547,6 +547,7 @@ fun HomeTab(
 //        ) {
 //
 //        }
+         
     }
 
 
@@ -559,31 +560,33 @@ fun RandomResSelection(
     homeData: HomeData,
     onLoadResRandomMore: () -> Unit,
     onClickResRandom: (String) -> Unit,
-) {
+ ) {
     val listStateRandomRes = rememberLazyListState()
     val listStateCateRes = rememberLazyListState()
     val listStateRes = rememberLazyListState()
     val context = LocalContext.current
-//    LaunchedEffect(listStateRandomRes) {
-//
-//        snapshotFlow {
-//            listStateRandomRes.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-//        }.collect { lastIdx ->
-//
-//            if (
-//                lastIdx != null &&
-//                lastIdx >= homeData.restaurantByRandom.lastIndex - 2
-//            ) {
-//                onLoadResRandomMore()
-//            }
+
+
+//     val onClick = {
+//        val hasPermission =
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+//                ContextCompat.checkSelfPermission(
+//                    context,
+//                    android.Manifest.permission.POST_NOTIFICATIONS
+//                ) == PackageManager.PERMISSION_GRANTED
+//            } else true
+
+//        if (hasPermission) {
+//            NotificationHelper.showOrderCompleted(context, "ORDER_123")
 //        }
-//    }
 
     Column(
         modifier = Modifier
             .padding(
                 start = 16.dp
-            ),
+            )
+            .clickable {
+             },
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Row(
@@ -603,8 +606,7 @@ fun RandomResSelection(
                 text = "Món ngon dành cho bạn",
                 color = Color.Black,
                 fontWeight = FontWeight.Bold,
-                fontSize = 17.sp,
-                modifier = Modifier,
+                 fontSize = 17.sp,
             )
         }
 
@@ -625,8 +627,7 @@ fun RandomResSelection(
                 Column(
                     modifier = Modifier.clickable(
                         onClick = {
-                            showToast(context = context, item.restaurantName)
-                            onClickResRandom(item.restaurantId)
+                             onClickResRandom(item.restaurantId)
                         }
                     ),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -839,8 +840,7 @@ fun RiceResSelection(
                 .padding(horizontal = 16.dp)
                 .clickable(
                     onClick = {
-                        showToast(context, "clicked")
-                        onNavRiceResExtend()
+                         onNavRiceResExtend()
                     }
                 ),
         ) {
@@ -914,8 +914,7 @@ fun RiceResSelection(
                     Column(
                         modifier = Modifier.clickable(
                             onClick = {
-                                showToast(context = context, item.restaurantName)
-                                onNavRiceRes(item.restaurantId)
+                                 onNavRiceRes(item.restaurantId)
                             }
                         ),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -1432,8 +1431,7 @@ fun AllResSelection(
                         .clickable(
                             onClick = {
                                 onNavAllRes(restaurant.restaurantId)
-                                showToast(context, restaurant.restaurantName)
-                            }
+                             }
                         )
                 ) {
 

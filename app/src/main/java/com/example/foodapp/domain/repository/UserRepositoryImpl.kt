@@ -1,5 +1,6 @@
 package com.example.foodapp.domain.repository
 
+import android.util.Log
 import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.core.Constance
 import com.example.foodapp.data.repository.AuthRepository
@@ -63,9 +64,9 @@ class UserRepositoryImpl @Inject constructor(
             val user = User(
                 uid = uid,
                 email = email,
-                profile = com.example.foodapp.domain.model.UserProfile(
-                    customer = com.example.foodapp.domain.model.CustomerProfile(uid = uid, name = "", phone = "", address = "", profileUrl = "")
-                ),
+                name = "",
+                phone = "",
+                isActive = true,
                 updatedAt = null,
                 createdAt = null,
                 lastLogin = null
@@ -84,8 +85,11 @@ class UserRepositoryImpl @Inject constructor(
                 updatedAt = null
             )
             userRef.document(user.uid).set(newUser).await()
+            Log.d("updateUser_check", "success")
             ApiResponse.Success(Unit)
         } catch (e: Exception) {
+            Log.d("updateUser_check", "error")
+
             ApiResponse.Error(e.message ?: "Failed to update user")
         }
     }
@@ -178,7 +182,11 @@ class UserRepositoryImpl @Inject constructor(
             )
             token?.let { updates["fcmToken"] = it }
 
-            firestore.collection("users").document(uid).update(updates).await()
+            firestore
+                .collection("users")
+                .document(uid)
+                .update(updates)
+                .await()
             ApiResponse.Success(Unit)
         } catch (e: Exception) {
             ApiResponse.Error(e.message ?: "Failed to update session")

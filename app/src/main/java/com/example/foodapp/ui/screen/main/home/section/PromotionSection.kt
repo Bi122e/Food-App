@@ -1,4 +1,4 @@
-package com.example.foodapp.ui.screen.main.section
+package com.example.foodapp.ui.screen.main.home.section
 
 import AppAsyncImage
 import androidx.compose.foundation.background

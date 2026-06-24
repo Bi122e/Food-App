@@ -3,6 +3,7 @@ package com.example.foodapp.presentation.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.core.UiState
 import com.example.foodapp.core.toUiState
 import com.example.foodapp.data.repository.AuthRepository
@@ -96,10 +97,22 @@ class FoodDetailViewModel @Inject constructor(
 //            val response = restaurantRepository.getRestaurantById(restaurantId)
 //                .first()
 //                .toUiState()
-            restaurantRepository.getRestaurantById(restaurantId).collectLatest { response ->
-                _restaurantState.value = response.toUiState()
-                Log.d("FoodDetailViewModel", "restaurant = ${restaurantState.value}")
+            val response = restaurantRepository.getRestaurantById(restaurantId)
+            when (response) {
+                is ApiResponse.Success -> {
+                    Log.d("check_VMrestaurantDetail", "success ${response.data}")
+                    _restaurantState.value = UiState.Success(response.data)
+                }
+
+                is ApiResponse.Error -> {
+                    Log.d("check_VMrestaurantDetail", "error ${response.message}")
+                    _restaurantState.value = UiState.Error(response.message)
+                }
+                else -> {
+                    Log.d("check_VMrestaurantDetail", "else")
+                }
             }
+            Log.d("check_VMrestaurantDetail", "state = ${restaurantState.value}")
         }
     }
 
@@ -258,53 +271,29 @@ class FoodDetailViewModel @Inject constructor(
     fun selectedFood(food: Food) {
         val restaurant = (_restaurantState.value as? UiState.Success)?.data ?: return
         _foodState.value = UiState.Success(food)
-        Log.d("ADDSTATE", "selected = ${_foodState.value}")
-        Log.d("ADDSTATE", "selected = ${restaurant}")
+        Log.d("selectedFood", "selected = ${_foodState.value}")
+        Log.d("selectedFood", "selected = ${restaurant}")
 
         viewModelScope.launch {
             if (food.variations.isNotEmpty()) {
                 loadDetailFood(food.foodId)
                 _event.emit(FoodAction.OpenDetail(food.foodId))
-                Log.d("ADDSTATE", "open")
+                Log.d("selectedFood", "open")
             } else {
                 _event.emit(FoodAction.AddToCart(food, restaurant))
-                Log.d("ADDSTATE", "ko open =  ")
+                Log.d("selectedFood", "ko open =  ")
 
             }
-            _event.emit(FoodAction.ShowMessage(_foodState.value.toString()))
+//            _event.emit(FoodAction.ShowMessage(_foodState.value.toString()))
         }
-        Log.d("ADD", "selected = ${_foodState.value}")
+        Log.d("selectedFood", "selected = ${_foodState.value}")
     }
-//    LaunchedEffect(Unit) {
-//        foodViewModel.event.collect { action ->
-//            handleFoodAction(action)
-//        }
-//    }
 
-    //fun handleFoodAction(action: FoodAction) {
-    //    when (action) {
-    //        is FoodAction.AddToCart -> {
-    //            val restaurant = (restaurantState as? UiState.Success)?.data
-    //            restaurant?.let {
-    //                cartViewModel.addToCart(action.food, it)
-    //            }
-    //        }
-    //
-    //        is FoodAction.OpenDetail -> {
-    //            showToast(context, "Món ăn có tùy chọn, vui lòng xem chi tiết")
-    //            // hoặc navigate
-    //        }
-    //
-    //        is FoodAction.ShowMessage -> {
-    //            showToast(context, action.message)
-    //        }
-    //    }
-    //}
 }
 
 sealed class FoodAction {
     data class AddToCart(val food: Food, val restaurant: Restaurant) : FoodAction()
     data class OpenDetail(val foodId: String) : FoodAction()
-    data class ShowMessage(val message: String) : FoodAction()
+//    data class ShowMessage(val message: String) : FoodAction()
 }
 
