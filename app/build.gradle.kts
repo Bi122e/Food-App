@@ -9,12 +9,11 @@ plugins {
 
 android {
     namespace = "com.example.foodapp"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.foodapp"
         minSdk = 24
-        //noinspection OldTargetApi
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -41,15 +40,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-//    kotlinOptions {
-//        jvmTarget = "11"
-//    }
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
-        }
+    kotlinOptions {
+        jvmTarget = "11"
     }
-
     sourceSets {
         getByName("main") {
             assets {
@@ -59,14 +52,12 @@ android {
     }
 }
 
-
 dependencies {
 
     // =========================
     // Firebase (DÙNG BOM – KHÔNG SET VERSION)
     // ========================
-    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
-
+    implementation(platform("com.google.firebase:firebase-bom:32.7.4"))
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-messaging-ktx")
@@ -96,8 +87,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
 
     // Activity Compose
-//    implementation("androidx.activity:activity-compose:1.9.3")
-    implementation(libs.androidx.activity.compose)
+    implementation("androidx.activity:activity-compose:1.9.3")
 
     // =========================
     // AndroidX

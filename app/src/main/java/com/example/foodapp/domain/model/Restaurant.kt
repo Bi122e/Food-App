@@ -1,5 +1,6 @@
 package com.example.foodapp.domain.model
 
+import com.example.foodapp.core.utils.toNormalizeSearch
 import com.google.firebase.firestore.ServerTimestamp
 import java.util.Date
 import kotlin.math.atan2
@@ -9,6 +10,8 @@ import kotlin.math.sqrt
 
 data class Restaurant(
     val restaurantName: String = "",
+    val searchName: String = restaurantName.toNormalizeSearch(),
+    val ownerUid: String = "",
     val restaurantId: String = "",
     val address: String = "",
     val phoneNumber: String = "",
@@ -27,8 +30,10 @@ data class Restaurant(
     val categories: List<String> = emptyList(),
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
+    val ratingCount: RatingCount = RatingCount(),
     @ServerTimestamp
     val updatedAt: Date? = null,
+    @ServerTimestamp
     val createdAt: Date? = null
 ) {
     fun getAverageRating(): Double {
@@ -66,10 +71,6 @@ data class Restaurant(
                 phoneNumber.isNotEmpty()
     }
 
-    fun canOrder(newRestaurantId: String): Boolean {
-        return  restaurantId == newRestaurantId
-    }
-
     fun isPopular(): Boolean {
         return rating >= 5 && totalReview >= 5;
     }
@@ -104,3 +105,11 @@ data class Restaurant(
         )
     }
 }
+
+data class RatingCount(
+    val oneStar: Int = 0,
+    val twoStart: Int = 0,
+    val threeStart: Int = 0,
+    val fourStart: Int = 0,
+    val fiveStart: Int = 0,
+)
