@@ -14,7 +14,7 @@ import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.tasks.await
 
 object FoodSeeder {
-    private const val SEED_VERSION = 25
+    private const val SEED_VERSION = 28
 
 
     suspend fun seedIfNeeded(context: Context) {

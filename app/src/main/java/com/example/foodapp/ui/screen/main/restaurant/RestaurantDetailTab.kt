@@ -35,8 +35,8 @@ import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.Restaurant
 import com.example.foodapp.presentation.state.CartUiState
 import com.example.foodapp.presentation.state.ProfileUiState
-import com.example.foodapp.ui.preview.PreviewDataFood
-import com.example.foodapp.ui.preview.PreviewDataRestaurant
+import com.example.foodapp.ui.fakeData.PreviewDataFood
+import com.example.foodapp.ui.fakeData.PreviewDataRestaurant
 import com.example.foodapp.ui.screen.main.cart.section.CartBottomBar
 import com.example.foodapp.ui.screen.main.restaurant.section.ConflictDialog
 import com.example.foodapp.ui.screen.main.restaurant.section.FoodItemCard
@@ -96,7 +96,8 @@ fun RestaurantDetailTab(
                     RestaurantHeaderSection(
                         restaurant = data,
                         onClickBackHome = onClickBackHome,
-                        onNavigationToPreview = onNavigationToPreview)
+                        onNavigationToPreview = onNavigationToPreview
+                    )
                 }
             }
 

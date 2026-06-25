@@ -520,7 +520,7 @@ object RestaurantsSeeder {
             )
             db.collection("restaurants")
                 .document(updateRes.restaurantId)
-                .set(updateRes, SetOptions.merge())
+                .set(updateRes)
                 .await()
         }
     }

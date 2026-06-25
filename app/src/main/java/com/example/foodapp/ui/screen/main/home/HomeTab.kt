@@ -1,8 +1,6 @@
 package com.example.foodapp.ui.screen.main.home
 
 
-import android.content.pm.PackageManager
-import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -65,7 +63,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import androidx.core.content.ContextCompat
 import coil.compose.SubcomposeAsyncImage
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -73,7 +70,6 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.foodapp.R
-import com.example.foodapp.core.NotificationHelper
 import com.example.foodapp.core.UiState
  import com.example.foodapp.domain.model.Category
 import com.example.foodapp.domain.model.Food
@@ -82,13 +78,10 @@ import com.example.foodapp.domain.model.Restaurant
 import com.example.foodapp.presentation.state.HomeData
 import com.example.foodapp.presentation.state.HomeUiState
 import com.example.foodapp.presentation.state.OrderUiState
-import com.example.foodapp.service.MyFirebaseMessagingService
-import com.example.foodapp.ui.activity.MainActivity
 import com.example.foodapp.ui.components.HomeBottomBar
-import com.example.foodapp.ui.preview.PreviewData
-import com.example.foodapp.ui.preview.PreviewDataOrderState
-import com.example.foodapp.ui.preview.PreviewDataRestaurant
-import com.example.foodapp.ui.screen.shared.SnackBarSuccessOrder
+import com.example.foodapp.ui.fakeData.PreviewData
+import com.example.foodapp.ui.fakeData.PreviewDataOrderState
+import com.example.foodapp.ui.fakeData.PreviewDataRestaurant
 import com.example.foodapp.ui.theme.Blue0
 import com.example.foodapp.ui.theme.Blue1
 import com.example.foodapp.ui.theme.Blue2
@@ -101,8 +94,6 @@ import com.example.foodapp.ui.theme.Gray100
 import com.example.foodapp.ui.theme.MediumGray
 import com.example.foodapp.ui.theme.Yellow1
 import com.google.android.gms.common.util.CollectionUtils.listOf
-import com.google.firebase.messaging.FirebaseMessagingService
-import java.util.jar.Manifest
 
 @Composable
 fun HomeTab(

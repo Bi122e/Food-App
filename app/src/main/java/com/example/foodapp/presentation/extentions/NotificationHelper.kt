@@ -13,8 +13,10 @@ fun Order.toAppNotification(): AppNotification {
         message = "Hãy đánh giá nhà hàng để nhận ưu đãi!",
         type = NotificationType.ORDER_NEED_RATING.name,
         payload = mapOf("orderId" to this.orderId),
-        active = true,
+         active = true,
+        userName = this.userName,
         read = false,
         imgUrls = "",
+
     )
 }

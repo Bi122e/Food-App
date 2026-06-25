@@ -21,7 +21,7 @@ object UserRoutes {
      const val CHAT = "user_chat"
     const val PAYMENT = "user_payment"
     const val ORDER = "user_order"
-    const val PREVIEW = "preview"
+    const val PREVIEW = "preview/{restaurantId}"
     const val HOME = "user_home"
     const val CART = "user_cart"
     const val PROFILE = "user_profile"
@@ -36,6 +36,9 @@ object UserRoutes {
     const val FOOD = "food/{foodId}"
     const val NOTIFICATION = "notification"
 
+    fun restaurantPreview(restaurantId: String): String {
+        return "preview/$restaurantId"
+    }
     fun completeDetail(orderId: String, notificationId: String): String {
         return "complete/$orderId/$notificationId"
     }

@@ -5,6 +5,7 @@ import java.util.Date
 
 data class AppNotification(
     val id: String = "",
+    val restaurantId: String = "",
     val userId: String = "",
     val name: String = "",
     val message: String = "",
@@ -13,6 +14,8 @@ data class AppNotification(
     val active: Boolean = true,
     val read: Boolean = false,
     val imgUrls: String = "",
+    val userName: String = "",
+    val avatarUrls: String = "",
 
     @ServerTimestamp
     val updatedAt: Date? = null,

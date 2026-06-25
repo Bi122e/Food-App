@@ -2,8 +2,7 @@ package com.example.foodapp.data.repository
 
 import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.domain.model.Food
-import com.example.foodapp.domain.model.Review
-import kotlinx.coroutines.flow.Flow
+ import kotlinx.coroutines.flow.Flow
 
 interface   FoodRepository {
 
@@ -15,9 +14,7 @@ interface   FoodRepository {
 
     fun getPopularFoods(limit: Int = 10): Flow<ApiResponse<List<Food>>>
 
-    suspend fun addReview(foodId: String, review: Review): ApiResponse<Unit>
 
-    suspend fun getReviews(foodId: String): ApiResponse<List<Review>>
 
     fun getFoodsByRestaurant(restaurantId: String): Flow<ApiResponse<List<Food>>>
 

@@ -1,4 +1,4 @@
-package com.example.foodapp.ui.preview
+package com.example.foodapp.ui.fakeData
 
 import com.example.foodapp.core.UiState
 import com.example.foodapp.domain.model.Restaurant

@@ -38,9 +38,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,15 +57,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.foodapp.R
-import com.example.foodapp.core.utils.showToast
 import com.example.foodapp.core.utils.toVND
 import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.Variation
 import com.example.foodapp.domain.model.Variation.VariationType
 import com.example.foodapp.presentation.state.CartUiState
 import com.example.foodapp.presentation.state.getTotalPrice
-import com.example.foodapp.ui.preview.PreviewCartState
-import com.example.foodapp.ui.preview.PreviewDataFood
+import com.example.foodapp.ui.fakeData.PreviewCartState
+import com.example.foodapp.ui.fakeData.PreviewDataFood
 import com.example.foodapp.ui.screen.main.restaurant.section.ConflictDialog
 import com.example.foodapp.ui.theme.Blue0
 import com.example.foodapp.ui.theme.Blue1

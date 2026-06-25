@@ -1,8 +1,7 @@
 package com.example.foodapp.presentation.viewmodel
 
 import android.util.Log
-import androidx.compose.runtime.collectAsState
-import androidx.lifecycle.ViewModel
+ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.data.repository.AuthRepository
@@ -10,8 +9,7 @@ import com.example.foodapp.data.repository.NotificationRepository
 import com.example.foodapp.data.repository.OrderRepository
 import com.example.foodapp.data.repository.PreviewRepository
 import com.example.foodapp.data.repository.RestaurantRepository
-import com.example.foodapp.data.repository.UserRepository
-import com.example.foodapp.domain.model.Preview
+  import com.example.foodapp.domain.model.RestaurantPreview
 import com.example.foodapp.presentation.state.CompleteEventState
 import com.example.foodapp.presentation.state.CompleteUiState
 import com.example.foodapp.presentation.state.toMappingRatingCount
@@ -111,7 +109,7 @@ class CompleteViewModel @Inject constructor(
 
             val userId = authRepository.currentUserId() ?: return@launch
 
-            val preview = Preview(
+            val preview = RestaurantPreview(
                 previewId = "",
                 userName = if (_completeUiState.value.isPrivateName)
                     privateName()
@@ -250,6 +248,6 @@ class CompleteViewModel @Inject constructor(
         val random = Random.nextInt(1000)
             .toString()
             .padStart(3)
-        return "Người dùng $random"
+        return "Người dùng ẩn danh $random"
     }
 }

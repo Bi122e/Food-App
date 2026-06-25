@@ -1,10 +1,12 @@
 package com.example.foodapp.domain.model
 
 import com.example.foodapp.core.utils.toNormalizeSearch
+import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.ServerTimestamp
 import java.util.Date
 import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.math.sqrt
 
@@ -12,6 +14,7 @@ data class Restaurant(
     val restaurantName: String = "",
     val searchName: String = restaurantName.toNormalizeSearch(),
     val ownerUid: String = "",
+    val totalReview: Int = 0,
     val restaurantId: String = "",
     val address: String = "",
     val phoneNumber: String = "",
@@ -20,7 +23,6 @@ data class Restaurant(
     val imageUrl: String = "",
     val isOpen: Boolean = true,
     val rating: Double = 0.0,
-    val totalReview: Int = 0,
     val estimatedDeliveryTime: Int = 30,
     val minOrderAmount: Double = 0.0,
     val coverImage: String = "",
@@ -36,8 +38,29 @@ data class Restaurant(
     @ServerTimestamp
     val createdAt: Date? = null
 ) {
+
+    @get:Exclude
+    val reviewsList: List<Int>
+        get() = listOf(ratingCount.oneStars, ratingCount.twoStars, ratingCount.threeStars, ratingCount.fourStars, ratingCount.fiveStars)
+
+    @get:Exclude
+    val totalReviews: Int
+        get() = ratingCount.oneStars + ratingCount.twoStars + ratingCount.threeStars + ratingCount.fourStars + ratingCount.fiveStars
+
+    @get:Exclude
+    val totalScore: Int //trọng số
+        get() = (ratingCount.oneStars * 1) + (ratingCount.twoStars * 2) + (ratingCount.threeStars * 3) + (ratingCount.fourStars * 4) + (ratingCount.fiveStars * 5)
+
+    @get: Exclude
+    val totalRating: Float
+        get() {
+            if (totalReviews == 0) return 0f
+            return (totalScore.toFloat() / totalReviews * 10).roundToInt() /10f //lam tron chu so thap phan để tránh 3.1212121
+        }
+
+
     fun getAverageRating(): Double {
-        if (totalReview < 0) return 0.0
+        if (totalReviews < 0) return 0.0
         return (totalReview / rating).coerceIn(0.0, 5.0)
     }
 
@@ -48,12 +71,12 @@ data class Restaurant(
         val dLat = Math.toRadians(userLat - latitude)
         val dLng = Math.toRadians(userLng - longitude)
 
-            val a = sin(dLat / 2) * sin(dLat / 2) +
-                    cos(
-                        (Math.toRadians(latitude)) *
-                                cos(Math.toRadians(userLat)) *
-                                sin(dLng / 2) * sin(dLng / 2)
-                    )
+        val a = sin(dLat / 2) * sin(dLat / 2) +
+                cos(
+                    (Math.toRadians(latitude)) *
+                            cos(Math.toRadians(userLat)) *
+                            sin(dLng / 2) * sin(dLng / 2)
+                )
         val c = 2 * atan2(sqrt(a), sqrt(1 - a))
         return earthRadius * c
     }
@@ -100,16 +123,15 @@ data class Restaurant(
 
         return copy(
             rating = newAvgRating,
-            totalReview = newTotalReview,
-            updatedAt = Date()
+             updatedAt = Date()
         )
     }
 }
 
 data class RatingCount(
-    val oneStar: Int = 0,
-    val twoStart: Int = 0,
-    val threeStart: Int = 0,
-    val fourStart: Int = 0,
-    val fiveStart: Int = 0,
+    val oneStars: Int = 0,
+    val twoStars: Int = 0,
+    val threeStars: Int = 0,
+    val fourStars: Int = 0,
+    val fiveStars: Int = 0,
 )

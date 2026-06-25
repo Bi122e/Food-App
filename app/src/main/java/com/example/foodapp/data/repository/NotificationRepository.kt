@@ -18,4 +18,5 @@ interface NotificationRepository {
 
 //    suspend fun updateNotification(notificationId: String): ApiResponse<Unit>
     suspend fun deactivateNotification(notificationId: String): ApiResponse<Unit>
-}
+
+ }

@@ -8,6 +8,7 @@ import com.example.foodapp.core.utils.toNormalizeSearch
 import com.example.foodapp.data.repository.RestaurantRepository
 import com.example.foodapp.domain.model.RatingCount
 import com.example.foodapp.domain.model.Restaurant
+import com.example.foodapp.ui.screen.login.LoginForm
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -231,6 +232,7 @@ class RestaurantRepositoryImpl @Inject constructor(
                     trySend(ApiResponse.Empty)
                 }
             }
+        awaitClose { listener.remove() }
     }
 
     override fun getNearbyRestaurants(
@@ -354,7 +356,26 @@ class RestaurantRepositoryImpl @Inject constructor(
             awaitClose { listener.remove() }
         }
 
+    override fun observeRestaurants(restaurantId: String): Flow<ApiResponse<Restaurant>> = callbackFlow {
+            val listener = restaurantRef
+                .document(restaurantId)
+                .addSnapshotListener { snapshot, exception ->
 
+                    if (exception != null) {
+                        Log.d("checkFB_observeRestaurants", "error ${exception.message}")
+                    }
+
+                    val restaurant = snapshot?.toObject(Restaurant::class.java)
+                    if (restaurant == null) {
+                        Log.d("checkFB_observeRestaurants", "empty $restaurant")
+                        trySend(ApiResponse.Empty)
+                    } else {
+                        trySend(ApiResponse.Success(restaurant))
+                        Log.d("checkFB_observeRestaurants", "SUCCESS $restaurant")
+                    }
+                }
+        awaitClose { listener.remove() }
+    }
     override suspend fun addReview(restaurantId: String, rating: Double): ApiResponse<Unit> {
         return try {
             require(rating in 1.0..5.0) { "Danh gia san pham trong khoang 1.0 den 5.0" }

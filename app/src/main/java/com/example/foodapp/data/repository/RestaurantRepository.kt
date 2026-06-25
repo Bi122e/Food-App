@@ -6,6 +6,7 @@ import com.example.foodapp.domain.model.RatingCount
 import com.example.foodapp.domain.model.Restaurant
 import com.google.firebase.firestore.DocumentSnapshot
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
 import okhttp3.Response
 
 interface RestaurantRepository {
@@ -24,6 +25,8 @@ interface RestaurantRepository {
     suspend fun searchRestaurants(query: String): ApiResponse<PaginationResult<Restaurant>>
 
     fun getPopularRestaurants(limit: Int = 10): Flow<ApiResponse<List<Restaurant>>>
+    fun observeRestaurants(restaurantId: String): Flow<ApiResponse<Restaurant>>
+
 
     fun getHighlyRatedRestaurants(limit: Int = 10): Flow<ApiResponse<List<Restaurant>>>
 

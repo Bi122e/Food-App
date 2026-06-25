@@ -5,16 +5,11 @@ import android.annotation.SuppressLint
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,12 +18,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavArgument
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -41,15 +34,12 @@ import com.example.foodapp.core.UiState
 import com.example.foodapp.core.UserRoutes
 import com.example.foodapp.core.inRouteSnackBar
 import com.example.foodapp.core.utils.UiStateHandler
-import com.example.foodapp.core.utils.showToast
-import com.example.foodapp.domain.model.ProfileCompleteness
 import com.example.foodapp.presentation.extentions.toConvertTag
 import com.example.foodapp.presentation.state.CompleteEventState
 import com.example.foodapp.presentation.state.HomeData
 import com.example.foodapp.presentation.state.HomeUiState
 import com.example.foodapp.presentation.state.OrderEvent
 import com.example.foodapp.presentation.viewmodel.AppNotificationViewModel
-import com.example.foodapp.presentation.viewmodel.AuthViewModel
 import com.example.foodapp.presentation.viewmodel.CartViewModel
 import com.example.foodapp.presentation.viewmodel.CheckoutViewModel
 import com.example.foodapp.presentation.viewmodel.CompleteViewModel
@@ -58,11 +48,11 @@ import com.example.foodapp.presentation.viewmodel.FoodAction
 import com.example.foodapp.presentation.viewmodel.FoodDetailViewModel
 import com.example.foodapp.presentation.viewmodel.HomeViewModel
 import com.example.foodapp.presentation.viewmodel.OrderViewModel
+import com.example.foodapp.presentation.viewmodel.PreviewRestaurantViewModel
 import com.example.foodapp.presentation.viewmodel.PromotionViewModel
 import com.example.foodapp.presentation.viewmodel.RestaurantViewModel
-import com.example.foodapp.presentation.viewmodel.SharedViewModel
 import com.example.foodapp.presentation.viewmodel.UserProfileViewModel
-import com.example.foodapp.ui.screen.Preview.PreviewRestaurantTab
+import com.example.foodapp.ui.screen.preview.PreviewRestaurantTab
 import com.example.foodapp.ui.screen.main.chat.ChatTab
 import com.example.foodapp.ui.screen.main.checkout.CheckOutTab
 import com.example.foodapp.ui.screen.main.explore.ExploreTab
@@ -78,12 +68,10 @@ import com.example.foodapp.ui.screen.main.restaurant.RestaurantDetailTab
 import com.example.foodapp.ui.screen.main.explore.SearchTab
 import com.example.foodapp.ui.screen.main.notification.NotificationTab
 import com.example.foodapp.ui.screen.main.profile.InfoRoute
-import com.example.foodapp.ui.screen.main.profile.InfoTab
- import com.example.foodapp.ui.screen.shared.LoadingScreen
+import com.example.foodapp.ui.screen.shared.LoadingScreen
 import com.example.foodapp.ui.screen.shared.SnackBarSuccessOrder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import okhttp3.Route
 
 @SuppressLint("RestrictedApi")
 @Composable
@@ -605,16 +593,45 @@ fun HomeNavGraph(
                         },
                         onDialogChange = cartViewModel::changeValueDialog,
                         onForceAddItem = cartViewModel::forceAddItem,
-                        onNavigationToPreview = { navController.navigate(UserRoutes.PREVIEW) }
+                        onNavigationToPreview = {
+                            navController.navigate(UserRoutes.restaurantPreview(restaurantId))
+                            Log.d("check_nav_restaurantPreview", "resId: $restaurantId, restaurantPreview: ${UserRoutes.restaurantPreview(restaurantId)}, review: ${UserRoutes.PREVIEW}")
+                        }
                     )
                 }
 
                 composable(
-                    route = UserRoutes.PREVIEW
-                ) {
-                    PreviewRestaurantTab(
-                        onNavigationToBack = {}
+                    route = UserRoutes.PREVIEW,
+                    arguments = listOf(
+                        navArgument(
+                            "restaurantId",
+                            builder = {
+                                type = NavType.StringType
+                            }
+                        )
                     )
+                ) { backStackEntry ->
+
+                    val activity = LocalActivity.current as ComponentActivity
+                    val previewRestaurantViewModel: PreviewRestaurantViewModel = hiltViewModel(activity)
+                    val previewUiState by previewRestaurantViewModel.previewRestaurantUiState.collectAsStateWithLifecycle()
+
+                    val restaurantId = backStackEntry.arguments?.getString("restaurantId") ?: return@composable
+
+                    LaunchedEffect(Unit) {
+                        previewRestaurantViewModel.observePreviews(restaurantId)
+                        previewRestaurantViewModel.observeRestaurant(restaurantId)
+                    }
+                    if (previewUiState.restaurants is UiState.Success && previewUiState.previews is UiState.Success)
+                    PreviewRestaurantTab(
+                        onNavigationToBack = {
+                        },
+                        restaurant = (previewUiState.restaurants as UiState.Success).data,
+                        previews = (previewUiState.previews as UiState.Success).data
+                    )
+                    else {
+                        LoadingScreen()
+                    }
                 }
 
 

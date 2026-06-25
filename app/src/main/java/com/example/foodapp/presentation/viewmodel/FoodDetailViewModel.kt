@@ -13,8 +13,7 @@ import com.example.foodapp.data.repository.RestaurantRepository
 import com.example.foodapp.domain.model.Favorite
 import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.Restaurant
-import com.example.foodapp.domain.model.Review
-import dagger.hilt.android.lifecycle.HiltViewModel
+ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -49,8 +48,7 @@ class FoodDetailViewModel @Inject constructor(
     private val _favorite = MutableStateFlow<Favorite?>(null)
     val favorite: StateFlow<Favorite?> = _favorite.asStateFlow()
 
-    private val _reviewState = MutableStateFlow<UiState<List<Review>>>(UiState.Idle)
-    val reviewState = _reviewState.asStateFlow()
+
 
     private val _addReviewState = MutableStateFlow<UiState<Unit>>(UiState.Idle)
     val addReviewState = _addReviewState.asStateFlow()
@@ -198,19 +196,7 @@ class FoodDetailViewModel @Inject constructor(
 //        }
 //    }
 
-    fun addReview(foodId: String, review: Review) {
-        viewModelScope.launch {
-            _addReviewState.value = UiState.Loading
-            val response = foodRepository.addReview(foodId, review)
-            val uiState = response.toUiState()
-            _addReviewState.value = uiState
 
-            if (uiState.isSuccess()) {
-                getReviews(foodId) //reload review
-                loadDetailFood(foodId) //reload rating
-            }
-        }
-    }
 
 
     //cách này tối ưu hơn cho addReview để ko gọi 3 lần firestore
@@ -252,16 +238,6 @@ class FoodDetailViewModel @Inject constructor(
 //        }
 //    }
 
-    fun getReviews(foodId: String) {
-        viewModelScope.launch {
-//            _reviewState.value = UiState.Loading
-//            val getReviews = foodRepository.getReviews(foodId)
-//            val uiState = getReviews.toUiState()
-//            _reviewState.value = uiState
-            _reviewState.value = UiState.Loading
-            _reviewState.value = foodRepository.getReviews(foodId).toUiState()
-        }
-    }
 
     fun resetAddToCartState() {
         // Placeholder if needed, but the state was moved to CartViewModel

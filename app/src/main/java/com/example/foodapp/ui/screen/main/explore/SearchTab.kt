@@ -55,7 +55,7 @@ import com.example.foodapp.R
 import com.example.foodapp.core.UiState
 
 import com.example.foodapp.presentation.state.ExploreUiState
-import com.example.foodapp.ui.preview.PreviewDataRestaurant
+import com.example.foodapp.ui.fakeData.PreviewDataRestaurant
 import com.example.foodapp.ui.screen.main.explore.section.SearchBar
 import com.example.foodapp.ui.theme.Blue0
 import com.example.foodapp.ui.theme.Yellow1

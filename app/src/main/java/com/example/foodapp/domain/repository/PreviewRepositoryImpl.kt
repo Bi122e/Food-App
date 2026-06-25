@@ -4,7 +4,7 @@ import android.util.Log
 import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.core.Constance
 import com.example.foodapp.data.repository.PreviewRepository
-import com.example.foodapp.domain.model.Preview
+ import com.example.foodapp.domain.model.RestaurantPreview
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.channels.awaitClose
@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
+import kotlin.jvm.java
 
 
 class PreviewRepositoryImpl @Inject constructor(
@@ -20,7 +21,7 @@ class PreviewRepositoryImpl @Inject constructor(
 
     private val previewRef = firestore.collection(Constance.COLLECTION_PREVIEW)
 
-    override fun observePreviews(restaurantId: String): Flow<ApiResponse<List<Preview>>> =
+    override fun observePreviews(restaurantId: String): Flow<ApiResponse<List<RestaurantPreview>>> =
         callbackFlow {
             val listener = previewRef
                 .whereEqualTo("restaurantId", restaurantId)
@@ -34,9 +35,10 @@ class PreviewRepositoryImpl @Inject constructor(
                     }
 
                     val previews = snapshots?.documents?.mapNotNull {
-                        it.toObject(Preview::class.java)
+                        it.toObject(RestaurantPreview::class.java)
                     } ?: emptyList()
 
+                    Log.d("check_observePreviews", "Success $previews")
                     trySend(ApiResponse.Success(previews))
                 }
 
@@ -45,7 +47,7 @@ class PreviewRepositoryImpl @Inject constructor(
 
     override suspend fun createPreview(
         orderId: String,
-        preview: Preview,
+        preview: RestaurantPreview,
     ): ApiResponse<Unit> {
         return try {
             //orderId -> để tránh user spam preview cùng 1 đơn hàng

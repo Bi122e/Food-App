@@ -67,7 +67,7 @@ import com.example.foodapp.domain.model.Restaurant
 import com.example.foodapp.domain.model.User
 import com.example.foodapp.domain.model.VariationOption
 import com.example.foodapp.presentation.state.CheckoutUiState
-import com.example.foodapp.ui.preview.PreviewCheckoutState
+import com.example.foodapp.ui.fakeData.PreviewCheckoutState
 import com.example.foodapp.ui.screen.main.food.topShadow
 import com.example.foodapp.ui.theme.Blue0
 import com.example.foodapp.ui.theme.Blue1

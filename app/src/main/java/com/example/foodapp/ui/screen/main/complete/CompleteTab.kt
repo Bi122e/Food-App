@@ -67,14 +67,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
-import coloredShadow
-import com.example.foodapp.R
-import com.example.foodapp.core.utils.showToast
-import com.example.foodapp.domain.model.Order
-import com.example.foodapp.domain.model.Review
-import com.example.foodapp.presentation.state.CompleteUiState
+
+   import com.example.foodapp.presentation.state.CompleteUiState
 import com.example.foodapp.ui.screen.main.complete.section.BottomCompleteBar
 import com.example.foodapp.ui.screen.main.complete.section.HeaderCompleteSection
 import com.example.foodapp.ui.screen.main.complete.section.MessageCompleteSelection

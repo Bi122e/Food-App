@@ -5,9 +5,7 @@ import com.example.foodapp.core.ApiResponse
 import com.example.foodapp.core.Constance
 import com.example.foodapp.data.repository.FoodRepository
 import com.example.foodapp.domain.model.Food
-import com.example.foodapp.domain.model.Review
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
+ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -140,64 +138,9 @@ class FoodRepositoryImpl @Inject constructor(
             awaitClose { listener.remove() }
         }
 
-    override suspend fun addReview(foodId: String, review: Review): ApiResponse<Unit> {
-        return try {
-            val foodRef = foodRef.document(foodId)
-            val reviewRef = foodRef.collection(Constance.COLLECTION_REVIEWS).document()
 
-            val reviewWithId = review.copy(reviewId = reviewRef.id)
-            firestore.runTransaction { transaction ->
-                val snapshot = transaction.get(foodRef)
-                val currentCount = snapshot.getLong("reviewCount") ?: 0
-                val currentTotal = snapshot.getDouble("totalRating") ?: 0.0
 
-                val newCount = currentCount + 1
-                val newTotal = currentTotal + review.rating
-                val newAverage = newTotal / newCount
 
-                transaction.set(reviewRef, reviewWithId)
-                transaction.update(
-                    foodRef, mapOf(
-                        "reviewCount" to newCount,
-                        "averageRating" to newAverage,
-                        "totalRating" to newTotal,
-                        "updatedAt" to FieldValue.serverTimestamp()
-                    )
-                )
-            }.await()
-            ApiResponse.Success(Unit)
-//            val food = foodDoc.toObject(Food::class.java)
-//
-//            if (food != null) {
-//                val updatedFood = food.addReview(rating)
-//                foodRef.document(foodId).set(updatedFood).await()
-//                ApiResponse.Success(Unit)
-//            } else {
-//                ApiResponse.Error("Food not found")
-//            }
-
-        } catch (e: Exception) {
-            ApiResponse.Error(e.message ?: "Failed to add review")
-        }
-    }
-
-    override suspend fun getReviews(foodId: String): ApiResponse<List<Review>> {
-        return try {
-            val reviewDoc = foodRef
-                .document(foodId)
-                .collection(Constance.COLLECTION_REVIEWS)
-                .orderBy("rating", Query.Direction.DESCENDING)
-                .limit(10)
-                .get()
-                .await()
-            val reviews = reviewDoc.documents.mapNotNull {
-                it.toObject(Review::class.java)
-            }
-            ApiResponse.Success(reviews)
-        } catch (e: Exception) {
-            ApiResponse.Error(e.message ?: "Failed to get Reviews")
-        }
-    }
 
     override suspend fun searchFoods(query: String): ApiResponse<List<Food>> {
         return try {

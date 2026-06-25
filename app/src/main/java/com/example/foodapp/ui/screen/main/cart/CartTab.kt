@@ -24,7 +24,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.rounded.AddShoppingCart
 import androidx.compose.material.icons.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.ShoppingBasket
@@ -66,8 +65,8 @@ import com.example.foodapp.core.utils.toVND
 import com.example.foodapp.domain.model.Cart
 import com.example.foodapp.domain.model.Restaurant
 import com.example.foodapp.presentation.state.CartUiState
-import com.example.foodapp.ui.preview.PreviewCartState
-import com.example.foodapp.ui.preview.PreviewDataFood.food
+import com.example.foodapp.ui.fakeData.PreviewCartState
+import com.example.foodapp.ui.fakeData.PreviewDataFood.food
 import com.example.foodapp.ui.theme.Blue1
 import com.example.foodapp.ui.theme.Brow0
 import com.example.foodapp.ui.theme.Gray65

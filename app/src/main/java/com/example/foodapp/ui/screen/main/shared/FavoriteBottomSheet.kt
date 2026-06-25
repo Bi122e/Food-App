@@ -49,7 +49,7 @@ import coil.compose.AsyncImage
 import com.example.foodapp.R
 import com.example.foodapp.domain.model.Restaurant
 import coloredShadow
-import com.example.foodapp.ui.preview.PreviewDataRestaurant
+import com.example.foodapp.ui.fakeData.PreviewDataRestaurant
 import com.example.foodapp.ui.theme.Blue0
 import com.example.foodapp.ui.theme.Blue1
 import com.example.foodapp.ui.theme.Blue2
