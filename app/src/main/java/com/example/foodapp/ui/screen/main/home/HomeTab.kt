@@ -82,6 +82,8 @@ import com.example.foodapp.ui.components.HomeBottomBar
 import com.example.foodapp.ui.fakeData.PreviewData
 import com.example.foodapp.ui.fakeData.PreviewDataOrderState
 import com.example.foodapp.ui.fakeData.PreviewDataRestaurant
+import com.example.foodapp.ui.screen.main.home.section.CategorySelection
+import com.example.foodapp.ui.screen.main.home.section.PromotionSection
 import com.example.foodapp.ui.theme.Blue0
 import com.example.foodapp.ui.theme.Blue1
 import com.example.foodapp.ui.theme.Blue2
@@ -157,46 +159,28 @@ fun HomeTab(
             state = listState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 20.dp),
+                .padding(top = 10.dp),
             contentPadding = PaddingValues(
                 top = paddingValues.calculateTopPadding(),
                 bottom = paddingValues.calculateBottomPadding()
             )
         ) {
 
-//            item {
-//                HeaderSection(address)
-//                Spacer(Modifier.height(20.dp))
-//            }
 
-//            item {
-//                SearchSection(
-//                    query = searchQueryState,
-//                    onValueChange = onQueryChange
-//                )
-//                Spacer(Modifier.height(20.dp))
-//            }
 
-//            item {
-//                Spacer(Modifier.height((screenH * 0.035).dp))
-//                PromotionSection(promotionState)
-//                Spacer(Modifier.height(20.dp))
-//            }
-//
-//            item {
-//                CategorySelection(categoryState)
-//                Spacer(Modifier.height(20.dp))
-//            }
 
-//            item {
-//
-//                FeaturedFoodSelection(
-//                    featuredFoodState,
-//                    restaurantState,
-//                    onClick = onClick
-//                )
-//                Spacer(Modifier.height(20.dp))
-//            }
+            item {
+                 PromotionSection(promotionState)
+                Spacer(Modifier.height(20.dp))
+             }
+
+            item {
+                CategorySelection(categoryState)
+                Spacer(Modifier.height(10.dp))
+
+            }
+
+
             item {
                 Box(
                     Modifier.background(Color.White)

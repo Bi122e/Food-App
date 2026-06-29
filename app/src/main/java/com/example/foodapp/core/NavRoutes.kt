@@ -1,7 +1,5 @@
 package com.example.foodapp.core
 
-import com.example.foodapp.domain.model.UserRole
-
 object Routes {
     const val SPLASH = "splash"
     const val LOGIN = "login"
@@ -18,12 +16,13 @@ object Routes {
 
 object UserRoutes {
 
-     const val CHAT = "user_chat"
+     const val CONVERSATION = "user_conversation"
     const val PAYMENT = "user_payment"
     const val ORDER = "user_order"
     const val PREVIEW = "preview/{restaurantId}"
     const val HOME = "user_home"
     const val CART = "user_cart"
+    const val MESSAGE = "message/{conversationId}"
     const val PROFILE = "user_profile"
     const val INFO = "info"
     const val COMPLETE = "complete/{orderId}/{notificationId}"
@@ -44,6 +43,9 @@ object UserRoutes {
     }
     fun restaurantDetail(restaurantId: String): String {
         return "restaurant/$restaurantId"
+    }
+    fun messageDetail(conversationId: String): String {
+        return "message/${conversationId}"
     }
 
     fun orderDetail(orderId: String): String {
@@ -69,7 +71,7 @@ object UserRoutes {
 fun bottomRouteFromIndex(index: Int): String {
     return when (index) {
         0 -> UserRoutes.HOME
-        1 -> UserRoutes.CHAT
+        1 -> UserRoutes.CONVERSATION
         2 -> UserRoutes.CART
         3 -> UserRoutes.PROFILE
         else -> UserRoutes.HOME
@@ -81,6 +83,7 @@ fun inRouteSnackBar(route: String): Boolean {
 
     return when (route) {
         Routes.COMPLETE_PROFILE -> false
+        UserRoutes.COMPLETE -> false
         Routes.LOGIN -> false
         Routes.RESISTER -> false
         Routes.SPLASH -> false

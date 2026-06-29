@@ -25,16 +25,37 @@ class OrderRepositoryImpl @Inject constructor(
 
     private val orderCollection = firestore.collection(Constance.COLLECTION_ORDERS)
 
-    override suspend fun getOrderById(orderId: String): ApiResponse<Order> {
-        Log.d("check_getOrderById", "orderId: $orderId")
-        return try {
-            val orderRef = orderCollection.document(orderId).get().await()
-            val order = orderRef.toObject(Order::class.java)
-                ?: return ApiResponse.Error("Order not found")
-            ApiResponse.Success(order)
-        } catch (e: Exception) {
-            ApiResponse.Error(e.message ?: "")
-        }
+    override suspend fun observeOrderById(orderId: String): Flow<ApiResponse<Order>> = callbackFlow {
+        Log.d("checkFB_observeOrderById", "orderId: $orderId")
+        val listener = orderCollection
+            .document(orderId)
+            .addSnapshotListener { snapshot, exception ->
+                if (exception != null) {
+                    Log.d("checkFB_observeOrderById", "orderId: $orderId")
+                    trySend(ApiResponse.Error("error ${exception.message}"))
+                    return@addSnapshotListener
+                }
+                if (snapshot == null || !snapshot.exists() ) {
+                    Log.d("checkFB_observeOrderById", "ORDER NOT FOUND")
+                    trySend(ApiResponse.Error("ORDER NOT FOUND"))
+                    return@addSnapshotListener
+                }
+
+                val order = snapshot.toObject(Order::class.java) ?: run {
+                    Log.d("checkFB_observeOrderById", "ORDER deserial failed -> null")
+                    trySend(ApiResponse.Error("ORDER Null"))
+                    return@addSnapshotListener
+                }
+
+                if (!order.active) {
+                    Log.d("checkFB_observeOrderById", "active = false")
+                    return@addSnapshotListener
+                } else {
+                    Log.d("checkFB_observeOrderById", "success")
+                    trySend(ApiResponse.Success(order))
+                }
+            }
+        awaitClose { listener.remove() }
     }
 
     override suspend fun createOrder(
@@ -139,6 +160,7 @@ class OrderRepositoryImpl @Inject constructor(
 
         awaitClose { listener.remove() }
     }
+
 
     override fun getOrderNeedRating(userId: String): Flow<ApiResponse<List<Order>>> = callbackFlow {
 
@@ -301,7 +323,7 @@ class OrderRepositoryImpl @Inject constructor(
 
     override suspend fun updateOrder(order: Order): ApiResponse<Unit> {
         return try {
-            val updatedOrder = order.copy(updatedAt = Date())
+            val updatedOrder = order.copy(updatedAt = Date(), active = false)
             orderCollection
                 .document(order.orderId)
                 .set(updatedOrder)

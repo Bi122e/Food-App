@@ -4,6 +4,7 @@ import CartTab
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -39,8 +40,10 @@ import com.example.foodapp.presentation.state.CompleteEventState
 import com.example.foodapp.presentation.state.HomeData
 import com.example.foodapp.presentation.state.HomeUiState
 import com.example.foodapp.presentation.state.OrderEvent
+import com.example.foodapp.presentation.state.SuccessSharedState
 import com.example.foodapp.presentation.viewmodel.AppNotificationViewModel
 import com.example.foodapp.presentation.viewmodel.CartViewModel
+import com.example.foodapp.presentation.viewmodel.ChatViewModel
 import com.example.foodapp.presentation.viewmodel.CheckoutViewModel
 import com.example.foodapp.presentation.viewmodel.CompleteViewModel
 import com.example.foodapp.presentation.viewmodel.ExploreViewModel
@@ -52,22 +55,23 @@ import com.example.foodapp.presentation.viewmodel.PreviewRestaurantViewModel
 import com.example.foodapp.presentation.viewmodel.PromotionViewModel
 import com.example.foodapp.presentation.viewmodel.RestaurantViewModel
 import com.example.foodapp.presentation.viewmodel.UserProfileViewModel
-import com.example.foodapp.ui.screen.preview.PreviewRestaurantTab
-import com.example.foodapp.ui.screen.main.chat.ChatTab
+import com.example.foodapp.ui.screen.main.chat.ConversationTab
+import com.example.foodapp.ui.screen.main.chat.MessageTab
 import com.example.foodapp.ui.screen.main.checkout.CheckOutTab
-import com.example.foodapp.ui.screen.main.explore.ExploreTab
-import com.example.foodapp.ui.screen.main.food.FoodDetailTab
-import com.example.foodapp.ui.screen.main.home.HomeTab
-import com.example.foodapp.ui.screen.main.home.section.LoadingHomeTab
-import com.example.foodapp.ui.screen.main.order.OrderTab
 import com.example.foodapp.ui.screen.main.checkout.PaymentTab
 import com.example.foodapp.ui.screen.main.complete.CompleteTab
 import com.example.foodapp.ui.screen.main.complete.section.CompleteNotificationSection
+import com.example.foodapp.ui.screen.main.explore.ExploreTab
+import com.example.foodapp.ui.screen.main.explore.SearchTab
+import com.example.foodapp.ui.screen.main.food.FoodDetailTab
+import com.example.foodapp.ui.screen.main.home.HomeTab
+import com.example.foodapp.ui.screen.main.home.section.LoadingHomeTab
+import com.example.foodapp.ui.screen.main.notification.NotificationTab
+import com.example.foodapp.ui.screen.main.order.OrderTab
+import com.example.foodapp.ui.screen.main.profile.InfoRoute
 import com.example.foodapp.ui.screen.main.profile.ProfileTabRoute
 import com.example.foodapp.ui.screen.main.restaurant.RestaurantDetailTab
-import com.example.foodapp.ui.screen.main.explore.SearchTab
-import com.example.foodapp.ui.screen.main.notification.NotificationTab
-import com.example.foodapp.ui.screen.main.profile.InfoRoute
+import com.example.foodapp.ui.screen.preview.PreviewRestaurantTab
 import com.example.foodapp.ui.screen.shared.LoadingScreen
 import com.example.foodapp.ui.screen.shared.SnackBarSuccessOrder
 import kotlinx.coroutines.delay
@@ -135,7 +139,9 @@ fun HomeNavGraph(
                     "check_in_route",
                     "run ->>>>>>>>>>>>>>>>>>>>"
                 )
-                delay(3000)
+                showSnackBar = false
+
+                delay(500)
                 navController.navigate(UserRoutes.completeDetail("testId", "testsau")) //FIX SAU
                 orderViewModel.resetNotification()
             }
@@ -172,8 +178,13 @@ fun HomeNavGraph(
                     )
                 ) { backStackEntry ->
 
-                    val notificationId = backStackEntry.arguments?.getString("notificationId") ?: return@composable
-                    Log.d("check_id_notificationTab", "current route = ${navController.currentDestination?.route}")
+                    val notificationId =
+                        backStackEntry.arguments?.getString("notificationId") ?: return@composable
+                    Log.d(
+                        "check_id_notificationTab",
+                        "current route = ${navController.currentDestination?.route}"
+                    )
+
 
                     val orderId =
                         backStackEntry.arguments?.getString("orderId") ?: return@composable
@@ -194,6 +205,7 @@ fun HomeNavGraph(
                                 is CompleteEventState.Error -> {
                                     Log.d("checkUI_CompleteEventState", "ERROR ${even.message}")
                                 }
+
                                 is CompleteEventState.Success -> {
                                     showSuccess = true
                                 }
@@ -240,17 +252,12 @@ fun HomeNavGraph(
                                     launchSingleTop = true
                                 }
                             },
-                         )
+                        )
                     }
                 }
 
                 composable(UserRoutes.HOME) {
-                    LaunchedEffect(Unit) {
-                        Log.e("HOME_SCREEN", "COMPOSE RUN")
-                    }
 
-
-                    Log.d("NAV_DEBUG", "Home Recomposed")
 
                     val promotionViewModel: PromotionViewModel = hiltViewModel()
                     val orderViewModel: OrderViewModel = hiltViewModel(activity)
@@ -261,17 +268,8 @@ fun HomeNavGraph(
                     val foodFeaturedState by homeViewModel.featureFoods.collectAsStateWithLifecycle()
                     val restaurantState by homeViewModel.restaurants.collectAsStateWithLifecycle()
                     val orderUiState by orderViewModel.orderUiState.collectAsStateWithLifecycle()
-                    LaunchedEffect(homeUiState) {
-                        Log.d("CheckStateHome", homeUiState.toString())
-                    }
 
-                    Log.e("VM_INSTANCE", homeViewModel.toString())
 
-                    val states = listOf(
-                        homeUiState.restaurants,
-                        homeUiState.restaurantByRandom,
-                        homeUiState.restaurantsByCategory,
-                    )
 
 
 
@@ -482,9 +480,12 @@ fun HomeNavGraph(
                         NotificationTab(
                             notifications = (notificationUiState.notifications as UiState.Success).data,
                             onNavigationToCompleteTab = { orderId, notificationId ->
-                                Log.d("check_id_notificationTab", "orderId: $orderId, notificationId: $notificationId")
+                                Log.d(
+                                    "check_id_notificationTab",
+                                    "orderId: $orderId, notificationId: $notificationId"
+                                )
                                 navController.navigate(
-                                    UserRoutes.completeDetail(orderId, notificationId )
+                                    UserRoutes.completeDetail(orderId, notificationId)
                                 )
                             },
                             onResetToRead = { notificationId ->
@@ -595,7 +596,12 @@ fun HomeNavGraph(
                         onForceAddItem = cartViewModel::forceAddItem,
                         onNavigationToPreview = {
                             navController.navigate(UserRoutes.restaurantPreview(restaurantId))
-                            Log.d("check_nav_restaurantPreview", "resId: $restaurantId, restaurantPreview: ${UserRoutes.restaurantPreview(restaurantId)}, review: ${UserRoutes.PREVIEW}")
+                            Log.d(
+                                "check_nav_restaurantPreview",
+                                "resId: $restaurantId, restaurantPreview: ${
+                                    UserRoutes.restaurantPreview(restaurantId)
+                                }, review: ${UserRoutes.PREVIEW}"
+                            )
                         }
                     )
                 }
@@ -613,22 +619,24 @@ fun HomeNavGraph(
                 ) { backStackEntry ->
 
                     val activity = LocalActivity.current as ComponentActivity
-                    val previewRestaurantViewModel: PreviewRestaurantViewModel = hiltViewModel(activity)
+                    val previewRestaurantViewModel: PreviewRestaurantViewModel =
+                        hiltViewModel(activity)
                     val previewUiState by previewRestaurantViewModel.previewRestaurantUiState.collectAsStateWithLifecycle()
 
-                    val restaurantId = backStackEntry.arguments?.getString("restaurantId") ?: return@composable
+                    val restaurantId =
+                        backStackEntry.arguments?.getString("restaurantId") ?: return@composable
 
                     LaunchedEffect(Unit) {
                         previewRestaurantViewModel.observePreviews(restaurantId)
                         previewRestaurantViewModel.observeRestaurant(restaurantId)
                     }
                     if (previewUiState.restaurants is UiState.Success && previewUiState.previews is UiState.Success)
-                    PreviewRestaurantTab(
-                        onNavigationToBack = {
-                        },
-                        restaurant = (previewUiState.restaurants as UiState.Success).data,
-                        previews = (previewUiState.previews as UiState.Success).data
-                    )
+                        PreviewRestaurantTab(
+                            onNavigationToBack = {
+                            },
+                            restaurant = (previewUiState.restaurants as UiState.Success).data,
+                            previews = (previewUiState.previews as UiState.Success).data
+                        )
                     else {
                         LoadingScreen()
                     }
@@ -636,8 +644,70 @@ fun HomeNavGraph(
 
 
 
-                composable(UserRoutes.CHAT) {
-                    ChatTab()
+                composable(UserRoutes.CONVERSATION) {
+
+                    val activity = LocalActivity.current as ComponentActivity
+                    val chatViewModel: ChatViewModel = hiltViewModel(activity)
+                    val chatUiState by chatViewModel.chatUiState.collectAsStateWithLifecycle()
+
+                    ConversationTab(
+                        conversations = chatUiState.conversations,
+                        onNavigationToBack = {
+                            navController.popBackStack()
+                        },
+                        onNavigationToMessage = {
+                            Log.d("checkUI_conversationId", "Conversation Tab: ${it}")
+                            navController.navigate(UserRoutes.messageDetail(it))
+                            chatViewModel.resetUnread(it)
+                        }
+                    )
+
+                }
+
+                composable(
+                    route = UserRoutes.MESSAGE,
+                    arguments = listOf(
+                        navArgument("conversationId") {
+                            type = NavType.StringType
+                        }
+                    )
+                ) { backStackEntry ->
+
+                    val activity = LocalActivity.current as ComponentActivity
+                    val orderViewModel: OrderViewModel = hiltViewModel(activity)
+                    val chatViewModel: ChatViewModel = hiltViewModel(activity)
+                    val chatUiState by chatViewModel.chatUiState.collectAsStateWithLifecycle()
+
+                    val conversationId =
+                        backStackEntry.arguments?.getString("conversationId") ?: return@composable
+                    Log.d("checkUI_conversationId", "Message Tab: ${conversationId}")
+
+
+                    LaunchedEffect(Unit) {
+                        chatViewModel.observeMessages(conversationId)
+                        orderViewModel.eventSuccess.collectLatest {
+                            if (it is SuccessSharedState.DELIVERED) {
+                                chatViewModel.updateConversation(conversationId)
+                            }
+                        }
+                    }
+
+                    LaunchedEffect(chatUiState.messages.size) {
+                        chatViewModel.resetUnread(conversationId)
+                    }
+
+                    MessageTab(
+                        chatUiState = chatUiState,
+                        onSendMessage = {
+                            chatViewModel.createMessage(conversationId)
+                        },
+                        onTextChanged = {
+                            chatViewModel.onTextChanged(it)
+                        },
+                        onNavigationToBack = {
+                            navController.popBackStack()
+                        },
+                    )
                 }
 
 
@@ -818,6 +888,11 @@ fun HomeNavGraph(
                 "2: ${orderState.appNotificationOrder?.ratingNotificationSent}"
             )
 
+            Log.d("check_currentROUTES", "currentRoute: $currentRoute")
+            Log.d("check_currentROUTES", "compare: ${Routes.COMPLETE_PROFILE}")
+            Log.d("check_currentROUTES", "FALSE OR TRUE: ${inRouteSnackBar(currentRoute ?: Routes.SPLASH) }")
+            Log.d("checkstateUI_SUCDSF", "${orderState.appNotificationOrder?.ratingNotificationSent ?: false}")
+
             if (inRouteSnackBar(currentRoute ?: Routes.SPLASH) &&
                 (orderState.appNotificationOrder?.ratingNotificationSent ?: false)
             ) {
@@ -834,6 +909,51 @@ fun HomeNavGraph(
                     }
                 )
             }
+
+            BackHandler() {
+
+                val current = navController.currentDestination?.route
+
+                when {
+                    current == UserRoutes.COMPLETE -> {
+                        navController.navigate(UserRoutes.HOME) {
+                            popUpTo(UserRoutes.HOME)
+                            launchSingleTop = true
+                        }
+                    }
+
+                    else -> {
+                        navController.popBackStack()
+                    }
+                }
+            }
+
+
+            //val currentRoute = navController
+            //            .currentBackStackEntryAsState()
+            //            .value
+            //            ?.destination
+            //            ?.route
+
+            //                val current = navController.currentDestination?.route
+            ////handle lai back
+            //        BackHandler() {
+            //            /* hoac cach viet 2,
+            //
+            //          * if (!navController.getBackStack())
+            //          *   showDialog = true
+            //          *
+            //          * */
+            //
+            //            val currentRoute = navController.currentDestination?.route
+            //            when {
+            //                currentRoute == Routes.COMPLETE_PROFILE -> {
+            //                    showExitDialog = true
+            //                }
+            //
+            //                else -> navController.popBackStack()
+            //            }
+            //        }
         }
 
     }

@@ -1,25 +1,26 @@
 package com.example.foodapp.domain.model
 
+import com.google.firebase.firestore.Exclude
 import com.google.firebase.firestore.ServerTimestamp
 import java.util.Date
 
 data class Message(
     val messageId: String = "",
     val senderId: String = "",
-    val conversationId: String,
+    val conversationId: String = "",
     val isRead: Boolean = false,
     val text: String = "",
+//    val senderName: String = "", // ko nen luu vi user co the doi ten, nen senderId roi goi .name luon
+    val reactions: Map<String, String> = emptyMap(), //key = userId, value = emoji, biet ai react
     val imgUrl: String = "",
     val type: MessageType = MessageType.TEXT,
+
     @ServerTimestamp
     val createdAt: Date? = null,
+    @ServerTimestamp
     val updatedAt: Date? = null
 ) {
-    enum class MessageType {
-        TEXT,
-        IMAGE,
-        SYSTEM,
-    }
+
 
     fun isValid(): Boolean {
 //        return messageId.isNotEmpty() &&
@@ -32,6 +33,7 @@ data class Message(
                 }
     }
 
+    @Exclude
     fun getConversationPreview(): String {
         return when (type) {
             MessageType.TEXT -> text
@@ -40,49 +42,21 @@ data class Message(
         }
     }
 
-    fun markAsRead(): Message {
-        return copy(isRead = true, updatedAt = Date())
-    }
 
-    fun isMine(currentSenderId: String): Boolean {
-        return senderId == currentSenderId
-    }
 
+    @Exclude
     fun isSystemMessage(): Boolean = type == MessageType.SYSTEM
+    @Exclude
     fun isTextMessage(): Boolean = type == MessageType.TEXT
+    @Exclude
     fun isImgMessage(): Boolean = type == MessageType.IMAGE
 
 
-    //Factory Message
-    companion object {
-
-        fun createTextMessage(
-            conversationId: String,
-            senderId: String,
-            text: String,
-        ): Message {
-            return Message(
-                conversationId = conversationId,
-                senderId = senderId,
-                text = text,
-                type = MessageType.TEXT,
-                createdAt = Date()
-            )
-        }
-
-        fun createSystemMessage(
-            conversationId: String,
-            text: String,
-        ): Message {
-            return Message(
-                conversationId = conversationId,
-                text = text,
-                senderId = "system",
-                type = MessageType.SYSTEM,
-                createdAt = Date()
-            )
-        }
-    }
 
 
+}
+enum class MessageType {
+    TEXT,
+    IMAGE,
+    SYSTEM,
 }

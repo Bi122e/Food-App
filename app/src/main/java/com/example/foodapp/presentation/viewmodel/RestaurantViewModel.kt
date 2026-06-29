@@ -9,6 +9,7 @@ import com.example.foodapp.data.repository.AuthRepository
 import com.example.foodapp.data.repository.FavoriteRepository
 import com.example.foodapp.domain.model.Favorite
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -22,7 +23,6 @@ class RestaurantViewModel @Inject constructor(
 ): ViewModel() {
     private val _favorites = MutableStateFlow<UiState<Map<String, Favorite>>>(UiState.Idle)
     val favorites = _favorites.asStateFlow()
-
 
     init {
         loadFavorites()

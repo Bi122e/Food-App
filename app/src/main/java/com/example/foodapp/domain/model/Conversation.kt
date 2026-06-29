@@ -4,19 +4,24 @@ import com.google.firebase.firestore.ServerTimestamp
 import java.util.Date
 
 data class Conversation(
-//    val userId: String = "",
-//    val restaurantId: String = "",
+    val customerId: String = "",
+    val driverId: String = "",
     val conversationId: String = "",
-    val participants: List<String> = emptyList(),
-    @ServerTimestamp
-    val lastMessageSenderId: String = "",
+
+    val lastMessageSenderId: String = "", //dùng để hiện message "bạn hay tài xế
     val lastMessage: String = "",
+    val avatarUrl: String = "",
+    val active: Boolean = true,
+    val displayName: String = "",
+    val messageType: MessageType = MessageType.TEXT,
+     val unreadCount: Int = 0,
+
     @ServerTimestamp
     val lastMessageTime: Date? = null,
-    val unreadCount: Int = 0,
+
     @ServerTimestamp
     val createdAt: Date? = null,
-    val updatedAt: Date? = null
+
     /*
     useid
 
@@ -34,24 +39,7 @@ data class Conversation(
     * */
 ) {
 
-    fun isValid(): Boolean {
-//        return userId.isNotEmpty() &&
-//                restaurantId.isNotEmpty() &&
-            return     conversationId.isNotEmpty() &&
-                participants.size == 2
-    }
 
-    fun isParticipant(userId: String): Boolean {
-        return participants.contains(userId)
-    }
-
-    fun getOtherParticipantId(currentUserId: String): String? {
-        return participants.firstOrNull { it != currentUserId }
-    }
-
-    fun hasUnreadMessages(): Boolean {
-        return unreadCount > 0
-    }
 
     fun updateLastMessage(
         messageText: String,
@@ -62,7 +50,6 @@ data class Conversation(
             lastMessage = messageText,
             lastMessageSenderId = senderId,
             lastMessageTime = time,
-            updatedAt = Date()
         )
     }
 
@@ -74,18 +61,9 @@ data class Conversation(
         unreadCount = 0,
     )
 
-    companion object {
+    fun updateConversation() {
 
-        fun create(
-            customerId: String,
-            restaurantId: String,
-        ): Conversation {
-            return Conversation(
-//                userId = customerId,
-//                restaurantId = restaurantId,
-                participants = listOf(customerId, restaurantId),
-                createdAt = Date()
-            )
-        }
     }
+
+
 }

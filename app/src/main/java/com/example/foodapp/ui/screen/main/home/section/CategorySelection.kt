@@ -43,30 +43,12 @@ fun CategorySelection(categoryState: UiState<List<Category>>) {
         is UiState.Success -> {
 
             val categories = categoryState.data
-//            Row (
-//                verticalAlignment = Alignment.CenterVertically
-//            ) {
-//
-//                Column(
-//                    horizontalAlignment = Alignment.CenterHorizontally
-//                ) {
-//
-//                    Box(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .clip(RoundedCornerShape(40.dp))
-//                            .background(Color.Transparent)
-//                    ) {
-//                        AsyncImage(
-//                            model = categories.forEach { it.iconUrl }
-//                        )
-//                    }
-//                }
-//            }
             var selectedCategory by remember { mutableStateOf<String?>(null) }
             LazyRow(
-                modifier = Modifier.padding(start = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier
+                    .padding(start = 16.dp)
+                    .height(100.dp),
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
             ) {
                 items(categories) { category ->
 

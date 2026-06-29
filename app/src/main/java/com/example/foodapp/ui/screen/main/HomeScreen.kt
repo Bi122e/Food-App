@@ -43,7 +43,7 @@ fun HomeScreen(
     val selectedIndex = remember(currentDestination) {
         when (currentDestination?.route) {
             UserRoutes.HOME -> 0
-            UserRoutes.CHAT -> 1
+            UserRoutes.CONVERSATION -> 1
             UserRoutes.CART -> 2
             UserRoutes.PROFILE -> 3
             else -> 0
@@ -67,7 +67,7 @@ fun HomeScreen(
 
 
     val bottomBarRoute = listOf(
-        UserRoutes.HOME, UserRoutes.CHAT, UserRoutes.CART, UserRoutes.PROFILE,
+        UserRoutes.HOME, UserRoutes.CONVERSATION, UserRoutes.CART, UserRoutes.PROFILE,
 
 
         )

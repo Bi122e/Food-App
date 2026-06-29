@@ -11,7 +11,7 @@ interface OrderRepository {
 
     suspend fun createOrder(order: Order, paymentMethod: PaymentMethod): ApiResponse<String>
 
-    suspend fun getOrderById(orderId: String): ApiResponse<Order>
+    suspend fun observeOrderById(orderId: String): Flow<ApiResponse<Order>>
     fun getOrderByUserId(userId: String): Flow<ApiResponse<List<Order>>>
     fun getOrderByRestaurantId(restaurantId: String): Flow<ApiResponse<List<Order>>>
     fun getAllOrder(): Flow<ApiResponse<List<Order>>>
@@ -37,4 +37,4 @@ interface OrderRepository {
     suspend fun updatePaymentStatus(orderId: String, paymentStatus: PaymentStatus): ApiResponse<Unit>
 
     fun getOrderNeedRating(userId: String): Flow<ApiResponse<List<Order>>>
-}
+ }

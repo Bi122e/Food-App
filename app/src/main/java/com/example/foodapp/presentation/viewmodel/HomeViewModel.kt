@@ -97,10 +97,10 @@ class HomeViewModel @Inject constructor(
             loadCategories()
 
             Log.d("INITFILE", "2")
-            loadFeaturedFood()
+//            loadFeaturedFood()
 
             Log.d("INITFILE", "3")
-            loadPopularFood()
+//            loadPopularFood()
 
             Log.d("INITFILE", "4")
 
@@ -264,37 +264,37 @@ class HomeViewModel @Inject constructor(
     }
 
 
-    private fun loadPopularFood() {
-        viewModelScope.launch {
-            foodRepository.getPopularFoods(10).collect { response ->
-                _popularFoods.value = response.toUiState()
-            }
-        }
-    }
+//    private fun loadPopularFood() {
+//        viewModelScope.launch {
+//            foodRepository.getPopularFoods(10).collect { response ->
+//                _popularFoods.value = response.toUiState()
+//            }
+//        }
+//    }
 
 
-    private fun loadFeaturedFood() {
-        viewModelScope.launch {
-            Log.d("Featured", "loadFeaturedFood CALLED")
-            foodRepository.getFeaturedFood(10).collect { response ->
-                Log.d("Featured", "Featured emit: $response")
+//    private fun loadFeaturedFood() {
+//        viewModelScope.launch {
+//            Log.d("Featured", "loadFeaturedFood CALLED")
+//            foodRepository.getFeaturedFood(10).collect { response ->
+//                Log.d("Featured", "Featured emit: $response")
+//
+//                _featureFoods.value = response.toUiState()
+//
+//                Log.d("Featured", "Updated state ${_featureFoods.value}")
+//            }
+//        }
+//    }
 
-                _featureFoods.value = response.toUiState()
 
-                Log.d("Featured", "Updated state ${_featureFoods.value}")
-            }
-        }
-    }
-
-
-    fun selectedCategory(category: Category) {
-        _selectedCategory.value = category
-        if (category.type == CategoryType.ALL) {
-            loadPopularFood()
-        } else {
-            loadFoodByCategory(category.categoryId)
-        }
-    }
+//    fun selectedCategory(category: Category) {
+//        _selectedCategory.value = category
+//        if (category.type == CategoryType.ALL) {
+//            loadPopularFood()
+//        } else {
+//            loadFoodByCategory(category.categoryId)
+//        }
+//    }
 
     fun loadFoodByRestaurant(restaurantId: String) {
         viewModelScope.launch {

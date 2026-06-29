@@ -1,63 +1,3 @@
-//package com.example.foodapp.presentation.extentions
-//
-//import androidx.compose.ui.Modifier
-//import androidx.compose.ui.draw.drawBehind
-//import androidx.compose.ui.graphics.Color
-//import androidx.compose.ui.graphics.Paint
-//import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-//import androidx.compose.ui.graphics.toArgb
-//import androidx.compose.ui.unit.Dp
-//import androidx.compose.ui.unit.dp
-//
-//fun Modifier.coloredShadow(
-//    color: Color,
-//    alpha: Float = 0.25f,
-//    borderRadius: Dp = 20.dp,
-//    blurRadius: Dp = 15.dp,
-//    offsetY: Dp = 0.dp,
-//    offsetX: Dp = 0.dp,
-//    spread: Dp = 0.dp // Thêm biến spread để chỉnh kích thước shadow mở rộng ra
-//) = this.drawBehind {
-//
-//    drawIntoCanvas { canvas ->
-//        val paint = Paint()
-//        val frameworkPaint = paint.asFrameworkPaint().apply {
-//            // Dùng TRANSPARENT ở đây giúp shadow không bị đè màu bên trong nếu component có góc bo tròn lớn
-//            this.color = android.graphics.Color.TRANSPARENT
-//
-//            setShadowLayer(
-//                blurRadius.toPx(),
-//                offsetX.toPx(),
-//                offsetY.toPx(),
-//                color.copy(alpha = alpha).toArgb()
-//            )
-//            style = android.graphics.Paint.Style.FILL
-//            isAntiAlias = true
-//        }
-//
-//        // Tính toán lại kích thước dựa trên spread
-//        val spreadPx = spread.toPx()
-//
-//        // Nếu spread > 0, shadow sẽ to hơn component. Nếu spread < 0, shadow sẽ co nhỏ lại.
-//        val left = 0f - spreadPx
-//        val top = 0f - spreadPx
-//        val right = size.width + spreadPx
-//        val bottom = size.height + spreadPx
-//
-//        canvas.drawRoundRect(
-//            left = left,
-//            top = top,
-//            right = right,
-//            bottom = bottom,
-//            radiusX = borderRadius.toPx(),
-//            radiusY = borderRadius.toPx(),
-//            paint = paint
-//        )
-//    }
-//}
-
-
-
 
 import android.graphics.BlurMaskFilter
 import android.graphics.LinearGradient
@@ -66,12 +6,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.ImageShader
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.ShaderBrush
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import java.util.Calendar
+import java.util.Date
 
 fun Modifier.coloredShadow(
     colors: List<Color>,
@@ -171,8 +117,54 @@ fun Modifier.coloredShadow(
         canvas.restore()
     }
 }
+
+//lap anh
+fun Modifier.tiledBackground(
+    bitmap: ImageBitmap
+) = drawBehind {
+
+    val paint = Paint()
+
+    paint.asFrameworkPaint().shader =
+        ImageShader(
+            bitmap,
+            TileMode.Repeated,
+            TileMode.Repeated
+        )
+
+    drawRect(
+        brush = ShaderBrush(
+            ImageShader(
+                bitmap,
+                TileMode.Repeated,
+                TileMode.Repeated
+            )
+        )
+    )
+}
+
+fun isSameDay(
+    d1: Date?,
+    d2: Date?
+): Boolean {
+
+    if (d1 == null || d2 == null) return false
+
+    val c1 = Calendar.getInstance().apply {
+        time = d1
+    }
+    val c2 = Calendar.getInstance().apply {
+        time = d2
+    }
+
+    return c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR) &&
+            c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR)
+
+}
 private data class ModifierPoints(val startX: Float, val startY: Float, val endX: Float, val endY: Float)
 
 enum class ShadowDirection {
     TopToBottom, BottomToTop, LeftToRight, RightToLeft, TopLeftToBottomRight, TopRightToBottomLeft
 }
+
+

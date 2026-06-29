@@ -37,6 +37,7 @@ data class Order(
     val paymentStatus: PaymentStatus = PaymentStatus.UNPAID,
     val paymentMethod: PaymentMethod = PaymentMethod.CASH,
     val notes: String = "",
+    val conversationId: String? = null,
     val paymentId: String? = null,
     val cancelReason: String? = null,
     @ServerTimestamp

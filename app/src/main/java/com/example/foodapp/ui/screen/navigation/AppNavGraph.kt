@@ -39,8 +39,7 @@ import com.example.foodapp.ui.screen.initializationInfo.CompleteProfileScreen
 import com.example.foodapp.ui.screen.initializationInfo.DialogProgress
 import com.example.foodapp.ui.screen.login.LoginScreen
 import com.example.foodapp.ui.screen.register.RegisterScreen
-import com.example.foodapp.ui.screen.shared.SnackBarSuccessOrder
-import com.example.foodapp.ui.screen.splash.SplashScreen
+ import com.example.foodapp.ui.screen.splash.SplashScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("RestrictedApi", "ContextCastToActivity")
