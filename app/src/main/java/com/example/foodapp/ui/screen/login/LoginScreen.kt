@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -239,9 +240,8 @@ fun LoginForm(
             focusedContainerColor = MediumGray,
             unfocusedContainerColor = MediumGray,
             disabledContainerColor = MediumGray,
-
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
+            focusedIndicatorColor = Blue1.copy(0.3f),
+             unfocusedIndicatorColor = Color.Transparent,
 
             errorContainerColor = Color.Transparent
         )
@@ -309,9 +309,8 @@ fun LoginForm(
             focusedContainerColor = MediumGray,
             unfocusedContainerColor = MediumGray,
             disabledContainerColor = MediumGray,
-
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
+            focusedIndicatorColor = Blue1.copy(0.3f),
+             unfocusedIndicatorColor = Color.Transparent,
 
             errorContainerColor = Color.Transparent
 
@@ -382,7 +381,7 @@ fun LoginForm(
         enabled = appState !is AppState.Loading && email.isNotEmpty() && password.isNotEmpty(),
         colors = ButtonDefaults.buttonColors(
             containerColor = Blue1,
-            disabledContainerColor = Blue1.copy(0.2f),
+            disabledContainerColor = Blue1.copy(0.4f),
 
             ),
         shape = RoundedCornerShape(14.dp)
@@ -440,68 +439,73 @@ fun LoginContent(
             contentScale = ContentScale.Crop
         )
 
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 12.dp)
-                .fillMaxWidth()
-                 .background(Color.White, RoundedCornerShape(22.dp))
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(4.dp)
-                    .coloredShadow(
-                        colors = listOf(Gray65),
-                        1f,
-                        blurRadius = 5.dp,
-                        spread = 0.1.dp
-                    )
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colorStops = arrayOf(
-                                0.0f to Color(0xFFc6f0fe),
-                                0.12f to Color(0xFFe4f8fc),
-                                0.25f to Color.White,
-                                1.5f to Color.White
-                            )
-                        ),
-                        RoundedCornerShape(20.dp)
-                    )
-            ) {
-                Column(
+        LazyColumn() {
+
+            item {
+                Box(
                     modifier = Modifier
+                        .padding(
+                            horizontal = 16.dp,
+                            vertical = 16.dp
+                         )
                         .fillMaxWidth()
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+
+                        .coloredShadow(
+                            colors = listOf(Gray65),
+                            1f,
+                            blurRadius = 5.dp,
+                            spread = 0.1.dp
+                        )
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(
+                            brush = Brush.verticalGradient(
+                                colorStops = arrayOf(
+                                    0.0f to Color(0xFFc6f0fe),
+                                    0.12f to Color(0xFFe4f8fc),
+                                    0.25f to Color.White,
+                                    1.5f to Color.White
+                                )
+                            ),
+                            RoundedCornerShape(20.dp)
+                        )
                 ) {
-                    LoginHeader(onRegisterClick = onRegisterClick)
-                    Spacer(Modifier.height(24.dp))
-                    LoginForm(
-                        appState = appState,
-                        onLoginClick = onLoginClick,
-                        authUiState = authUiState,
-                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        LoginHeader(onRegisterClick = onRegisterClick)
+                        Spacer(Modifier.height(24.dp))
+                        LoginForm(
+                            appState = appState,
+                            onLoginClick = onLoginClick,
+                            authUiState = authUiState,
+                        )
 //                        LoginForm(
 //                            uiState = uiState,
 //                            onLoginClick = { email, password ->
 //                                viewModel.login(email, password)
 //                            }
 //                        )
-                    Spacer(Modifier.height(24.dp))
+                        Spacer(Modifier.height(24.dp))
 
-                    OrDivider("Hoặc đăng nhập bằng")
+                        OrDivider("Hoặc đăng nhập bằng")
 
-                    Spacer(Modifier.height(24.dp))
+                        Spacer(Modifier.height(24.dp))
 
-                    LoginSocial(
-                        appState = appState,
-                        onGoogleLogin = onGoogleLogin
-                    )
+                        LoginSocial(
+                            appState = appState,
+                            onGoogleLogin = onGoogleLogin
+                        )
 
+                    }
                 }
             }
         }
+
+
+
 
     }
 }
@@ -552,8 +556,8 @@ fun LoginSocial(
             painter = painterResource(R.drawable.ic_google2),
             modifier = Modifier
                 .fillMaxWidth()
-                .size(56.dp)
-                .padding(10.dp),
+                .size(24.dp)
+                 ,
             contentDescription = null,
             alignment = Alignment.Center,
         )

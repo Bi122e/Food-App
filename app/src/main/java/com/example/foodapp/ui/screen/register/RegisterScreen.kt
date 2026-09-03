@@ -1,7 +1,7 @@
 package com.example.foodapp.ui.screen.register
 
 import android.annotation.SuppressLint
-import android.util.Log
+ import android.util.Log
 import android.util.Patterns
 import androidx.activity.ComponentActivity
 import androidx.compose.animation.core.spring
@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -126,12 +127,14 @@ fun RegisterScreen(
         }
     }
 
-    RegisterContent(
-        onRegisterClick = onRegisterClick,
-        onClickLogin = onBackToLogin,
-        authUiState = authUiState,
-    )
-}
+
+             RegisterContent(
+                onRegisterClick = onRegisterClick,
+                onClickLogin = onBackToLogin,
+                authUiState = authUiState,
+            )
+     }
+
 
 
 @Composable
@@ -143,7 +146,7 @@ fun RegisterContent(
     ) {
 
 
-    Box(
+     Box(
         modifier = Modifier.fillMaxSize(),
 //            .background(
 //                brush = Brush.horizontalGradient(
@@ -162,49 +165,64 @@ fun RegisterContent(
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 12.dp)
-                .fillMaxWidth()
-                .height(602.dp)
-                .background(Color.White, RoundedCornerShape(22.dp))
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .coloredShadow(
-                    colors = listOf(Gray65), 1f, blurRadius = 5.dp, spread = 0.1.dp
-                )
-                .clip(RoundedCornerShape(20.dp))
-                .background(
-                    brush = Brush.verticalGradient(
-                        colorStops = arrayOf(
-                            0.0f to Color(0xFFc6f0fe),
-                            0.12f to Color(0xFFe4f8fc),
-                            0.25f to Color.White,
-                            1.5f to Color.White
-                        )
-                    ), RoundedCornerShape(20.dp)
-                )
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(20.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                HeaderRegister()
-                Spacer(Modifier.height(30.dp))
-                RegisterForm(
-                    onClickRegister = onRegisterClick, authUiState = authUiState
-                )
-                Spacer(Modifier.height(20.dp))
-                LoginHint(onClickLogin)
+//        Box(
+//            modifier = Modifier
+//                .padding(horizontal = 12.dp)
+//                .fillMaxWidth()
+//                .height(602.dp)
+//                .background(Color.White, RoundedCornerShape(22.dp))
+//        )
+
+         LazyColumn() {
+             item {
+                 Box(
+                     modifier = Modifier
+                         .fillMaxWidth()
+                         .padding(16.dp)
+                         .coloredShadow(
+                             colors = listOf(Gray65), 1f, blurRadius = 5.dp, spread = 0.1.dp
+                         )
+                         .clip(RoundedCornerShape(20.dp))
+                         .background(
+                             brush = Brush.verticalGradient(
+                                 colorStops = arrayOf(
+                                     0.0f to Color(0xFFc6f0fe),
+                                     0.12f to Color(0xFFe4f8fc),
+                                     0.25f to Color.White,
+                                     1.5f to Color.White
+                                 )
+                             ), RoundedCornerShape(20.dp)
+                         )
+                 ) {
+                     Column(
+                         modifier = Modifier
+                             .padding(20.dp)
+                             .fillMaxWidth(),
+                         horizontalAlignment = Alignment.CenterHorizontally
+                     ) {
+                         HeaderRegister()
+
+                         Spacer(Modifier.height(30.dp))
 
 
-            }
-        }
+                         RegisterForm(
+                             onClickRegister = onRegisterClick, authUiState = authUiState
+                         )
+
+                         Spacer(Modifier.height(0.dp))
+
+
+
+                         LoginHint(onClickLogin)
+
+
+
+
+                     }
+                 }
+             }
+         }
+
     }
 }
 
@@ -372,6 +390,7 @@ fun RegisterForm(
             unfocusedContainerColor = MediumGray,
             disabledContainerColor = MediumGray,
 
+            focusedIndicatorColor = Blue1.copy(0.3f),
             disabledIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent
         ),
@@ -439,6 +458,7 @@ fun RegisterForm(
             unfocusedContainerColor = MediumGray,
             disabledContainerColor = MediumGray,
 
+            focusedIndicatorColor = Blue1.copy(0.3f),
             disabledIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             errorContainerColor = Color.Transparent,
@@ -492,7 +512,7 @@ fun RegisterForm(
 //        colors = ButtonDefaults.buttonColors(BlueGreen),
         colors = ButtonDefaults.buttonColors(
             containerColor = Blue1,
-            disabledContainerColor = Blue1.copy(0.2f),
+            disabledContainerColor = Blue1.copy(0.4f),
 
             )
     ) {
