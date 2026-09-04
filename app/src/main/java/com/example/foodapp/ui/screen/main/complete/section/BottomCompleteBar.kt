@@ -39,8 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.foodapp.core.utils.showToast
-import com.example.foodapp.presentation.state.CompleteUiState
+ import com.example.foodapp.presentation.state.CompleteUiState
 import com.example.foodapp.ui.theme.Blue0
 import com.example.foodapp.ui.theme.Blue1
 import com.example.foodapp.ui.theme.Gray65
@@ -110,8 +109,7 @@ fun BottomCompleteBar(
                             )
                             .clickable(
                                 onClick = {
-                                    showToast(context, "click")
-                                    showExtendBox = false
+                                     showExtendBox = false
                                 }
                             )
                             .border(

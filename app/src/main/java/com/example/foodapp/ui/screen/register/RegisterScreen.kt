@@ -111,14 +111,12 @@ fun RegisterScreen(
             }
 
             is AppState.Error -> {
-                showToast(context, appState.message)
-                Log.d("check_error_register", "error ${appState.message}")
+                 Log.d("check_error_register", "error ${appState.message}")
 
             }
 
             is AppState.Loading -> {
-                showToast(context, "loading res")
-                Log.d("check_error_register", "loading")
+                 Log.d("check_error_register", "loading")
             }
 
             else -> {
@@ -503,8 +501,7 @@ fun RegisterForm(
             hasSubmitted = true
             Log.d("check_error_register", "dk: $isFormValid")
             if (isFormValid) {
-                showToast(context = context, "click regis")
-                onClickRegister(email.trim(), password)
+                 onClickRegister(email.trim(), password)
             }
         }, modifier = Modifier
             .fillMaxWidth()

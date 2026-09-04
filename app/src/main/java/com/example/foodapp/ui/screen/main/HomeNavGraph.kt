@@ -849,7 +849,9 @@ fun HomeNavGraph(
                         },
                         onClickNavCheckOut = {
                             navController.navigate(UserRoutes.CHECKOUT)
-                        })
+                        },
+                        padding = padding,
+                    )
                 }
 
 

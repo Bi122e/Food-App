@@ -36,13 +36,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.foodapp.R
-import com.example.foodapp.core.utils.showToast
-import com.example.foodapp.core.utils.toVND
+ import com.example.foodapp.core.utils.toVND
 import com.example.foodapp.domain.model.Food
 import com.example.foodapp.presentation.state.CartUiState
 import com.example.foodapp.presentation.state.ProfileUiState
-import com.example.foodapp.ui.theme.Blue1
-import com.example.foodapp.ui.theme.Yellow0
+ import com.example.foodapp.ui.theme.Yellow0
 
 @Composable
 fun FoodItemCard(
@@ -67,8 +65,8 @@ fun FoodItemCard(
             modifier = Modifier
                 .clickable {
                     onClickAddCart(item)
-                    showToast(context, "click")
-                }
+
+                 }
         ) {
             // img food
             Box(

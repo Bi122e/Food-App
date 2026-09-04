@@ -67,8 +67,7 @@ fun HomeScreen(
 
 
     val bottomBarRoute = listOf(
-        UserRoutes.HOME, UserRoutes.CONVERSATION, UserRoutes.CART, UserRoutes.PROFILE,
-
+        UserRoutes.HOME, UserRoutes.CONVERSATION,  UserRoutes.PROFILE
 
         )
     val isShowBottomBar = currentDestination?.route in bottomBarRoute

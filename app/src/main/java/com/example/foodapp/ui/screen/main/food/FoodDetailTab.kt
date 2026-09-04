@@ -57,7 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.foodapp.R
-import com.example.foodapp.core.utils.toVND
+ import com.example.foodapp.core.utils.toVND
 import com.example.foodapp.domain.model.Food
 import com.example.foodapp.domain.model.Variation
 import com.example.foodapp.domain.model.Variation.VariationType
@@ -344,6 +344,7 @@ fun FoodDetailTab(
                                         )
                                     } else {
                                         //false, true,
+
                                         RadioButton(
                                             selected = isChecked,
                                             onClick = {
@@ -462,7 +463,6 @@ fun FoodDetailTab(
 
     }
 
-    Log.d("test_final__conf", "UI :${cartState.showConfirmDialog}")
 
     ConflictDialog(
         showDialog = cartState.showConfirmDialog,

@@ -60,8 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.foodapp.R
-import com.example.foodapp.core.utils.showToast
-import com.example.foodapp.core.utils.toVND
+ import com.example.foodapp.core.utils.toVND
 import com.example.foodapp.domain.model.Cart
 import com.example.foodapp.domain.model.Restaurant
 import com.example.foodapp.presentation.state.CartUiState
@@ -80,6 +79,7 @@ fun CartTab(
     onClickClearCart: () -> Unit,
     onClickGetBack: () -> Unit,
     onClickNavCheckOut: () -> Unit,
+    padding: PaddingValues,
 ) {
 //    Box(
 //        modifier = Modifier.fillMaxSize(),
@@ -89,7 +89,6 @@ fun CartTab(
     var onClickSetting by remember { mutableStateOf(false) }
     var onClickItem by remember { mutableStateOf(false) }
     var onClickItems by remember { mutableStateOf(false) }
-    var onClickHasItem = remember { mutableStateListOf<String>() }
 
     val isPreview = LocalInspectionMode.current
 
@@ -124,9 +123,13 @@ fun CartTab(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.White)
-                .padding(horizontal = 16.dp),
+                .padding(
+                    horizontal = 16.dp,
+                    vertical = 16.dp
+                    ),
             contentPadding = PaddingValues(
-                top = paddingValues.calculateTopPadding() + 20.dp
+                top = paddingValues.calculateTopPadding(),
+                bottom = padding.calculateBottomPadding()
             ),
             verticalArrangement = Arrangement.spacedBy(30.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -170,7 +173,7 @@ fun CartTab(
 
                                 // image
                                 AsyncImage(
-                                    model = restaurant.imageUrl,
+                                    model = restaurant.coverImage,
                                     contentDescription = null,
                                     fallback = painterResource(R.drawable.pizza2),
                                     placeholder = painterResource(R.drawable.pizza2),
@@ -392,8 +395,7 @@ fun CartTab(
                                         modifier = Modifier
                                             .fillMaxHeight()
                                             .clickable{
-                                                showToast(context = context, "clicked")
-                                                onClickNavCheckOut()
+                                                 onClickNavCheckOut()
                                             }
                                     ) {
                                         Box(
@@ -484,8 +486,7 @@ fun MyTopAppBar(
             //back
             navigationIcon = {
                 IconButton(onClick = {
-                    showToast(context, "on clicked")
-                    onClickGetBack()
+                     onClickGetBack()
                 }) {
                     Icon(Icons.Default.ArrowBack, contentDescription = null)
                 }
@@ -528,6 +529,7 @@ fun Preview() {
         onClickClearCart =  {},
         onClickGetBack = {},
         onClickNavCheckOut = {},
+        padding = PaddingValues()
         )
 }
 
@@ -608,8 +610,7 @@ fun CartTabBotBar(
                     .clickable(
                         enabled = checkedItem || checkedItems,
                         onClick = {
-                            showToast(context = context, "clicked!")
-                            onClickClearCart()
+                             onClickClearCart()
                         }
                     )
                     .padding(vertical = 15.dp, horizontal = 70.dp),

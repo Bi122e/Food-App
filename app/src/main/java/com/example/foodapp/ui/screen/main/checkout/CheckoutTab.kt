@@ -58,8 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.foodapp.R
-import com.example.foodapp.core.utils.showToast
-import com.example.foodapp.core.utils.toVND
+ import com.example.foodapp.core.utils.toVND
 import com.example.foodapp.domain.model.Cart
 import com.example.foodapp.domain.model.CartItem
  import com.example.foodapp.domain.model.PaymentMethod
@@ -212,8 +211,7 @@ fun CheckOutTab(
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                                 modifier = Modifier.clickable(
                                     onClick = {
-                                        showToast(context, "clicked")
-                                        onNavCash()
+                                         onNavCash()
                                     }
                                 ),
                             ) {
@@ -625,10 +623,7 @@ fun CheckOutTab(
                         fontWeight = FontWeight.SemiBold,
                         color = Blue0,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .clickable(
-                                onClick = { showToast(context = context, "Clicked") }
-                            )
+
                     )
 
                 }
@@ -663,7 +658,7 @@ fun TopBarCheckOut(
 
         verticalArrangement = Arrangement.spacedBy(5.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-
+        modifier = Modifier.background(Color.White)
         ) {
         CenterAlignedTopAppBar(
             modifier = Modifier.padding(vertical = 10.dp, horizontal = 16.dp),

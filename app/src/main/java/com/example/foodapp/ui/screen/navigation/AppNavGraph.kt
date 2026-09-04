@@ -26,12 +26,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+ import androidx.navigation.compose.rememberNavController
 import com.example.foodapp.core.Routes
-import com.example.foodapp.core.UserRoutes
-import com.example.foodapp.core.utils.showToast
-import com.example.foodapp.domain.model.User
+  import com.example.foodapp.domain.model.User
 import com.example.foodapp.presentation.state.AppState
 import com.example.foodapp.presentation.viewmodel.OrderViewModel
 import com.example.foodapp.presentation.viewmodel.UserProfileViewModel
