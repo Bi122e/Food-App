@@ -55,10 +55,13 @@ fun OrderTab(
 //        mutableStateOf(true)
 //    }
 
+    
+
     /*
     flow chạy launched 1 lần delay 10s, nếu order có dữ liệu và launched chạy xong thì flow
     chạy xuống, ko thì chạy loading đến khi có dữ liệu
     * */
+
     var timerFinished by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
 //        if (orderUiState.order.isNotEmpty()) {
@@ -66,17 +69,18 @@ fun OrderTab(
         timerFinished = true
 //        }
     }
-    var order = if (!isPreview) {
-        orderUiState.order.find {
-            it.orderId == orderId
-        }
+    val order = if (!isPreview) {
+        orderUiState.singleOrder
     } else {
         PreviewDataOrderState.previewOrder()
     }
 
 
-//    val loading = !timerFinished && order == null
-    val loading = !timerFinished || order == null
+
+
+//    val loading = !timerFinished || order == null
+    val loading = !timerFinished && order == null
+    Log.d("check_validate", "dk1 change: ${!timerFinished} dk2: ${order == null} ")
 
     if (loading) {
         LoadingScreen()

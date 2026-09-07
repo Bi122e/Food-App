@@ -14,7 +14,8 @@ data class OrderUiState(
     val user: User? = null,
     val restaurant: Restaurant? = null,
     val orderStatus: Map<String, OrderStatus> = emptyMap(),
-    val appNotificationOrder: AppNotificationOrder? = null
+    val appNotificationOrder: AppNotificationOrder? = null,
+    val singleOrder: Order? = null,
 )
 
 

@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
@@ -104,7 +105,7 @@ fun CompleteProfileScreen(
         containerColor = Color.White,
     ) { paddingValues ->
 
-        Column(
+        LazyColumn (
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Top),
             horizontalAlignment = Alignment.End,
             modifier = Modifier
@@ -114,66 +115,69 @@ fun CompleteProfileScreen(
 
         ) {
 
-            Spacer(Modifier.height(20.dp))
+            item {
+                Spacer(Modifier.height(20.dp))
+            }
 
             //progress
 
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.End,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(end = 16.dp)
-            ) {
+            item {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 16.dp)
+                ) {
 
-                progressItems.forEach { index ->
+                    progressItems.forEach { index ->
 
-                    val color by animateColorAsState(
-                        targetValue = if (profileUiState.currentStep >= index - 1)
-                            Blue1
-                        else
-                            Gray65,
-                        animationSpec = tween(
-                            durationMillis = 1500
-                        )
-                    )
-
-
-                    AnimatedContent(
-                        targetState = validStep >= index - 1,
-                        transitionSpec = {
-                            fadeIn() + scaleIn() togetherWith
-                                    fadeOut() + scaleOut()
-                        },
-                        label = ""
-                    ) { isValid ->
-                        Log.d("check_valid_step_check", "current  $validStep")
-                        Icon(
-                            imageVector = if (isValid)
-                                Icons.Rounded.Check
+                        val color by animateColorAsState(
+                            targetValue = if (profileUiState.currentStep >= index - 1)
+                                Blue1
                             else
-                                Icons.Rounded.Circle,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(28.dp)
-                                .background(
-                                    color,
-                                    CircleShape
-                                )
-                                .padding(
-                                    if (isValid)
-                                        2.dp
-                                    else
-                                        10.dp
-                                ),
-
-                            tint = Color.White
+                                Gray65,
+                            animationSpec = tween(
+                                durationMillis = 1500
+                            )
                         )
-                    }
 
 
-                    //icon
+                        AnimatedContent(
+                            targetState = validStep >= index - 1,
+                            transitionSpec = {
+                                fadeIn() + scaleIn() togetherWith
+                                        fadeOut() + scaleOut()
+                            },
+                            label = ""
+                        ) { isValid ->
+                            Log.d("check_valid_step_check", "current  $validStep")
+                            Icon(
+                                imageVector = if (isValid)
+                                    Icons.Rounded.Check
+                                else
+                                    Icons.Rounded.Circle,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .background(
+                                        color,
+                                        CircleShape
+                                    )
+                                    .padding(
+                                        if (isValid)
+                                            2.dp
+                                        else
+                                            10.dp
+                                    ),
+
+                                tint = Color.White
+                            )
+                        }
+
+
+                        //icon
 //                    Icon(
 //                        Icons.Rounded.Check,
 //                        contentDescription = null,
@@ -186,75 +190,81 @@ fun CompleteProfileScreen(
 //                        tint = Color.White
 //                    )
 
-                    if (index != 3) {
-                        Spacer(
-                            modifier = Modifier
-                                .width(50.dp)
-                                .height(2.dp)
-                                .background(color)
+                        if (index != 3) {
+                            Spacer(
+                                modifier = Modifier
+                                    .width(50.dp)
+                                    .height(2.dp)
+                                    .background(color)
+                            )
+                        }
+                    }
+                }
+            }
+
+
+            item {
+                when (profileUiState.currentStep) {
+
+                    0 ->
+
+                        NameStep(
+                            onFieldEditProfileChange = onFieldEditProfileChange,
+                            onNextStep = onNextStep,
+                            profileUiState = profileUiState,
+                            resetClickedUpdate = resetClickedUpdate,
+                            setClickedUpdate = setClickedUpdate,
+                            validateName = validateName,
+                            onValidStep = {
+                                if (validStep <= 2) {
+                                    validStep += 1
+                                }
+                                Log.d(
+                                    "check_valid_step_check",
+                                    "name step: ${profileUiState.currentStep}"
+                                )
+                            },
+                        )
+
+                    1 -> {
+                        PhoneTab(
+                            validatePhone = validatePhone,
+                            onNextStep = onNextStep,
+                            profileUiState = profileUiState,
+                            onFieldEditProfileChange = onFieldEditProfileChange,
+                            setClickedUpdate = setClickedUpdate,
+                            resetClickedUpdate = resetClickedUpdate,
+                            onValidStep = {
+                                if (validStep <= 2) {
+                                    validStep += 1
+                                }
+                                Log.d(
+                                    "check_valid_step_check",
+                                    "phone tab validStep: ${profileUiState.currentStep}"
+                                )
+                            },
+                        )
+                    }
+
+                    2 -> {
+                        Log.d("check_valid_step", "nav gender")
+                        GenderTab(
+                            onValidStep = {
+                                if (validStep < 2) {
+                                    validStep += 1
+                                }
+                                Log.d("check_valid_step", validStep.toString())
+                            },
+                            onLoggedIn = onLoggedIn,
+                            updateUserProfile = updateUserProfile,
+                            profileUiState = profileUiState,
+                            setClickedUpdate = setClickedUpdate,
+                            setGender = setGender,
                         )
                     }
                 }
             }
-            when (profileUiState.currentStep) {
 
-                0 ->
-
-                    NameStep(
-                        onFieldEditProfileChange = onFieldEditProfileChange,
-                        onNextStep = onNextStep,
-                        profileUiState = profileUiState,
-                        resetClickedUpdate = resetClickedUpdate,
-                        setClickedUpdate = setClickedUpdate,
-                        validateName = validateName,
-                        onValidStep = {
-                            if (validStep <= 2) {
-                                validStep += 1
-                            }
-                            Log.d(
-                                "check_valid_step_check",
-                                "name step: ${profileUiState.currentStep}"
-                            )
-                        },
-                    )
-
-                1 -> {
-                    PhoneTab(
-                        validatePhone = validatePhone,
-                        onNextStep = onNextStep,
-                        profileUiState = profileUiState,
-                        onFieldEditProfileChange = onFieldEditProfileChange,
-                        setClickedUpdate = setClickedUpdate,
-                        resetClickedUpdate = resetClickedUpdate,
-                        onValidStep = {
-                            if (validStep <= 2) {
-                                validStep += 1
-                            }
-                            Log.d(
-                                "check_valid_step_check",
-                                "phone tab validStep: ${profileUiState.currentStep}"
-                            )
-                        },
-                    )
-                }
-
-                2 -> {
-                    Log.d("check_valid_step", "nav gender")
-                    GenderTab(
-                        onValidStep = {
-                            if (validStep < 2) {
-                                validStep += 1
-                            }
-                            Log.d("check_valid_step", validStep.toString())
-                        },
-                        onLoggedIn = onLoggedIn,
-                        updateUserProfile = updateUserProfile,
-                        profileUiState = profileUiState,
-                        setClickedUpdate = setClickedUpdate,
-                        setGender = setGender,
-                    )
-                }
-            }
         }
     }
 }
@@ -312,7 +322,7 @@ fun TopInitializationInfoBar(
 @Composable
 fun PreviewInitializationInfoTab() {
     CompleteProfileScreen(
-        profileUiState = ProfileUiState(currentStep = 0),
+        profileUiState = ProfileUiState(currentStep = 2),
         updateUserProfile = {},
         onFieldEditProfileChange = { _, _ -> Unit },
         onPrevious = {},

@@ -42,7 +42,7 @@ class CompleteViewModel @Inject constructor(
     val event = _event.asSharedFlow()
 
     fun loadRestaurant(restaurantId: String) {
-        Log.d("checkCompleteVM_loadRestaurant", "run")
+        Log.d("checkCompleteVM_loadRestaurant", "checkCompleteVM_loadRestaurant run")
         viewModelScope.launch {
             val response = restaurantRepository.getRestaurantById(restaurantId)
 
@@ -70,140 +70,279 @@ class CompleteViewModel @Inject constructor(
     }
 
     fun loadOrder(orderId: String) {
-        Log.d("checkCompleteVM_loadOrder", "run")
+
+        Log.d(
+            "DEBUG_LOAD_ORDER",
+            "1. loadOrder called, orderId='$orderId'"
+        )
+
         viewModelScope.launch {
-            _completeUiState.update { it.copy(isOrderLoading = true) }
-            val response =
-                orderRepository.observeOrderById(orderId = orderId).collectLatest { response ->
-                    when (response) {
-                        is ApiResponse.Error -> {
-                            _completeUiState.update { it.copy(isOrderError = true) }
-                            Log.d("checkCompleteVM_loadOrder", "error ${response.message}")
+
+            Log.d(
+                "DEBUG_LOAD_ORDER",
+                "2. coroutine started"
+            )
+
+            _completeUiState.update {
+                it.copy(isOrderLoading = true)
+            }
+
+            Log.d(
+                "DEBUG_LOAD_ORDER",
+                "3. before observeOrderById"
+            )
+
+
+
+            orderRepository
+                .observeOrderById(orderId)
+            val flow = orderRepository.observeOrderById(orderId)
+
+            Log.d(
+                "DEBUG_LOAD_ORDER",
+                "3.1 observeOrderById returned Flow"
+            )
+            flow
+                .collectLatest { response ->
+
+                Log.d(
+                    "DEBUG_LOAD_ORDER",
+                    "4. FLOW EMIT = $response"
+                )
+
+                when (response) {
+
+                    is ApiResponse.Success -> {
+
+                        val restaurantId =
+                            response.data.restaurantId
+
+                        Log.d(
+                            "DEBUG_LOAD_ORDER",
+                            "5. restaurantId='$restaurantId'"
+                        )
+
+                        _completeUiState.update {
+                            it.copy(
+                                restaurantId = restaurantId,
+                                userName = response.data.userName
+                            )
                         }
 
-                        is ApiResponse.Success -> {
-                            _completeUiState.update {
-                                it.copy(
-                                    restaurantId = response.data.restaurantId,
-                                    userName = response.data.userName,
-                                )
-                            }
-                            Log.d("checkCompleteVM_loadOrder", "success: data = ${response.data}")
-                            loadRestaurant(restaurantId = _completeUiState.value.restaurantId)
-                            resetOrderState()
-                        }
+                        Log.d(
+                            "DEBUG_LOAD_ORDER",
+                            "6. state=${_completeUiState.value}"
+                        )
 
-                        else -> {
-                            Log.d("checkCompleteVM_loadOrder", "else")
+                        loadRestaurant(restaurantId)
+
+                        resetOrderState()
+                    }
+
+                    is ApiResponse.Error -> {
+
+                        Log.e(
+                            "DEBUG_LOAD_ORDER",
+                            "ERROR=${response.message}"
+                        )
+
+                        _completeUiState.update {
+                            it.copy(isOrderError = true)
                         }
                     }
-                    Log.d("checkCompleteVM_loadOrder", "check state: ${_completeUiState.value}")
-                    _completeUiState.update { it.copy(isOrderLoading = false) }
+
+                    else -> {
+                        Log.d(
+                            "DEBUG_LOAD_ORDER",
+                            "ELSE"
+                        )
+                    }
                 }
+
+                _completeUiState.update {
+                    it.copy(isOrderLoading = false)
+                }
+            }
         }
 
     }
+//    fun loadOrder(orderId: String) {
+//        Log.d("checkCompleteVM_loadOrder", "sdffffffffff")
+//
+//        Log.d("checkCompleteVM_loadOrder", "run")
+//        viewModelScope.launch {
+//            _completeUiState.update { it.copy(isOrderLoading = true) }
+//                 orderRepository.observeOrderById(orderId = orderId).collectLatest { response ->
+//                    when (response) {
+//                        is ApiResponse.Error -> {
+//                            _completeUiState.update { it.copy(isOrderError = true) }
+//                            Log.d("checkCompleteVM_loadOrder", "error ${response.message}")
+//                        }
+//
+//                        is ApiResponse.Success -> {
+//                            _completeUiState.update {
+//                                it.copy(
+//                                    restaurantId = response.data.restaurantId,
+//                                    userName = response.data.userName,
+//                                )
+//                            }
+//                            Log.d("checkCompleteVM_loadOrder", "success: data = ${response.data}")
+//
+//                            val restaurantId = response.data.restaurantId
+//                            loadRestaurant(restaurantId = _completeUiState.value.restaurantId)
+//
+//
+//                            resetOrderState()
+//                        }
+//
+//                        else -> {
+//                            Log.d("checkCompleteVM_loadOrder", "else")
+//                        }
+//                    }
+//                    Log.d("checkCompleteVM_loadOrder", "check state: ${_completeUiState.value}")
+//                    _completeUiState.update { it.copy(isOrderLoading = false) }
+//
+//
+//                 }
+//
+//
+//        }
+//
+//    }
 
     fun createComplete(orderId: String, notificationId: String) {
+
         _completeUiState.update { it.copy(isCreateLoading = true) }
 
         viewModelScope.launch {
 
-            Log.d("checkCompleteVM_loadOrder", "run")
+            try {
 
-            val userId = authRepository.currentUserId() ?: return@launch
+                Log.d(
+                    "DEBUG_CREATE",
+                    "createComplete run1, state=${_completeUiState.value}"
+                )
 
-            val preview = RestaurantPreview(
-                previewId = "",
-                userName = if (_completeUiState.value.isPrivateName)
-                    privateName()
-                else
-                    _completeUiState.value.userName,
-                userId = userId,
-                orderId = orderId,
-                restaurantId = _completeUiState.value.restaurantId,
-                rating = _completeUiState.value.rating ?: 0,
-                message = _completeUiState.value.message,
-                imageUrls = "", //de xu ly sau
-                avatarUrls = "", //de xu ly sau
-                previewTags = _completeUiState.value.previewTags
-            )
-            val response = previewRepository.createPreview(orderId, preview)
+                Log.d("checkCompleteVM_loadOrder", "createComplete run1")
 
-            when (response) {
-                is ApiResponse.Error -> {
-                    Log.d("checkCompleteVM_createComplete", "error ${response.message}")
-                    _event.emit(CompleteEventState.Error("Có lỗi xảy ra, hãy thử lại"))
-//                    resetCreateState()
+                val userId = authRepository.currentUserId() ?: return@launch
+                val restaurantId = _completeUiState.value.restaurantId
+                Log.d(
+                    "DEBUG_CREATE",
+                    "restaurantId before createPreview='$restaurantId'"
+                )
+
+                if (restaurantId.isBlank()) {
+                    Log.e(
+                        "DEBUG_CREATE",
+                        "Cannot create preview: restaurantId is empty"
+                    )
+
+                    _event.emit(
+                        CompleteEventState.Error("Đang tải thông tin nhà hàng, vui lòng thử lại")
+                    )
+
+                    return@launch
                 }
+                val preview = RestaurantPreview(
+                    previewId = "",
+                    userName = if (_completeUiState.value.isPrivateName)
+                        privateName()
+                    else
+                        _completeUiState.value.userName,
+                    userId = userId,
+                    orderId = orderId,
+                    restaurantId = _completeUiState.value.restaurantId,
+                    rating = _completeUiState.value.rating ?: 0,
+                    message = _completeUiState.value.message,
+                    imageUrls = "", //de xu ly sau
+                    avatarUrls = "", //de xu ly sau
+                    previewTags = _completeUiState.value.previewTags
+                )
+                val response = previewRepository.createPreview(orderId, preview)
 
-                is ApiResponse.Success -> {
-                    Log.d("checkCompleteVM_createComplete", "success ${response.data}")
-
-                    val responseDeactivate =
-                        notificationRepository.deactivateNotification(notificationId)
-                    when (responseDeactivate) {
-                        is ApiResponse.Success -> {
-                            Log.d("checkVM_responseDeactivate", "success")
-
-                            val restaurantId = _completeUiState.value.restaurantId
-
-                            val rating = _completeUiState.value.rating.toMappingRatingCount()
-
-                            if (rating == null) {
-                                Log.d(
-                                    "checkVM_updateRatingCount",
-                                    "null: ${completeUiState.value.rating}"
-                                )
-                                return@launch
-                            }
-                            val responseRatingCount =
-                                restaurantRepository.updateRatingCount(restaurantId, rating)
-
-                            when (responseRatingCount) {
-                                is ApiResponse.Success -> {
-                                    _event.emit(CompleteEventState.Success)
-                                    Log.d("checkVM_updateRatingCount", "success")
-                                }
-
-                                is ApiResponse.Error -> {
-                                    _event.emit(CompleteEventState.Error("Có lỗi xảy ra, hãy thử lại"))
-                                    Log.d(
-                                        "checkVM_updateRatingCount",
-                                        "error: ${responseRatingCount.message}"
-                                    )
-                                }
-
-                                else -> {
-                                    Log.d("checkVM_updateRatingCount", "else")
-
-                                }
-                            }
-                        }
-
-                        is ApiResponse.Error -> {
-                            _event.emit(CompleteEventState.Error("Có lỗi xảy ra, hãy thử lại"))
-                            Log.d(
-                                "checkVM_responseDeactivate",
-                                "error ${responseDeactivate.message}"
-                            )
-                        }
-
-                        else -> {
-                            _event.emit(CompleteEventState.Error("Có lỗi xảy ra, hãy thử lại"))
-                            Log.d("checkVM_responseDeactivate", "else")
-                        }
+                when (response) {
+                    is ApiResponse.Error -> {
+                        Log.d("checkCompleteVM_createComplete", "error ${response.message}")
+                        _event.emit(CompleteEventState.Error("Có lỗi xảy ra, hãy thử lại"))
+//                    resetCreateState()
                     }
 
-                }
+                    is ApiResponse.Success -> {
+                        Log.d("checkCompleteVM_createComplete", "success ${response.data}")
 
-                else -> {
-                    _event.emit(CompleteEventState.Error("Có lỗi xảy ra, hãy thử lại"))
-                    Log.d("checkCompleteVM_createComplete", "else")
+                        val responseDeactivate =
+                            notificationRepository.deactivateNotification(notificationId)
+                        when (responseDeactivate) {
+                            is ApiResponse.Success -> {
+                                Log.d("checkVM_responseDeactivate", "success")
+
+                                val restaurantId = _completeUiState.value.restaurantId
+                                val rating = _completeUiState.value.rating.toMappingRatingCount()
+
+                                Log.d(
+                                    "checkVM_updateRatingCount",
+                                    "restaurantId = '$restaurantId', rating = '$rating'"
+                                )
+
+                                if (rating == null) {
+                                    Log.d(
+                                        "checkVM_updateRatingCount",
+                                        "null: ${completeUiState.value.rating}"
+                                    )
+                                    return@launch
+                                }
+                                val responseRatingCount =
+                                    restaurantRepository.updateRatingCount(restaurantId, rating)
+
+                                when (responseRatingCount) {
+                                    is ApiResponse.Success -> {
+                                        _event.emit(CompleteEventState.Success)
+                                        Log.d("checkVM_updateRatingCount", "success")
+                                    }
+
+                                    is ApiResponse.Error -> {
+                                        _event.emit(CompleteEventState.Error("Có lỗi xảy ra, hãy thử lại"))
+                                        Log.d(
+                                            "checkVM_updateRatingCount",
+                                            "error: ${responseRatingCount.message}"
+                                        )
+                                    }
+
+                                    else -> {
+                                        Log.d("checkVM_updateRatingCount", "else")
+
+                                    }
+                                }
+                            }
+
+                            is ApiResponse.Error -> {
+                                _event.emit(CompleteEventState.Error("Có lỗi xảy ra, hãy thử lại"))
+                                Log.d(
+                                    "checkVM_responseDeactivate",
+                                    "error ${responseDeactivate.message}"
+                                )
+                            }
+
+                            else -> {
+                                _event.emit(CompleteEventState.Error("Có lỗi xảy ra, hãy thử lại"))
+                                Log.d("checkVM_responseDeactivate", "else")
+                            }
+                        }
+
+                    }
+
+                    else -> {
+                        _event.emit(CompleteEventState.Error("Có lỗi xảy ra, hãy thử lại"))
+                        Log.d("checkCompleteVM_createComplete", "else")
+                    }
                 }
+            } catch (e: Exception) {
+
+                _completeUiState.update { it.copy(isCreateLoading = false) }
+
             }
         }
-        _completeUiState.update { it.copy(isCreateLoading = false) }
     }
 
 //

@@ -1,5 +1,6 @@
 package com.example.foodapp.ui.screen.main.complete.section
 
+import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -176,6 +177,7 @@ fun BottomCompleteBar(
         Button(
             enabled = canClicked,
             onClick = {
+                Log.d("click_event_onCreateComplete", "true")
                 onCreateComplete()
             },
             shape = RoundedCornerShape(15.dp),

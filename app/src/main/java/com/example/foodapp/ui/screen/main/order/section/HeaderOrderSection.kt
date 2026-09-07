@@ -133,7 +133,7 @@ fun HeaderOrderSection(
                     painter = painterResource(R.drawable.ic_order1),
                     contentDescription = null,
                     modifier = Modifier
-                        .size(34.dp)
+                        .size(24.dp)
                         .background(
                             color = changeBgStatus(order.status, OrderStatus.CONFIRMED),
                             shape = CircleShape
@@ -162,7 +162,7 @@ fun HeaderOrderSection(
                     painter = painterResource(R.drawable.ic_fork_knife),
                     contentDescription = null,
                     modifier = Modifier
-                        .size(34.dp)
+                        .size(24.dp)
                         .background(
                             color = changeBgStatus(order.status, OrderStatus.PREPARING),
                             shape = CircleShape
@@ -190,7 +190,7 @@ fun HeaderOrderSection(
                     painter = painterResource(R.drawable.ic_motor),
                     contentDescription = null,
                     modifier = Modifier
-                        .size(34.dp)
+                        .size(24.dp)
                         .background(
                             color = changeBgStatus(
                                 order.status, OrderStatus.DELIVERING
@@ -221,7 +221,7 @@ fun HeaderOrderSection(
                     painter = painterResource(R.drawable.ic_home1),
                     contentDescription = null,
                     modifier = Modifier
-                        .size(34.dp)
+                        .size(24.dp)
                         .background(
                             changeBgStatus(order.status, OrderStatus.DELIVERED),
                             shape = CircleShape

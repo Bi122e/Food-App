@@ -74,6 +74,50 @@ class OrderViewModel @Inject constructor(
 
     }
 
+
+    fun loadOrderById(orderId: String) {
+
+        viewModelScope.launch {
+
+            orderRepository
+                .observeOrderById(orderId)
+                .collectLatest { response ->
+
+                    when (response) {
+
+                        is ApiResponse.Success -> {
+                            Log.d(
+                                "checkVM_loadOrder",
+                                "FOUND orderId=${response.data.orderId}"
+                            )
+
+                            _orderUiState.update {
+                                it.copy(
+                                    singleOrder = response.data,
+
+                                )
+                            }
+                        }
+
+                        is ApiResponse.Error -> {
+                            Log.d(
+                                "checkVM_loadOrder",
+                                "ERROR = ${response.message}"
+                            )
+
+                            _orderUiState.update {
+                                it.copy(
+                                    singleOrder = null,
+
+                                )
+                            }
+                        }
+
+                        else -> {}
+                    }
+                }
+        }
+    }
     private fun observeOrder(orderId: String) {
         if (!observingOrders.add(orderId)) return //chưa tạo add chạy 1, lần 2 bỏ qua do đã add return
 
@@ -186,6 +230,7 @@ class OrderViewModel @Inject constructor(
                             observeOrder(order.orderId)
                         }
                         _orderUiState.update { it.copy(order = response.data) }
+                        Log.d("checkVM_observeOrder", "state = ${_orderUiState.value.order.size}")
 
                     }
 

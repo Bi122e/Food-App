@@ -25,37 +25,110 @@ class OrderRepositoryImpl @Inject constructor(
 
     private val orderCollection = firestore.collection(Constance.COLLECTION_ORDERS)
 
-    override suspend fun observeOrderById(orderId: String): Flow<ApiResponse<Order>> = callbackFlow {
-        Log.d("checkFB_observeOrderById", "orderId: $orderId")
+//    override suspend fun observeOrderById(orderId: String): Flow<ApiResponse<Order>> = callbackFlow {
+//        Log.d("checkFB_observeOrderById", "orderId: $orderId")
+//        val listener = orderCollection
+//            .document(orderId)
+//            .addSnapshotListener { snapshot, exception ->
+//                if (exception != null) {
+//                    Log.d("checkFB_observeOrderById", "orderId: $orderId")
+//                    trySend(ApiResponse.Error("error ${exception.message}"))
+//                    return@addSnapshotListener
+//                }
+//                if (snapshot == null || !snapshot.exists() ) {
+//                    Log.d("checkFB_observeOrderById", "ORDER NOT FOUND")
+//                    trySend(ApiResponse.Error("ORDER NOT FOUND"))
+//                    return@addSnapshotListener
+//                }
+//
+//                val order = snapshot.toObject(Order::class.java) ?: run {
+//                    Log.d("checkFB_observeOrderById", "ORDER deserial failed -> null")
+//                    trySend(ApiResponse.Error("ORDER Null"))
+//                    return@addSnapshotListener
+//                }
+//
+////                if (!order.active) {
+////                    Log.d("checkFB_observeOrderById", "active = false")
+////                    return@addSnapshotListener
+////                } else {
+////                    Log.d("checkFB_observeOrderById", "success")
+////                    trySend(ApiResponse.Success(order))
+////                }
+//
+//                if (!order.active) {
+//                    Log.d(
+//                        "checkFB_observeOrderById",
+//                        "active = false, orderId=$orderId"
+//                    )
+//
+//                    trySend(
+//                        ApiResponse.Error("ORDER IS NOT ACTIVE")
+//                    )
+//
+//                    return@addSnapshotListener
+//                }
+//
+//                Log.d(
+//                    "checkFB_observeOrderById",
+//                    "success, restaurantId='${order.restaurantId}'"
+//                )
+//
+//                trySend(
+//                    ApiResponse.Success(order)
+//                )
+//            }
+//        awaitClose { listener.remove() }
+//    }
+
+    override suspend fun observeOrderById(
+        orderId: String
+    ): Flow<ApiResponse<Order>> = callbackFlow {
+
         val listener = orderCollection
             .document(orderId)
             .addSnapshotListener { snapshot, exception ->
+
                 if (exception != null) {
-                    Log.d("checkFB_observeOrderById", "orderId: $orderId")
-                    trySend(ApiResponse.Error("error ${exception.message}"))
-                    return@addSnapshotListener
-                }
-                if (snapshot == null || !snapshot.exists() ) {
-                    Log.d("checkFB_observeOrderById", "ORDER NOT FOUND")
-                    trySend(ApiResponse.Error("ORDER NOT FOUND"))
-                    return@addSnapshotListener
-                }
-
-                val order = snapshot.toObject(Order::class.java) ?: run {
-                    Log.d("checkFB_observeOrderById", "ORDER deserial failed -> null")
-                    trySend(ApiResponse.Error("ORDER Null"))
+                    trySend(
+                        ApiResponse.Error(
+                            exception.message ?: "Firestore error"
+                        )
+                    )
                     return@addSnapshotListener
                 }
 
-                if (!order.active) {
-                    Log.d("checkFB_observeOrderById", "active = false")
+                if (snapshot == null || !snapshot.exists()) {
+                    trySend(
+                        ApiResponse.Error("ORDER NOT FOUND")
+                    )
                     return@addSnapshotListener
-                } else {
-                    Log.d("checkFB_observeOrderById", "success")
-                    trySend(ApiResponse.Success(order))
                 }
+
+                val order = snapshot.toObject(Order::class.java)
+
+                if (order == null) {
+                    trySend(
+                        ApiResponse.Error("ORDER NULL")
+                    )
+                    return@addSnapshotListener
+                }
+
+                Log.d(
+                    "checkFB_observeOrderById",
+                    "SUCCESS: orderId=$orderId, " +
+                            "active=${order.active}, " +
+                            "status=${order.status}, " +
+                            "restaurantId=${order.restaurantId}"
+                )
+
+                trySend(
+                    ApiResponse.Success(order)
+                )
             }
-        awaitClose { listener.remove() }
+
+        awaitClose {
+            listener.remove()
+        }
     }
 
     override suspend fun createOrder(
@@ -98,9 +171,12 @@ class OrderRepositoryImpl @Inject constructor(
     }
 
     override fun getAllOrder(): Flow<ApiResponse<List<Order>>> = callbackFlow {
-        val listener = orderCollection.addSnapshotListener { snapshot, error ->
+        val listener = orderCollection
+            .whereEqualTo("active", "true")
+            .addSnapshotListener { snapshot, error ->
             if (error != null) {
                 trySend(ApiResponse.Error(error.message ?: "Failed to get order"))
+                return@addSnapshotListener
             }
 //            if (snapshot != null) {
 //                val order = snapshot.documents.mapNotNull {
@@ -113,6 +189,7 @@ class OrderRepositoryImpl @Inject constructor(
             val orders = snapshot?.documents?.mapNotNull {
                 it.toObject(Order::class.java)
             } ?: emptyList()
+            Log.d("check_getAllOrder", "${orders.size}")
             ApiResponse.Success(orders)
         }
         awaitClose { listener.remove() }
@@ -205,6 +282,7 @@ class OrderRepositoryImpl @Inject constructor(
 
     override fun getOrderByUserId(userId: String): Flow<ApiResponse<List<Order>>> = callbackFlow {
         val listener = orderCollection
+            .whereEqualTo("active", true)
             .whereEqualTo("userId", userId)
             .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->

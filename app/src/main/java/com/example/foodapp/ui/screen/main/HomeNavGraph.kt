@@ -125,12 +125,21 @@ fun HomeNavGraph(
 //        )
 
 
+
+
         LaunchedEffect(
-            inOrderRoute,
-            orderState.appNotificationOrder?.ratingNotificationSent
+             orderState.appNotificationOrder?.ratingNotificationSent
         ) {
-            Log.d("checking_inOrderRoute_flow", "run ->")
-            Log.d("OrderFlow", "UI RECEIVED EVENT")
+            val ratingNotificationSent =
+                orderState.appNotificationOrder?.ratingNotificationSent == true
+
+            Log.d(
+                "ORDER_FLOW",
+                "CHECK NAVIGATION: inOrderRoute=$inOrderRoute, ratingNotificationSent=$ratingNotificationSent"
+            )
+
+
+
             if (
                 inOrderRoute &&
                 (orderState.appNotificationOrder?.ratingNotificationSent ?: false)
@@ -180,6 +189,9 @@ fun HomeNavGraph(
 
                     val notificationId =
                         backStackEntry.arguments?.getString("notificationId") ?: return@composable
+                    Log.d("check_notificationId", notificationId)
+
+
                     Log.d(
                         "check_id_notificationTab",
                         "current route = ${navController.currentDestination?.route}"
@@ -271,6 +283,7 @@ fun HomeNavGraph(
 
 
 
+                    Log.d("checkVM_observeOrder", "home activity: ${orderUiState.order.size}")
 
 
                     HomeTab(
@@ -833,10 +846,21 @@ fun HomeNavGraph(
 
                     val orderViewModel: OrderViewModel = hiltViewModel(activity)
                     val orderUiState by orderViewModel.orderUiState.collectAsStateWithLifecycle()
+
+                    Log.d("check_orderId", "order Ui State: ${orderUiState.order.first().orderId}")
+                    Log.d("check_orderId", "orderId: $orderId")
+
+
+                    LaunchedEffect(orderId) {
+                        orderViewModel.loadOrderById(orderId)
+                    }
+
                     OrderTab(
                         orderUiState = orderUiState, orderId = orderId
                     )
                 }
+
+
 
                 composable(UserRoutes.CART) {
                     val cartViewModel: CartViewModel = hiltViewModel()

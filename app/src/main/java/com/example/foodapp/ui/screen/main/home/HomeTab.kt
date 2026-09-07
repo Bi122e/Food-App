@@ -123,6 +123,8 @@ fun HomeTab(
 ) {
 
 
+    Log.d("checkVM_observeOrder", "home screen: ${orderUiState.order}")
+
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
      var showExtendedProgress by remember { mutableStateOf(false) }
@@ -130,10 +132,11 @@ fun HomeTab(
     val screenH = LocalConfiguration.current.screenHeightDp
     val screenW = LocalConfiguration.current.screenWidthDp
 
+
      Box(
         modifier = Modifier
             .fillMaxSize()
-             .background(
+            .background(
                 color = Color.White
             ),
          contentAlignment = Alignment.BottomCenter
@@ -330,11 +333,14 @@ fun HomeTab(
         //circle order
         //order.any { !it.isFinished() } &&
         Log.d("CHECK_ORDER_state", "home ui state: ${homeUiState.oder.toString()}")
-        Log.d("CHECK_ORDER_state", "order ui state: ${orderUiState.order.toString()}")
+         Log.d("CHECK_ORDER_state", "ORDER: $order")
+         Log.d("CHECK_ORDER_state", "order ui state: ${orderUiState.order.size}")
         Log.d("check_show_progress_flow", "home order ui state: ${homeUiState.oder.size}")
         Log.d("check_show_progress_flow", "check dk: ${showProgress}")
+         Log.d("check_size_orders", "order ui state: ${orderUiState.order.size}")
 
-        if (showProgress && order.isNotEmpty()) {
+         val orders = orderUiState.order
+        if (showProgress && orders.isNotEmpty()) {
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -342,12 +348,22 @@ fun HomeTab(
                     .size(60.dp)
                     .clickable(
                         onClick = {
-                            if (order.size > 1) {
-                                showProgress = false
-                                showExtendedProgress = true
-                            } else {
-                                onNavOrder(order[0].orderId)
-                             }
+
+
+                            when {
+
+                                orders.size == 1 -> {
+                                    onNavOrder(orders.first().orderId)
+
+                                }
+
+                                orders.size > 1 -> {
+                                    showProgress = false
+                                    showExtendedProgress = true
+
+                                }
+                            }
+
                         }
                     )
                     .background(
@@ -502,7 +518,7 @@ fun HomeTab(
                         .background(Color.White.copy(0.5f), CircleShape)
                         .clickable(
                             onClick = {
-                                 showProgress = true
+                                showProgress = true
                                 showExtendedProgress = false
                             }
                         )
@@ -561,7 +577,7 @@ fun RandomResSelection(
                 start = 16.dp
             )
             .clickable {
-             },
+            },
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Row(
@@ -815,7 +831,7 @@ fun RiceResSelection(
                 .padding(horizontal = 16.dp)
                 .clickable(
                     onClick = {
-                         onNavRiceResExtend()
+                        onNavRiceResExtend()
                     }
                 ),
         ) {
@@ -1406,7 +1422,7 @@ fun AllResSelection(
                         .clickable(
                             onClick = {
                                 onNavAllRes(restaurant.restaurantId)
-                             }
+                            }
                         )
                 ) {
 
