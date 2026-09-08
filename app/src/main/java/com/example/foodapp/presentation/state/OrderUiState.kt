@@ -16,11 +16,14 @@ data class OrderUiState(
     val orderStatus: Map<String, OrderStatus> = emptyMap(),
     val appNotificationOrder: AppNotificationOrder? = null,
     val singleOrder: Order? = null,
-)
+
+    )
 
 
 data class AppNotificationOrder(
     val orders: List<Order> = emptyList(),
     val isRead: Boolean = false,
     val ratingNotificationSent: Boolean = false,
-)
+    val notificationId: String = "",
+
+    )

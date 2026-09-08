@@ -78,93 +78,96 @@ class CompleteViewModel @Inject constructor(
 
         viewModelScope.launch {
 
-            Log.d(
-                "DEBUG_LOAD_ORDER",
-                "2. coroutine started"
-            )
-
             _completeUiState.update {
-                it.copy(isOrderLoading = true)
+                it.copy(
+                    isOrderLoading = true,
+                    isOrderError = false
+                )
             }
-
-            Log.d(
-                "DEBUG_LOAD_ORDER",
-                "3. before observeOrderById"
-            )
-
-
 
             orderRepository
                 .observeOrderById(orderId)
-            val flow = orderRepository.observeOrderById(orderId)
-
-            Log.d(
-                "DEBUG_LOAD_ORDER",
-                "3.1 observeOrderById returned Flow"
-            )
-            flow
                 .collectLatest { response ->
 
-                Log.d(
-                    "DEBUG_LOAD_ORDER",
-                    "4. FLOW EMIT = $response"
-                )
+                    Log.d(
+                        "DEBUG_LOAD_ORDER",
+                        "FLOW EMIT = $response"
+                    )
 
-                when (response) {
+                    when (response) {
 
-                    is ApiResponse.Success -> {
+                        is ApiResponse.Success -> {
 
-                        val restaurantId =
-                            response.data.restaurantId
+                            val order = response.data
 
-                        Log.d(
-                            "DEBUG_LOAD_ORDER",
-                            "5. restaurantId='$restaurantId'"
-                        )
-
-                        _completeUiState.update {
-                            it.copy(
-                                restaurantId = restaurantId,
-                                userName = response.data.userName
+                            Log.d(
+                                "DEBUG_LOAD_ORDER",
+                                "orderId='${order.orderId}'"
                             )
+
+                            Log.d(
+                                "DEBUG_LOAD_ORDER",
+                                "restaurantId='${order.restaurantId}'"
+                            )
+
+                            Log.d(
+                                "DEBUG_LOAD_ORDER",
+                                "userName='${order.userName}'"
+                            )
+
+                            _completeUiState.update {
+                                it.copy(
+                                    restaurantId = order.restaurantId,
+                                    userName = order.userName,
+                                    isOrderError = false
+                                )
+                            }
+
+                            Log.d(
+                                "DEBUG_LOAD_ORDER",
+                                "STATE AFTER UPDATE = ${_completeUiState.value}"
+                            )
+
+                            if (order.restaurantId.isNotBlank()) {
+                                loadRestaurant(order.restaurantId)
+                            } else {
+                                Log.e(
+                                    "DEBUG_LOAD_ORDER",
+                                    "ORDER restaurantId IS EMPTY"
+                                )
+
+                                _completeUiState.update {
+                                    it.copy(
+                                        isOrderError = true
+                                    )
+                                }
+                            }
                         }
 
-                        Log.d(
-                            "DEBUG_LOAD_ORDER",
-                            "6. state=${_completeUiState.value}"
-                        )
+                        is ApiResponse.Error -> {
 
-                        loadRestaurant(restaurantId)
+                            Log.e(
+                                "DEBUG_LOAD_ORDER",
+                                "ORDER ERROR = ${response.message}"
+                            )
 
-                        resetOrderState()
-                    }
-
-                    is ApiResponse.Error -> {
-
-                        Log.e(
-                            "DEBUG_LOAD_ORDER",
-                            "ERROR=${response.message}"
-                        )
-
-                        _completeUiState.update {
-                            it.copy(isOrderError = true)
+                            _completeUiState.update {
+                                it.copy(
+                                    isOrderError = true
+                                )
+                            }
                         }
+
+                        else -> Unit
                     }
 
-                    else -> {
-                        Log.d(
-                            "DEBUG_LOAD_ORDER",
-                            "ELSE"
+                    _completeUiState.update {
+                        it.copy(
+                            isOrderLoading = false
                         )
                     }
                 }
-
-                _completeUiState.update {
-                    it.copy(isOrderLoading = false)
-                }
-            }
         }
-
     }
 //    fun loadOrder(orderId: String) {
 //        Log.d("checkCompleteVM_loadOrder", "sdffffffffff")
@@ -229,7 +232,7 @@ class CompleteViewModel @Inject constructor(
                 val restaurantId = _completeUiState.value.restaurantId
                 Log.d(
                     "DEBUG_CREATE",
-                    "restaurantId before createPreview='$restaurantId'"
+                    "restaurantId before createPreview1 ='$restaurantId'"
                 )
 
                 if (restaurantId.isBlank()) {
@@ -338,7 +341,11 @@ class CompleteViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-
+                Log.e(
+                    "DEBUG_CREATE",
+                    "createComplete exception",
+                    e
+                )
                 _completeUiState.update { it.copy(isCreateLoading = false) }
 
             }

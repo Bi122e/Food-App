@@ -128,7 +128,8 @@ fun HomeNavGraph(
 
 
         LaunchedEffect(
-             orderState.appNotificationOrder?.ratingNotificationSent
+             orderState.appNotificationOrder?.ratingNotificationSent,
+            orderState.appNotificationOrder?.notificationId
         ) {
             val ratingNotificationSent =
                 orderState.appNotificationOrder?.ratingNotificationSent == true
@@ -148,11 +149,29 @@ fun HomeNavGraph(
                     "check_in_route",
                     "run ->>>>>>>>>>>>>>>>>>>>"
                 )
-                showSnackBar = false
 
-                delay(500)
-                navController.navigate(UserRoutes.completeDetail("testId", "testsau")) //FIX SAU
-                orderViewModel.resetNotification()
+                val appNotification = orderState.appNotificationOrder
+                val notification = orderState.appNotificationOrder
+
+                val order = appNotification?.orders?.firstOrNull()
+
+                if (order != null && notification?.notificationId?.isNotBlank() == true) {
+                    Log.d(
+                        "ORDER_FLOW",
+                        "Navigate Complete: orderId=${order.orderId}"
+                    )
+
+
+                    showSnackBar = false
+
+                    delay(500)
+                    navController.navigate(UserRoutes.completeDetail(
+                        order.orderId,
+                        notification.notificationId
+                        )
+                    ) //FIX SAU
+                    orderViewModel.resetNotification()
+                }
             }
         }
 

@@ -8,7 +8,7 @@ interface NotificationRepository {
 
     fun getNotifications(userId: String): Flow<ApiResponse<List<AppNotification>>>
 
-    suspend fun createNotification(notification: AppNotification): ApiResponse<Unit>
+    suspend fun createNotification(notification: AppNotification): ApiResponse<String>
 
     suspend fun deleteNotification(notificationId: String): ApiResponse<Unit>
 
@@ -16,7 +16,7 @@ interface NotificationRepository {
 
     fun getUnreadCount(userId: String): Flow<ApiResponse<Int>>
 
-//    suspend fun updateNotification(notificationId: String): ApiResponse<Unit>
+//    suspend fun updateNotification(notificationId: String): ApiResponse<String>
     suspend fun deactivateNotification(notificationId: String): ApiResponse<Unit>
 
  }

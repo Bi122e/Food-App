@@ -56,7 +56,7 @@ class NotificationRepositoryImpl @Inject constructor(
             awaitClose { listener.remove() }
         }
 
-    override suspend fun createNotification(notification: AppNotification): ApiResponse<Unit> {
+    override suspend fun createNotification(notification: AppNotification): ApiResponse<String> {
         return try {
             val docRef = notificationRef.document()
             val id = docRef.id
@@ -68,7 +68,7 @@ class NotificationRepositoryImpl @Inject constructor(
                 )
             docRef.set(updatedNotification).await()
             Log.d("set_createNotification", "success")
-            ApiResponse.Success(Unit)
+            ApiResponse.Success(id)
         } catch (e: Exception) {
             Log.d("set_createNotification", "EEROR: ${e.message}")
             ApiResponse.Error(e.message ?: "error")

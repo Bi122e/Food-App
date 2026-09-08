@@ -321,27 +321,34 @@ class OrderViewModel @Inject constructor(
                             "checkVM_observeOrderSuccess",
                             "VM: check is Empty ${response.data} == ${response.data.isNotEmpty()}"
                         )
-                        handleOrders.forEach {
-                            handleOrderIds.add(it.orderId)
-                        }
                         if (handleOrders.isNotEmpty()) {
-                            Log.d("checkVM_observeOrderSuccess", " uccess: ${response.data}")
-                            _orderUiState.update {
-                                it.copy(
-                                    appNotificationOrder = AppNotificationOrder(
-                                        orders = handleOrders,
-//                                    isRead = false,
-                                        ratingNotificationSent = true
-                                    )
-                                )
-                            }
+
                             handleOrders.forEach { order ->
-                                val response =
-                                    notificationRepository.createNotification(notification = order.toAppNotification())
+
+                                val response = notificationRepository.createNotification(
+                                    notification = order.toAppNotification()
+                                )
 
                                 when (response) {
+
                                     is ApiResponse.Success -> {
-                                        Log.d("check_VM_createNotification", "success")
+
+                                        val notificationId = response.data
+
+                                        Log.d(
+                                            "check_VM_createNotification",
+                                            "success notificationId = $notificationId"
+                                        )
+
+                                        _orderUiState.update {
+                                            it.copy(
+                                                appNotificationOrder = AppNotificationOrder(
+                                                    orders = listOf(order),
+                                                    ratingNotificationSent = true,
+                                                    notificationId = notificationId
+                                                )
+                                            )
+                                        }
                                     }
 
                                     is ApiResponse.Error -> {
@@ -352,13 +359,68 @@ class OrderViewModel @Inject constructor(
                                     }
 
                                     else -> {
-                                        Log.d("check_VM_createNotification", "else")
+                                        Log.d(
+                                            "check_VM_createNotification",
+                                            "else"
+                                        )
                                     }
                                 }
                             }
-
-
                         }
+//                        handleOrders.forEach {
+//                            handleOrderIds.add(it.orderId)
+//                        }
+//                        if (handleOrders.isNotEmpty()) {
+//                            Log.d("checkVM_observeOrderSuccess", " uccess: ${response.data}")
+//                            _orderUiState.update {
+//                                it.copy(
+//                                    appNotificationOrder = AppNotificationOrder(
+//                                        orders = handleOrders,
+////                                    isRead = false,
+//                                        ratingNotificationSent = true
+//                                    )
+//                                )
+//                            }
+//                            handleOrders.forEach { order ->
+//                                val response =
+//                                    notificationRepository.createNotification(
+//                                        notification = order.toAppNotification(),
+//                                        )
+//
+//                                when (response) {
+//                                    is ApiResponse.Success -> {
+//                                        Log.d("check_VM_createNotification", "success")
+//
+//                                        val notificationId = response.data
+//                                        Log.d(
+//                                            "check_VM_createNotification",
+//                                            "success notificationId = $notificationId"
+//                                        )
+//                                        //neu danh gia nhieu order cung 1 luc thi thiet ke chi chua notification nhu nay se sai
+//                                        _orderUiState.update {
+//                                            it.copy(
+//                                                appNotificationOrder = AppNotificationOrder(
+//                                                      notificationId = notificationId
+//                                                )
+//                                            )
+//                                        }
+//                                    }
+//
+//                                    is ApiResponse.Error -> {
+//                                        Log.d(
+//                                            "check_VM_createNotification",
+//                                            "error ${response.message}"
+//                                        )
+//                                    }
+//
+//                                    else -> {
+//                                        Log.d("check_VM_createNotification", "else")
+//                                    }
+//                                }
+//                            }
+//
+//
+//                        }
                     }
 
                     is ApiResponse.Error -> {
