@@ -401,7 +401,7 @@ fun BottomBarMessageSelection(
  ) {
 
     val scope = rememberCoroutineScope() //tao scope de goi trong callback
-    val imeVisible = WindowInsets.isImeVisible
+    val imeVisible = WindowInsets.isImeVisible //check ban phim ao co hien ra chua
 //    val imeVisible = true
     val keyboardController = LocalSoftwareKeyboardController.current//tắt bàn phím
     val focusManager = LocalFocusManager.current//tắt focus
@@ -481,7 +481,7 @@ fun BottomBarMessageSelection(
 
             )
 
-            if (!imeVisible) {
+            if (!imeVisible || chatUiState.text.isNotBlank()) {
                 Icon(
                     Icons.Rounded.Mic,
                     contentDescription = null
@@ -497,14 +497,14 @@ fun BottomBarMessageSelection(
 
 
 
-            if (imeVisible) {
+            if (imeVisible || chatUiState.text.isNotEmpty()) {
                 Icon(
                     Icons.Rounded.Send,
                     contentDescription = null,
                     tint = Color.White,
                     modifier = Modifier
                         .clickable(
-                            enabled = !chatUiState.isDelivered || chatUiState.text.isNotEmpty(),
+                            enabled = !chatUiState.isDelivered  ,
                             onClick =
                                 {
                                     scope.launch {
