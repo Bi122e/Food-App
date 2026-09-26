@@ -129,7 +129,7 @@ fun HomeNavGraph(
 
         LaunchedEffect(
              orderState.appNotificationOrder?.ratingNotificationSent,
-            orderState.appNotificationOrder?.notificationId
+            orderState.appNotificationOrder?.orders?.firstOrNull()?.orderId
         ) {
             val ratingNotificationSent =
                 orderState.appNotificationOrder?.ratingNotificationSent == true

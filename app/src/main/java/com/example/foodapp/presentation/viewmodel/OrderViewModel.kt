@@ -325,6 +325,8 @@ class OrderViewModel @Inject constructor(
 
                             handleOrders.forEach { order ->
 
+                                if (!handleOrderIds.add(order.orderId)) return@forEach
+
                                 val response = notificationRepository.createNotification(
                                     notification = order.toAppNotification()
                                 )
@@ -356,6 +358,8 @@ class OrderViewModel @Inject constructor(
                                             "check_VM_createNotification",
                                             "error ${response.message}"
                                         )
+                                        handleOrderIds.remove(order.orderId)
+
                                     }
 
                                     else -> {
