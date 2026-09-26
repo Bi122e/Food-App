@@ -61,6 +61,7 @@ class MainActivity : AppCompatActivity() {
 
         val splashScreen = installSplashScreen()
 
+
         splashScreen.setKeepOnScreenCondition {
             authViewModel.appState == AuthStatus.Loading
         }

@@ -809,6 +809,9 @@ fun HomeNavGraph(
 
                 //checkout
                 composable(route = UserRoutes.CHECKOUT) { backStackEntry ->
+                    val activity = LocalActivity.current as ComponentActivity
+                    val orderViewModel: OrderViewModel = hiltViewModel(activity)
+
                     val parentEntry = remember(backStackEntry) {
                         navController.getBackStackEntry(UserRoutes.CHECKOUT)
                     }
@@ -817,8 +820,7 @@ fun HomeNavGraph(
                     val checkoutUiState by checkoutViewModel.checkoutUiState.collectAsStateWithLifecycle()
                     val cartViewModel: CartViewModel = hiltViewModel(parentEntry)
 
-                    val orderViewModel: OrderViewModel = hiltViewModel()
-                    CheckOutTab(
+                     CheckOutTab(
                         checkoutUiState = checkoutUiState,
                         increaseQty = { foodId, variations, quantity ->
                             checkoutViewModel.increaseQty(
@@ -860,24 +862,57 @@ fun HomeNavGraph(
 
 
                 //order
+//                composable(route = "${UserRoutes.ORDER}/{orderId}") { backStackEntry ->
+//                    val orderId = requireNotNull(backStackEntry.arguments?.getString("orderId"))
+//
+//
+//                    val orderViewModel: OrderViewModel = hiltViewModel(activity)
+//                    val orderUiState by orderViewModel.orderUiState.collectAsStateWithLifecycle()
+//
+//                    Log.d("check_orderId", "order Ui State: ${orderUiState.order.first().orderId}")
+//                    Log.d("check_orderId", "orderId: $orderId")
+//
+//
+//                    LaunchedEffect(orderId) {
+//                        orderViewModel.loadOrderById(orderId)
+//                    }
+//
+//                    OrderTab(
+//                        orderUiState = orderUiState, orderId = orderId
+//                    )
+//                }
                 composable(route = "${UserRoutes.ORDER}/{orderId}") { backStackEntry ->
-                    val orderId = requireNotNull(backStackEntry.arguments?.getString("orderId"))
+
+                    val orderId = requireNotNull(
+                        backStackEntry.arguments?.getString("orderId")
+                    )
 
                     val orderViewModel: OrderViewModel = hiltViewModel(activity)
-                    val orderUiState by orderViewModel.orderUiState.collectAsStateWithLifecycle()
 
-                    Log.d("check_orderId", "order Ui State: ${orderUiState.order.first().orderId}")
-                    Log.d("check_orderId", "orderId: $orderId")
+                    val orderUiState by orderViewModel
+                        .orderUiState
+                        .collectAsStateWithLifecycle()
 
+                    Log.d(
+                        "check_orderId",
+                        "orderId from navigation: $orderId"
+                    )
+
+                    Log.d(
+                        "check_orderId",
+                        "orders size: ${orderUiState.order.size}"
+                    )
 
                     LaunchedEffect(orderId) {
                         orderViewModel.loadOrderById(orderId)
                     }
 
                     OrderTab(
-                        orderUiState = orderUiState, orderId = orderId
+                        orderUiState = orderUiState,
+                        orderId = orderId
                     )
                 }
+
 
 
 
